@@ -1,0 +1,74 @@
+.como-funciona {
+  padding: 96px 0;
+  background: var(--bg);
+}
+.como-funciona__header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.pasos__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  position: relative;
+}
+
+.paso-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px 24px;
+  position: relative;
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+.paso-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+}
+
+.paso-card__num {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+  background: var(--primary-light);
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.paso-card__icon {
+  font-size: 2rem;
+  margin-bottom: 16px;
+}
+.paso-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--secondary);
+  margin-bottom: 10px;
+}
+.paso-card__desc {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+.paso-card__arrow {
+  position: absolute;
+  top: 50%;
+  right: -18px;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  color: var(--primary);
+  z-index: 1;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .pasos__grid { grid-template-columns: repeat(2, 1fr); }
+  .paso-card__arrow { display: none; }
+}
+@media (max-width: 520px) {
+  .pasos__grid { grid-template-columns: 1fr; }
+  .como-funciona { padding: 72px 0; }
+}

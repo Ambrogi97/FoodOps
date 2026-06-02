@@ -1,0 +1,120 @@
+.planes {
+  padding: 96px 0;
+  background: var(--bg);
+}
+.planes__header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.planes__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.plan-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 36px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  position: relative;
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+.plan-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+}
+
+.plan-card--destacado {
+  background: var(--secondary);
+  border-color: transparent;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-8px) scale(1.02);
+}
+.plan-card--destacado:hover {
+  transform: translateY(-14px) scale(1.02);
+}
+.plan-card--destacado .plan-card__nombre,
+.plan-card--destacado .plan-card__monto,
+.plan-card--destacado .plan-card__periodo { color: #fff; }
+.plan-card--destacado .plan-card__desc { color: rgba(255,255,255,0.6); }
+.plan-card--destacado .plan-card__items li { color: rgba(255,255,255,0.85); }
+.plan-card--destacado .plan-card__check { color: #4ADE80; }
+
+.plan-card__badge {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 5px 16px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.plan-card__header { display: flex; flex-direction: column; gap: 8px; }
+.plan-card__nombre {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--secondary);
+}
+.plan-card__precio {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.plan-card__monto {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--secondary);
+  letter-spacing: -1px;
+}
+.plan-card__periodo {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.plan-card__desc {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.plan-card__items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.plan-card__items li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.plan-card__check {
+  color: var(--primary);
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+@media (max-width: 900px) {
+  .planes__grid { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; }
+  .plan-card--destacado { transform: none; }
+  .plan-card--destacado:hover { transform: translateY(-4px); }
+}
+@media (max-width: 560px) {
+  .planes { padding: 72px 0; }
+  .plan-card { padding: 28px 24px; }
+}
