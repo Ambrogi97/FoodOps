@@ -1,0 +1,13 @@
+{
+  "name": "foodops-backend",
+  "version": "1.0.0",
+  "description": "FoodOps API Server",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
