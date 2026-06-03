@@ -14,7 +14,7 @@ const planes = [
       'Actualización en tiempo real',
       'Soporte por email',
     ],
-    cta: 'Empezar gratis',
+    cta: 'Registrarse',
   },
   {
     nombre: 'Profesional',
@@ -31,7 +31,7 @@ const planes = [
       'Estadísticas básicas',
       'Soporte prioritario',
     ],
-    cta: 'Comenzar prueba gratis',
+    cta: 'Registrarse',
   },
   {
     nombre: 'Premium',

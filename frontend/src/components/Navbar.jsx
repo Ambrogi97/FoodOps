@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import './Navbar.css'
 
 export default function Navbar() {
@@ -26,8 +27,8 @@ export default function Navbar() {
         </ul>
 
         <div className="navbar__actions">
-          <a href="#planes" className="btn btn--ghost">Iniciar sesión</a>
-          <a href="#planes" className="btn btn--primary">Comenzar gratis</a>
+          <Link to="/login" className="btn btn--ghost">Iniciar sesión</Link>
+          <a href="#planes" className="btn btn--primary">Registrarse</a>
         </div>
 
         <button

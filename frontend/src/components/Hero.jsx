@@ -16,24 +16,8 @@ export default function Hero() {
             pedidos en línea y pagos integrados, todo sin instalar ninguna aplicación.
           </p>
           <div className="hero__ctas">
-            <a href="#planes" className="btn btn--primary btn--lg">Comenzar gratis</a>
+            <a href="#planes" className="btn btn--primary btn--lg">Registrarse</a>
             <a href="#como-funciona" className="btn btn--outline btn--lg">Ver cómo funciona</a>
-          </div>
-          <div className="hero__stats">
-            <div className="hero__stat">
-              <span className="hero__stat-num">+500</span>
-              <span className="hero__stat-label">Restaurantes activos</span>
-            </div>
-            <div className="hero__stat-divider" />
-            <div className="hero__stat">
-              <span className="hero__stat-num">98%</span>
-              <span className="hero__stat-label">Satisfacción</span>
-            </div>
-            <div className="hero__stat-divider" />
-            <div className="hero__stat">
-              <span className="hero__stat-num">0 apps</span>
-              <span className="hero__stat-label">Sin instalación</span>
-            </div>
           </div>
         </div>
 
