@@ -1,17 +1,31 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { authService, saveSession } from '../services/api'
 import './Login.css'
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' })
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // TODO: conectar con backend
+    setError('')
+    setLoading(true)
+    try {
+      const { token, user } = await authService.login(form)
+      saveSession(token, user)
+      navigate('/dashboard')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -52,8 +66,10 @@ export default function Login() {
             />
           </div>
 
-          <button type="submit" className="btn btn--primary btn--lg login-submit">
-            Iniciar sesión
+          {error && <p className="login-error">{error}</p>}
+
+          <button type="submit" className="btn btn--primary btn--lg login-submit" disabled={loading}>
+            {loading ? 'Ingresando...' : 'Iniciar sesión'}
           </button>
         </form>
 

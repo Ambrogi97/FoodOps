@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams, useNavigate } from 'react-router-dom'
+import { authService, saveSession } from '../services/api'
 import './Register.css'
 
 const PLANES = {
@@ -12,6 +13,7 @@ export default function Register() {
   const [searchParams] = useSearchParams()
   const planId = searchParams.get('plan') || 'basico'
   const plan = PLANES[planId] || PLANES.basico
+  const navigate = useNavigate()
 
   const [form, setForm] = useState({
     restaurante: '',
@@ -20,14 +22,38 @@ export default function Register() {
     password: '',
     confirmar: '',
   })
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // TODO: conectar con backend
+    setError('')
+
+    if (form.password !== form.confirmar) {
+      setError('Las contraseñas no coinciden')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const { token, user } = await authService.register({
+        nombre: form.nombre,
+        email: form.email,
+        password: form.password,
+        restaurante: form.restaurante,
+        plan: planId,
+      })
+      saveSession(token, user)
+      navigate('/dashboard')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -114,8 +140,10 @@ export default function Register() {
             </div>
           </div>
 
-          <button type="submit" className="btn btn--primary btn--lg register-submit">
-            Crear cuenta
+          {error && <p className="register-error">{error}</p>}
+
+          <button type="submit" className="btn btn--primary btn--lg register-submit" disabled={loading}>
+            {loading ? 'Creando cuenta...' : 'Crear cuenta'}
           </button>
         </form>
 

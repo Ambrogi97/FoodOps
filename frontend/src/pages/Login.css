@@ -103,3 +103,5 @@
 .login-register a:hover {
   text-decoration: underline;
 }
+
+.login-error { color: #dc2626; font-size: 0.875rem; margin-bottom: 0.75rem; }
