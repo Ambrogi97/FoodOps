@@ -16,7 +16,7 @@ const planes = [
       'Actualización en tiempo real',
       'Soporte por email',
     ],
-    cta: 'Registrarse',
+    cta: 'Elegir Básico',
   },
   {
     id: 'profesional',
@@ -34,7 +34,7 @@ const planes = [
       'Estadísticas básicas',
       'Soporte prioritario',
     ],
-    cta: 'Registrarse',
+    cta: 'Elegir Profesional',
   },
   {
     id: 'premium',
@@ -51,7 +51,7 @@ const planes = [
       'Reportes y analytics avanzados',
       'Soporte 24/7 dedicado',
     ],
-    cta: 'Contactar ventas',
+    cta: 'Elegir Premium',
   },
 ]
 
