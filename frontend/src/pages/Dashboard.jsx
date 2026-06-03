@@ -17,12 +17,6 @@ const NAV_ITEMS = [
   { id: 'gastos',      label: 'Gastos',       icon: '🧮' },
 ]
 
-const STAT_CARDS = [
-  { label: 'Ventas hoy',       value: '$0',  sub: 'vs ayer',         color: 'orange' },
-  { label: 'Pedidos activos',  value: '0',   sub: 'en curso',        color: 'blue'   },
-  { label: 'Mesas ocupadas',   value: '0/0', sub: 'del salón',       color: 'green'  },
-  { label: 'Gasto del mes',    value: '$0',  sub: 'registrado',      color: 'red'    },
-]
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -93,17 +87,6 @@ export default function Dashboard() {
 
         {/* Content */}
         <main className="dash-content">
-
-          {/* Stat cards */}
-          <div className="dash-stats">
-            {STAT_CARDS.map((card) => (
-              <div key={card.label} className={`dash-stat-card dash-stat-card--${card.color}`}>
-                <span className="dash-stat-value">{card.value}</span>
-                <span className="dash-stat-label">{card.label}</span>
-                <span className="dash-stat-sub">{card.sub}</span>
-              </div>
-            ))}
-          </div>
 
           {/* Contenido por sección */}
           {active === 'mesas' ? (
