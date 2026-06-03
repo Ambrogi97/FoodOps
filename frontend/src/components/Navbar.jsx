@@ -28,7 +28,7 @@ export default function Navbar() {
 
         <div className="navbar__actions">
           <Link to="/login" className="btn btn--ghost">Iniciar sesión</Link>
-          <a href="#planes" className="btn btn--primary">Registrarse</a>
+          <Link to="/register" className="btn btn--primary">Registrarse</Link>
         </div>
 
         <button

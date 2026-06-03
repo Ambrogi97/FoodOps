@@ -1,7 +1,9 @@
+import { Link } from 'react-router-dom'
 import './Planes.css'
 
 const planes = [
   {
+    id: 'basico',
     nombre: 'Básico',
     precio: '$4.999',
     periodo: '/mes',
@@ -17,6 +19,7 @@ const planes = [
     cta: 'Registrarse',
   },
   {
+    id: 'profesional',
     nombre: 'Profesional',
     precio: '$9.999',
     periodo: '/mes',
@@ -34,6 +37,7 @@ const planes = [
     cta: 'Registrarse',
   },
   {
+    id: 'premium',
     nombre: 'Premium',
     precio: '$17.999',
     periodo: '/mes',
@@ -83,13 +87,13 @@ export default function Planes() {
                   </li>
                 ))}
               </ul>
-              <a
-                href="#"
+              <Link
+                to={p.id === 'premium' ? '#contacto' : `/register?plan=${p.id}`}
                 className={`btn btn--lg${p.destacado ? ' btn--primary' : ' btn--outline'}`}
                 style={{ width: '100%', marginTop: 'auto' }}
               >
                 {p.cta}
-              </a>
+              </Link>
             </div>
           ))}
         </div>

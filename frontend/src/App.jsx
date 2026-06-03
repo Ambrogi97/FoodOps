@@ -7,6 +7,7 @@ import Caracteristicas from './components/Caracteristicas'
 import Planes from './components/Planes'
 import Footer from './components/Footer'
 import Login from './pages/Login'
+import Register from './pages/Register'
 
 function Landing() {
   return (
@@ -30,6 +31,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
       </Routes>
     </BrowserRouter>
   )
