@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { getSession, clearSession } from '../services/api'
+import Mesas from './dashboard/Mesas'
 import './Dashboard.css'
 
 const NAV_ITEMS = [
@@ -27,6 +28,7 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const { user } = getSession()
   const [active, setActive] = useState('mesas')
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
 
   if (!user) {
     navigate('/login')
@@ -69,7 +71,7 @@ export default function Dashboard() {
               <span className="dash-user-plan">{user.plan}</span>
             </div>
           </div>
-          <button className="dash-logout" onClick={handleLogout} title="Cerrar sesión">
+          <button className="dash-logout" onClick={() => setShowLogoutModal(true)} title="Cerrar sesión">
             ↩
           </button>
         </div>
@@ -103,21 +105,44 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {/* Placeholder content */}
-          <div className="dash-panel">
-            <div className="dash-panel-header">
-              <h2 className="dash-panel-title">{NAV_ITEMS.find(i => i.id === active)?.label}</h2>
-              <button className="dash-btn-primary">+ Nuevo</button>
+          {/* Contenido por sección */}
+          {active === 'mesas' ? (
+            <Mesas />
+          ) : (
+            <div className="dash-panel">
+              <div className="dash-panel-header">
+                <h2 className="dash-panel-title">{NAV_ITEMS.find(i => i.id === active)?.label}</h2>
+                <button className="dash-btn-primary">+ Nuevo</button>
+              </div>
+              <div className="dash-empty">
+                <div className="dash-empty-icon">{NAV_ITEMS.find(i => i.id === active)?.icon}</div>
+                <p>Esta sección está en construcción</p>
+                <span>Pronto vas a poder gestionar {NAV_ITEMS.find(i => i.id === active)?.label.toLowerCase()} desde acá</span>
+              </div>
             </div>
-            <div className="dash-empty">
-              <div className="dash-empty-icon">{NAV_ITEMS.find(i => i.id === active)?.icon}</div>
-              <p>Esta sección está en construcción</p>
-              <span>Pronto vas a poder gestionar {NAV_ITEMS.find(i => i.id === active)?.label.toLowerCase()} desde acá</span>
-            </div>
-          </div>
+          )}
 
         </main>
       </div>
+      {/* Modal cerrar sesión */}
+      {showLogoutModal && (
+        <div className="dash-modal-overlay" onClick={() => setShowLogoutModal(false)}>
+          <div className="dash-modal" onClick={e => e.stopPropagation()}>
+            <div className="dash-modal-icon">↩</div>
+            <h3 className="dash-modal-title">¿Estás seguro?</h3>
+            <p className="dash-modal-text">Vas a cerrar la sesión de <strong>{user.restaurante}</strong>.</p>
+            <div className="dash-modal-actions">
+              <button className="dash-modal-btn dash-modal-btn--cancel" onClick={() => setShowLogoutModal(false)}>
+                No
+              </button>
+              <button className="dash-modal-btn dash-modal-btn--confirm" onClick={handleLogout}>
+                Sí, salir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

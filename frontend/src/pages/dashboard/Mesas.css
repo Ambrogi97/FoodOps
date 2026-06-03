@@ -1,0 +1,234 @@
+.mesas-layout {
+  display: flex;
+  gap: 20px;
+  height: 100%;
+}
+
+/* Izquierda */
+.mesas-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Tabs */
+.mesas-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  width: fit-content;
+}
+
+.mesas-tab {
+  padding: 7px 20px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: none;
+  color: var(--text-muted);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.mesas-tab--active {
+  background: var(--secondary);
+  color: #fff;
+}
+
+/* Leyenda */
+.mesas-leyenda {
+  display: flex;
+  gap: 16px;
+}
+.mesas-leyenda-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.mesas-leyenda-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* Grid */
+.mesas-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 100px);
+  gap: 12px;
+}
+
+.mesa-card {
+  width: 100px;
+  height: 100px;
+  border-radius: var(--radius-md);
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all var(--transition);
+  position: relative;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.mesa-card--libre {
+  border-color: #22C55E;
+}
+.mesa-card--libre:hover {
+  background: #f0fdf4;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.mesa-card--ocupada {
+  border-color: #EF4444;
+  background: #fff5f5;
+}
+.mesa-card--ocupada:hover {
+  background: #fee2e2;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.mesa-card--selected {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.mesa-numero {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+}
+
+.mesa-estado-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* Derecha: panel detalle */
+.mesas-right {
+  width: 280px;
+  min-width: 280px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+}
+
+.mesas-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 24px;
+}
+.mesas-empty-icon { font-size: 2.5rem; margin-bottom: 8px; }
+.mesas-empty p { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+.mesas-empty span { font-size: 0.8rem; }
+
+/* Detalle */
+.mesa-detalle {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.mesa-detalle-header {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mesa-detalle-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  width: fit-content;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mesa-detalle-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-top: 8px;
+}
+
+.mesa-detalle-salon {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.mesa-detalle-info {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.mesa-detalle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+.mesa-detalle-row span { color: var(--text-muted); }
+.mesa-detalle-row strong { color: var(--text); font-weight: 600; }
+
+.mesa-detalle-actions {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.mesa-btn {
+  width: 100%;
+  padding: 11px;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all var(--transition);
+}
+
+.mesa-btn--primary {
+  background: var(--primary);
+  color: #fff;
+}
+.mesa-btn--primary:hover { background: var(--primary-dark); }
+
+.mesa-btn--secondary {
+  background: var(--border);
+  color: var(--text);
+}
+.mesa-btn--secondary:hover { background: #d1d5db; }
