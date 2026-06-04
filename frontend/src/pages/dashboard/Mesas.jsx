@@ -33,7 +33,6 @@ export default function Mesas() {
   const [showModal, setShowModal]   = useState(false)
   const [nombreZona, setNombreZona] = useState('')
   const [draggingId, setDraggingId]               = useState(null)
-  const [nextId, setNextId]                       = useState(8)
   const [confirmarEliminar, setConfirmarEliminar] = useState(null)
   const [showAgregarMesas, setShowAgregarMesas]   = useState(false)
   const [cantidadMesas, setCantidadMesas]         = useState(1)
@@ -91,16 +90,26 @@ export default function Mesas() {
 
   const confirmarAgregarMesas = () => {
     const cantidad = Math.max(1, Math.min(cantidadMesas, 20))
-    const ocupadas = new Set(zona.mesas.map(m => `${m.col}-${m.row}`))
+    const celdasOcupadas = new Set(zona.mesas.map(m => `${m.col}-${m.row}`))
+    const idsUsados = new Set(zonas.flatMap(z => z.mesas.map(m => m.id)))
+
+    const siguienteId = (desde = 1) => {
+      let id = desde
+      while (idsUsados.has(id)) id++
+      return id
+    }
+
     const nuevas = []
-    let id = nextId
+    let idActual = 1
 
     for (let r = 0; r < ROWS && nuevas.length < cantidad; r++) {
       for (let c = 0; c < COLS && nuevas.length < cantidad; c++) {
-        if (!ocupadas.has(`${c}-${r}`)) {
-          ocupadas.add(`${c}-${r}`)
-          nuevas.push({ id, estado: 'libre', col: c, row: r })
-          id++
+        if (!celdasOcupadas.has(`${c}-${r}`)) {
+          celdasOcupadas.add(`${c}-${r}`)
+          idActual = siguienteId(idActual)
+          idsUsados.add(idActual)
+          nuevas.push({ id: idActual, estado: 'libre', col: c, row: r })
+          idActual++
         }
       }
     }
@@ -111,17 +120,29 @@ export default function Mesas() {
         ? { ...z, mesas: [...z.mesas, ...nuevas] }
         : z
     ))
-    setNextId(id)
     setShowAgregarMesas(false)
     setCantidadMesas(1)
   }
 
   const eliminarMesa = (mesaId) => {
-    setZonas(zonas.map(z =>
+    // Eliminar la mesa y renumerar todas las mesas de todas las zonas
+    const zonasActualizadas = zonas.map(z =>
       z.id === zonaActiva
         ? { ...z, mesas: z.mesas.filter(m => m.id !== mesaId) }
         : z
-    ))
+    )
+
+    // Recolectar todas las mesas en orden (por zona, luego por row y col)
+    // y asignar IDs consecutivos desde 1
+    let contador = 1
+    const zonasRenumeradas = zonasActualizadas.map(z => ({
+      ...z,
+      mesas: [...z.mesas]
+        .sort((a, b) => a.row - b.row || a.col - b.col)
+        .map(m => ({ ...m, id: contador++ })),
+    }))
+
+    setZonas(zonasRenumeradas)
     setSelected(null)
     setConfirmarEliminar(null)
   }
