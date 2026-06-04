@@ -348,6 +348,13 @@
 }
 .mesa-btn--danger:hover { background: #fff5f5; }
 
+.mesa-btn--confirm-danger {
+  background: #EF4444;
+  color: #fff;
+  border: none;
+}
+.mesa-btn--confirm-danger:hover { background: #dc2626; }
+
 /* Modal agregar zona */
 .mesas-modal-overlay {
   position: fixed;
@@ -394,6 +401,50 @@
   transition: border-color var(--transition);
 }
 .mesas-modal-input:focus { border-color: var(--primary); }
+
+.mesas-cantidad-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.mesas-cantidad-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mesas-cantidad-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.mesas-cantidad-input {
+  width: 70px;
+  text-align: center;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 1.3rem;
+  font-weight: 700;
+  font-family: inherit;
+  outline: none;
+  -moz-appearance: textfield;
+}
+.mesas-cantidad-input::-webkit-outer-spin-button,
+.mesas-cantidad-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.mesas-cantidad-input:focus { border-color: var(--primary); }
 
 .mesas-modal-actions {
   display: flex;

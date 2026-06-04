@@ -32,8 +32,11 @@ export default function Mesas() {
   const [selected, setSelected]     = useState(null)
   const [showModal, setShowModal]   = useState(false)
   const [nombreZona, setNombreZona] = useState('')
-  const [draggingId, setDraggingId] = useState(null)
-  const [nextId, setNextId]         = useState(8)
+  const [draggingId, setDraggingId]               = useState(null)
+  const [nextId, setNextId]                       = useState(8)
+  const [confirmarEliminar, setConfirmarEliminar] = useState(null)
+  const [showAgregarMesas, setShowAgregarMesas]   = useState(false)
+  const [cantidadMesas, setCantidadMesas]         = useState(1)
 
   const zona = zonas.find(z => z.id === zonaActiva)
   const mesa = zona?.mesas.find(m => m.id === selected)
@@ -86,22 +89,31 @@ export default function Mesas() {
     ))
   }
 
-  const agregarMesa = () => {
-    // Encontrar la primera celda libre
+  const confirmarAgregarMesas = () => {
+    const cantidad = Math.max(1, Math.min(cantidadMesas, 20))
     const ocupadas = new Set(zona.mesas.map(m => `${m.col}-${m.row}`))
-    let col = null, row = null
-    outer: for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
-        if (!ocupadas.has(`${c}-${r}`)) { col = c; row = r; break outer }
+    const nuevas = []
+    let id = nextId
+
+    for (let r = 0; r < ROWS && nuevas.length < cantidad; r++) {
+      for (let c = 0; c < COLS && nuevas.length < cantidad; c++) {
+        if (!ocupadas.has(`${c}-${r}`)) {
+          ocupadas.add(`${c}-${r}`)
+          nuevas.push({ id, estado: 'libre', col: c, row: r })
+          id++
+        }
       }
     }
-    if (col === null) return
+
+    if (nuevas.length === 0) return
     setZonas(zonas.map(z =>
       z.id === zonaActiva
-        ? { ...z, mesas: [...z.mesas, { id: nextId, estado: 'libre', col, row }] }
+        ? { ...z, mesas: [...z.mesas, ...nuevas] }
         : z
     ))
-    setNextId(nextId + 1)
+    setNextId(id)
+    setShowAgregarMesas(false)
+    setCantidadMesas(1)
   }
 
   const eliminarMesa = (mesaId) => {
@@ -111,6 +123,7 @@ export default function Mesas() {
         : z
     ))
     setSelected(null)
+    setConfirmarEliminar(null)
   }
 
   const agregarZona = () => {
@@ -170,7 +183,7 @@ export default function Mesas() {
             </span>
           ))}
           <span className="mesas-leyenda-hint">Arrastrá las mesas para acomodarlas</span>
-          <button className="mesas-add-mesa" onClick={agregarMesa}>+ Mesa</button>
+          <button className="mesas-add-mesa" onClick={() => setShowAgregarMesas(true)}>+ Mesa</button>
         </div>
 
         {/* Grilla */}
@@ -250,11 +263,51 @@ export default function Mesas() {
                   <button className="mesa-btn mesa-btn--secondary" onClick={() => cerrarMesa(mesa.id)}>Cerrar mesa</button>
                 </>
               )}
-              <button className="mesa-btn mesa-btn--danger" onClick={() => eliminarMesa(mesa.id)}>Eliminar mesa</button>
+              <button className="mesa-btn mesa-btn--danger" onClick={() => setConfirmarEliminar(mesa.id)}>Eliminar mesa</button>
             </div>
           </div>
         )}
       </div>
+
+      {/* Modal agregar mesas */}
+      {showAgregarMesas && (
+        <div className="mesas-modal-overlay" onClick={() => setShowAgregarMesas(false)}>
+          <div className="mesas-modal" onClick={e => e.stopPropagation()}>
+            <h3 className="mesas-modal-title">Agregar mesas</h3>
+            <p className="mesas-modal-sub">¿Cuántas mesas querés agregar a <strong>{zona?.label}</strong>?</p>
+            <div className="mesas-cantidad-wrap">
+              <button className="mesas-cantidad-btn" onClick={() => setCantidadMesas(v => Math.max(1, v - 1))}>−</button>
+              <input
+                className="mesas-cantidad-input"
+                type="number"
+                min="1"
+                max="20"
+                value={cantidadMesas}
+                onChange={e => setCantidadMesas(Math.max(1, parseInt(e.target.value) || 1))}
+              />
+              <button className="mesas-cantidad-btn" onClick={() => setCantidadMesas(v => Math.min(20, v + 1))}>+</button>
+            </div>
+            <div className="mesas-modal-actions">
+              <button className="mesa-btn mesa-btn--secondary" onClick={() => { setShowAgregarMesas(false); setCantidadMesas(1) }}>Cancelar</button>
+              <button className="mesa-btn mesa-btn--primary" onClick={confirmarAgregarMesas}>Agregar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal confirmar eliminar mesa */}
+      {confirmarEliminar !== null && (
+        <div className="mesas-modal-overlay" onClick={() => setConfirmarEliminar(null)}>
+          <div className="mesas-modal" onClick={e => e.stopPropagation()}>
+            <h3 className="mesas-modal-title">¿Eliminar mesa {confirmarEliminar}?</h3>
+            <p className="mesas-modal-sub">Esta acción no se puede deshacer.</p>
+            <div className="mesas-modal-actions">
+              <button className="mesa-btn mesa-btn--secondary" onClick={() => setConfirmarEliminar(null)}>Cancelar</button>
+              <button className="mesa-btn mesa-btn--confirm-danger" onClick={() => eliminarMesa(confirmarEliminar)}>Sí, eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal agregar zona */}
       {showModal && (
