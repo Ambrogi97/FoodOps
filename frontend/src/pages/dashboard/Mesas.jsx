@@ -1,9 +1,16 @@
 import { useState } from 'react'
 import './Mesas.css'
 
-const SALONES = {
-  salon: {
+const ESTADO_CONFIG = {
+  libre:   { label: 'Libre',   color: '#22C55E' },
+  ocupada: { label: 'Ocupada', color: '#EF4444' },
+}
+
+const ZONAS_INICIALES = [
+  {
+    id: 'salon',
     label: 'Salón',
+    removible: false,
     mesas: [
       { id: 1, estado: 'libre' },
       { id: 2, estado: 'ocupada', cliente: 'Mesa 2', hora: '20:15', total: '$13.500' },
@@ -14,47 +21,74 @@ const SALONES = {
       { id: 7, estado: 'libre' },
     ],
   },
-  terraza: {
-    label: 'Terraza',
-    mesas: [
-      { id: 8,  estado: 'libre' },
-      { id: 9,  estado: 'libre' },
-      { id: 10, estado: 'ocupada', cliente: 'Mesa 10', hora: '20:00', total: '$21.000' },
-      { id: 11, estado: 'libre' },
-      { id: 12, estado: 'libre' },
-    ],
-  },
-}
-
-const ESTADO_CONFIG = {
-  libre:   { label: 'Libre',   color: '#22C55E' },
-  ocupada: { label: 'Ocupada', color: '#EF4444' },
-}
+]
 
 export default function Mesas() {
-  const [salon, setSalon]         = useState('salon')
-  const [selected, setSelected]   = useState(null)
+  const [zonas, setZonas]           = useState(ZONAS_INICIALES)
+  const [zonaActiva, setZonaActiva] = useState('salon')
+  const [selected, setSelected]     = useState(null)
+  const [showModal, setShowModal]   = useState(false)
+  const [nombreZona, setNombreZona] = useState('')
+  const [nextMesaId, setNextMesaId] = useState(8)
 
-  const mesas = SALONES[salon].mesas
-  const mesa  = mesas.find(m => m.id === selected)
+  const zona = zonas.find(z => z.id === zonaActiva)
+  const mesa = zona?.mesas.find(m => m.id === selected)
+
+  const agregarZona = () => {
+    const nombre = nombreZona.trim()
+    if (!nombre) return
+    const id = nombre.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now()
+    setZonas([...zonas, { id, label: nombre, removible: true, mesas: [] }])
+    setZonaActiva(id)
+    setSelected(null)
+    setNombreZona('')
+    setShowModal(false)
+  }
+
+  const eliminarZona = (id) => {
+    setZonas(zonas.filter(z => z.id !== id))
+    if (zonaActiva === id) {
+      setZonaActiva('salon')
+      setSelected(null)
+    }
+  }
 
   return (
     <div className="mesas-layout">
 
-      {/* Izquierda: grid de mesas */}
+      {/* Izquierda */}
       <div className="mesas-left">
 
-        {/* Tabs salón */}
-        <div className="mesas-tabs">
-          {Object.entries(SALONES).map(([key, val]) => (
-            <button
-              key={key}
-              className={`mesas-tab ${salon === key ? 'mesas-tab--active' : ''}`}
-              onClick={() => { setSalon(key); setSelected(null) }}
-            >
-              {val.label}
-            </button>
-          ))}
+        {/* Tabs */}
+        <div className="mesas-tabs-row">
+          <div className="mesas-tabs">
+            {zonas.map(z => (
+              <div
+                key={z.id}
+                className={`mesas-tab-wrap ${zonaActiva === z.id ? 'mesas-tab-wrap--active' : ''}`}
+              >
+                <button
+                  className="mesas-tab"
+                  onClick={() => { setZonaActiva(z.id); setSelected(null) }}
+                >
+                  {z.label}
+                </button>
+                {z.removible && (
+                  <button
+                    className="mesas-tab-remove"
+                    onClick={() => eliminarZona(z.id)}
+                    title={`Eliminar ${z.label}`}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <button className="mesas-add-zona" onClick={() => setShowModal(true)} title="Agregar zona">
+            +
+          </button>
         </div>
 
         {/* Leyenda */}
@@ -68,18 +102,24 @@ export default function Mesas() {
         </div>
 
         {/* Grid */}
-        <div className="mesas-grid">
-          {mesas.map(m => (
-            <button
-              key={m.id}
-              className={`mesa-card mesa-card--${m.estado} ${selected === m.id ? 'mesa-card--selected' : ''}`}
-              onClick={() => setSelected(selected === m.id ? null : m.id)}
-            >
-              <span className="mesa-numero">{m.id}</span>
-              <span className="mesa-estado-dot" style={{ background: ESTADO_CONFIG[m.estado].color }} />
-            </button>
-          ))}
-        </div>
+        {zona?.mesas.length === 0 ? (
+          <div className="mesas-zona-empty">
+            <p>No hay mesas en esta zona</p>
+          </div>
+        ) : (
+          <div className="mesas-grid">
+            {zona.mesas.map(m => (
+              <button
+                key={m.id}
+                className={`mesa-card mesa-card--${m.estado} ${selected === m.id ? 'mesa-card--selected' : ''}`}
+                onClick={() => setSelected(selected === m.id ? null : m.id)}
+              >
+                <span className="mesa-numero">{m.id}</span>
+                <span className="mesa-estado-dot" style={{ background: ESTADO_CONFIG[m.estado].color }} />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Derecha: detalle */}
@@ -100,7 +140,7 @@ export default function Mesas() {
                 {ESTADO_CONFIG[mesa.estado].label}
               </div>
               <h2 className="mesa-detalle-title">Mesa {mesa.id}</h2>
-              <p className="mesa-detalle-salon">{SALONES[salon].label}</p>
+              <p className="mesa-detalle-salon">{zona.label}</p>
             </div>
 
             {mesa.estado === 'ocupada' && (
@@ -133,6 +173,33 @@ export default function Mesas() {
           </div>
         )}
       </div>
+
+      {/* Modal agregar zona */}
+      {showModal && (
+        <div className="mesas-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="mesas-modal" onClick={e => e.stopPropagation()}>
+            <h3 className="mesas-modal-title">Nueva zona</h3>
+            <p className="mesas-modal-sub">Podés agregar sectores como Terraza, VIP, Jardín, etc.</p>
+            <input
+              className="mesas-modal-input"
+              type="text"
+              placeholder="Ej: Terraza"
+              value={nombreZona}
+              onChange={e => setNombreZona(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && agregarZona()}
+              autoFocus
+            />
+            <div className="mesas-modal-actions">
+              <button className="mesa-btn mesa-btn--secondary" onClick={() => { setShowModal(false); setNombreZona('') }}>
+                Cancelar
+              </button>
+              <button className="mesa-btn mesa-btn--primary" onClick={agregarZona} disabled={!nombreZona.trim()}>
+                Agregar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   )
