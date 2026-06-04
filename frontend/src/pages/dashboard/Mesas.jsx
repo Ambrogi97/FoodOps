@@ -33,6 +33,7 @@ export default function Mesas() {
   const [showModal, setShowModal]   = useState(false)
   const [nombreZona, setNombreZona] = useState('')
   const [draggingId, setDraggingId] = useState(null)
+  const [nextId, setNextId]         = useState(8)
 
   const zona = zonas.find(z => z.id === zonaActiva)
   const mesa = zona?.mesas.find(m => m.id === selected)
@@ -83,6 +84,33 @@ export default function Mesas() {
         ? { ...z, mesas: z.mesas.map(m => m.id === mesaId ? { ...m, estado: 'ocupada', hora, total: '$0' } : m) }
         : z
     ))
+  }
+
+  const agregarMesa = () => {
+    // Encontrar la primera celda libre
+    const ocupadas = new Set(zona.mesas.map(m => `${m.col}-${m.row}`))
+    let col = null, row = null
+    outer: for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (!ocupadas.has(`${c}-${r}`)) { col = c; row = r; break outer }
+      }
+    }
+    if (col === null) return
+    setZonas(zonas.map(z =>
+      z.id === zonaActiva
+        ? { ...z, mesas: [...z.mesas, { id: nextId, estado: 'libre', col, row }] }
+        : z
+    ))
+    setNextId(nextId + 1)
+  }
+
+  const eliminarMesa = (mesaId) => {
+    setZonas(zonas.map(z =>
+      z.id === zonaActiva
+        ? { ...z, mesas: z.mesas.filter(m => m.id !== mesaId) }
+        : z
+    ))
+    setSelected(null)
   }
 
   const agregarZona = () => {
@@ -142,6 +170,7 @@ export default function Mesas() {
             </span>
           ))}
           <span className="mesas-leyenda-hint">Arrastrá las mesas para acomodarlas</span>
+          <button className="mesas-add-mesa" onClick={agregarMesa}>+ Mesa</button>
         </div>
 
         {/* Grilla */}
@@ -221,6 +250,7 @@ export default function Mesas() {
                   <button className="mesa-btn mesa-btn--secondary" onClick={() => cerrarMesa(mesa.id)}>Cerrar mesa</button>
                 </>
               )}
+              <button className="mesa-btn mesa-btn--danger" onClick={() => eliminarMesa(mesa.id)}>Eliminar mesa</button>
             </div>
           </div>
         )}

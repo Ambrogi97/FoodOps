@@ -123,10 +123,31 @@
 }
 
 .mesas-leyenda-hint {
-  margin-left: auto;
   font-size: 0.75rem;
   color: var(--text-muted);
   font-style: italic;
+}
+
+.mesas-add-mesa {
+  margin-left: auto;
+  padding: 7px 16px;
+  background: var(--primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(255,107,53,0.35);
+}
+.mesas-add-mesa:hover {
+  background: var(--primary-dark);
+  box-shadow: 0 4px 12px rgba(255,107,53,0.45);
+  transform: translateY(-1px);
 }
 
 /* Grilla */
@@ -319,6 +340,13 @@
   color: var(--text);
 }
 .mesa-btn--secondary:hover { background: #d1d5db; }
+
+.mesa-btn--danger {
+  background: none;
+  color: #EF4444;
+  border: 1px solid #EF4444;
+}
+.mesa-btn--danger:hover { background: #fff5f5; }
 
 /* Modal agregar zona */
 .mesas-modal-overlay {
