@@ -10,6 +10,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-height: 0;
 }
 
 /* Tabs */
@@ -121,67 +122,90 @@
   border-radius: 50%;
 }
 
-/* Grid */
-.mesas-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 100px);
-  gap: 12px;
+.mesas-leyenda-hint {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-style: italic;
 }
 
-.mesa-card {
-  width: 100px;
-  height: 100px;
+/* Grilla */
+.mesas-grid-wrap {
+  flex: 1;
+  overflow: auto;
+  background: var(--bg);
   border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  padding: 16px;
+}
+
+.mesas-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 10px;
+  width: 100%;
+}
+
+/* Celda vacía */
+.celda {
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+}
+
+.celda--vacia {
+  border: 2px dashed var(--border);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.celda--drop-target {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+/* Mesa card */
+.mesa-card {
+  width: 100%;
+  aspect-ratio: 1;
+  height: auto;
+  border-radius: var(--radius-sm);
   border: 2px solid transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: all var(--transition);
-  position: relative;
+  gap: 6px;
+  cursor: grab;
   background: var(--surface);
   box-shadow: var(--shadow-sm);
+  user-select: none;
+  transition: box-shadow 0.15s, opacity 0.15s;
 }
+.mesa-card:active { cursor: grabbing; }
 
-.mesa-card--libre {
-  border-color: #22C55E;
-}
-.mesa-card--libre:hover {
-  background: #f0fdf4;
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.mesa-card--ocupada {
-  border-color: #EF4444;
-  background: #fff5f5;
-}
-.mesa-card--ocupada:hover {
-  background: #fee2e2;
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
+.mesa-card--libre   { border-color: #22C55E; }
+.mesa-card--ocupada { border-color: #EF4444; background: #fff5f5; }
 
 .mesa-card--selected {
-  transform: translateY(-3px);
   box-shadow: var(--shadow-md);
   outline: 3px solid var(--primary);
   outline-offset: 2px;
 }
 
+.mesa-card--dragging { opacity: 0.4; }
+
 .mesa-numero {
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: var(--text);
   line-height: 1;
+  pointer-events: none;
 }
 
 .mesa-estado-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  pointer-events: none;
 }
 
 /* Derecha: panel detalle */
