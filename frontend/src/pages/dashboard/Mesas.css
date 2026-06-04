@@ -158,8 +158,8 @@
 }
 
 .celda--drop-target {
-  border-color: var(--primary);
-  background: var(--primary-light);
+  border-color: #9CA3AF;
+  background: #F3F4F6;
 }
 
 /* Mesa card */
