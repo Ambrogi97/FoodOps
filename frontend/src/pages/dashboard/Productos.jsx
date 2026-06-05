@@ -86,7 +86,7 @@ export default function Productos({ productos, setProductos, categorias, setCate
   }
 
   const guardarEdicion = async () => {
-    if (!editando.nombre.trim() || !editando.precio || !editando.costo) return
+    if (!editando.nombre.trim() || editando.precio === '' || editando.precio === null) return
     try {
       const actualizado = await productosService.actualizar(editando.id, {
         nombre:    editando.nombre.trim(),
