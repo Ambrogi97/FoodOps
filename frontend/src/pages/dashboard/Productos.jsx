@@ -45,13 +45,14 @@ export default function Productos({ productos, setProductos, categorias, setCate
 
   const guardarEdicionCat = async () => {
     const nombre = nombreCatEdit.trim()
-    if (!nombre || nombre === editandoCat.nombre) { setEditandoCat(null); return }
+    if (!nombre) return
+    if (nombre === editandoCat.nombre) { setEditandoCat(null); return }
     try {
       const actualizada = await categoriasService.actualizar(editandoCat.id, { nombre })
       setCategorias(categorias.map(c => c.id === actualizada.id ? actualizada : c))
       setEditandoCat(null)
     } catch (e) {
-      console.error(e)
+      console.error('Error al renombrar categoría:', e)
     }
   }
 

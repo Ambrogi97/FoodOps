@@ -31,7 +31,7 @@ router.put('/:id', auth, async (req, res) => {
     const categoria = await Categoria.findOneAndUpdate(
       { _id: req.params.id, usuario: req.usuario.id },
       { nombre: nombre.trim() },
-      { new: true }
+      { returnDocument: 'after' }
     )
     if (!categoria) return res.status(404).json({ message: 'Categoría no encontrada' })
     res.json(categoria)

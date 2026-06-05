@@ -11,7 +11,11 @@
       "PowerShell(Invoke-WebRequest -Uri \"http://localhost:3000/\" -UseBasicParsing -TimeoutSec 3)",
       "PowerShell(netstat -an)",
       "Bash(node src/index.js)",
-      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:3000/\" -UseBasicParsing)"
+      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:3000/\" -UseBasicParsing)",
+      "Bash(node -e ' *)",
+      "PowerShell($response = Invoke-WebRequest -Uri \"http://localhost:3000/api/categorias/6a2234da6117f5358eb19f3c\" -Method PUT -ContentType \"application/json\" -Body '{\"nombre\":\"test\"}' -UseBasicParsing; Write-Output \"Status: $\\($response.StatusCode\\)\"; Write-Output \"Body: $\\($response.Content\\)\")",
+      "PowerShell($pid = \\(Get-NetTCPConnection -LocalPort 3000 -State Listen | Select-Object -First 1\\).OwningProcess; Write-Output \"PID: $pid\"; Stop-Process -Id $pid -Force; Write-Output \"Proceso terminado\")",
+      "PowerShell($procId = \\(Get-NetTCPConnection -LocalPort 3000 -State Listen | Select-Object -First 1\\).OwningProcess; Stop-Process -Id $procId -Force; Write-Output \"Proceso $procId terminado\")"
     ]
   }
 }
