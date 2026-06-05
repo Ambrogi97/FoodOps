@@ -36,6 +36,8 @@ export default function Productos() {
   const [nextProdId, setNextProdId]               = useState(11)
   const [confirmarEliminar, setConfirmarEliminar] = useState(null)
   const [editando, setEditando]                   = useState(null)
+  const [creando, setCreando]                     = useState(false)
+  const [nuevoProducto, setNuevoProducto]         = useState({ nombre: '', categoriaId: 1, precio: '', costo: '' })
 
   const productosFiltrados = productos.filter(p => {
     const matchCat = catActiva === null || p.categoriaId === catActiva
@@ -45,6 +47,21 @@ export default function Productos() {
 
   const producto = productos.find(p => p.id === selected)
   const catNombre = (id) => categorias.find(c => c.id === id)?.nombre ?? '—'
+
+  const confirmarNuevoProducto = () => {
+    if (!nuevoProducto.nombre.trim() || !nuevoProducto.precio || !nuevoProducto.costo) return
+    setProductos([...productos, {
+      id: nextProdId,
+      nombre: nuevoProducto.nombre.trim(),
+      categoriaId: Number(nuevoProducto.categoriaId),
+      precio: Number(nuevoProducto.precio),
+      costo: Number(nuevoProducto.costo),
+      activo: true,
+    }])
+    setNextProdId(nextProdId + 1)
+    setCreando(false)
+    setNuevoProducto({ nombre: '', categoriaId: 1, precio: '', costo: '' })
+  }
 
   const guardarEdicion = () => {
     if (!editando.nombre.trim() || !editando.precio || !editando.costo) return
@@ -94,7 +111,7 @@ export default function Productos() {
               value={busqueda}
               onChange={e => setBusqueda(e.target.value)}
             />
-            <button className="prod-btn-primary">+ Nuevo producto</button>
+            <button className="prod-btn-primary" onClick={() => setCreando(true)}>+ Nuevo producto</button>
           </div>
 
           <div className="prod-table-wrap">
@@ -149,22 +166,6 @@ export default function Productos() {
                   <span>Precio</span>
                   <strong>${fmt(producto.precio)}</strong>
                 </div>
-                <div className="prod-metric">
-                  <span>Costo</span>
-                  <strong>${fmt(producto.costo)}</strong>
-                </div>
-                <div className="prod-metric">
-                  <span>Margen $</span>
-                  <strong className="prod-margen-pos">${fmt(producto.precio - producto.costo)}</strong>
-                </div>
-                <div className="prod-metric">
-                  <span>Margen %</span>
-                  <strong className="prod-margen-pos">{pct(margenPct(producto.precio, producto.costo))}</strong>
-                </div>
-                <div className="prod-metric">
-                  <span>Markup %</span>
-                  <strong>{pct(markupPct(producto.precio, producto.costo))}</strong>
-                </div>
               </div>
 
               <div className="prod-detalle-actions">
@@ -176,6 +177,74 @@ export default function Productos() {
         </div>
 
       </div>
+
+      {/* Modal nuevo producto */}
+      {creando && (
+        <div className="prod-modal-overlay" onClick={() => setCreando(false)}>
+          <div className="prod-modal prod-modal--edit" onClick={e => e.stopPropagation()}>
+            <h3 className="prod-modal-title">Nuevo producto</h3>
+            <div className="prod-form">
+              <div className="prod-field">
+                <label>Nombre</label>
+                <input
+                  type="text"
+                  placeholder="Ej: Pizza Napolitana"
+                  value={nuevoProducto.nombre}
+                  onChange={e => setNuevoProducto({ ...nuevoProducto, nombre: e.target.value })}
+                  autoFocus
+                />
+              </div>
+              <div className="prod-field">
+                <label>Categoría</label>
+                <select
+                  value={nuevoProducto.categoriaId}
+                  onChange={e => setNuevoProducto({ ...nuevoProducto, categoriaId: Number(e.target.value) })}
+                >
+                  {categorias.map(c => (
+                    <option key={c.id} value={c.id}>{c.nombre}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="prod-form-row">
+                <div className="prod-field">
+                  <label>Precio</label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={nuevoProducto.precio}
+                    onChange={e => setNuevoProducto({ ...nuevoProducto, precio: e.target.value })}
+                  />
+                </div>
+                <div className="prod-field">
+                  <label>Costo</label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={nuevoProducto.costo}
+                    onChange={e => setNuevoProducto({ ...nuevoProducto, costo: e.target.value })}
+                  />
+                </div>
+              </div>
+              {nuevoProducto.precio && nuevoProducto.costo && (
+                <div className="prod-form-preview">
+                  <span>Margen: <strong className="prod-margen-pos">{pct(margenPct(Number(nuevoProducto.precio), Number(nuevoProducto.costo)))}</strong></span>
+                  <span>Markup: <strong>{pct(markupPct(Number(nuevoProducto.precio), Number(nuevoProducto.costo)))}</strong></span>
+                </div>
+              )}
+            </div>
+            <div className="prod-modal-actions">
+              <button className="prod-btn-secondary" onClick={() => setCreando(false)}>Cancelar</button>
+              <button
+                className="prod-btn-primary"
+                onClick={confirmarNuevoProducto}
+                disabled={!nuevoProducto.nombre.trim() || !nuevoProducto.precio || !nuevoProducto.costo}
+              >
+                Crear
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal editar producto */}
       {editando && (

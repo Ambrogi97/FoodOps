@@ -330,6 +330,11 @@
 .prod-form-row {
   display: flex;
   gap: 10px;
+  overflow: hidden;
+}
+
+.prod-form-row .prod-field {
+  min-width: 0;
 }
 
 .prod-field {
