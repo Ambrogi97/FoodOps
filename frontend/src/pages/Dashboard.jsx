@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getSession, clearSession } from '../services/api'
 import Mesas from './dashboard/Mesas'
+import Productos from './dashboard/Productos'
 import './Dashboard.css'
 
 const NAV_ITEMS = [
@@ -91,6 +92,8 @@ export default function Dashboard() {
           {/* Contenido por sección */}
           {active === 'mesas' ? (
             <Mesas />
+          ) : active === 'productos' ? (
+            <Productos />
           ) : (
             <div className="dash-panel">
               <div className="dash-panel-header">
