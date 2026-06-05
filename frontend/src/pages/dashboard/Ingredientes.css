@@ -1,0 +1,243 @@
+.ing-layout {
+  display: flex;
+  gap: 16px;
+  height: 100%;
+}
+
+.ing-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* Toolbar */
+.ing-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ing-search {
+  flex: 1;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.ing-search:focus { border-color: var(--primary); }
+
+.ing-btn-primary {
+  padding: 8px 16px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition);
+  box-shadow: 0 2px 6px rgba(255,107,53,0.3);
+}
+.ing-btn-primary:hover { background: var(--primary-dark); }
+.ing-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Tabla */
+.ing-table-wrap {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.ing-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.ing-table thead th {
+  padding: 11px 14px;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+}
+
+.ing-table tbody tr {
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background var(--transition);
+}
+.ing-table tbody tr:last-child { border-bottom: none; }
+.ing-table tbody tr:hover { background: var(--bg); }
+.ing-row--active { background: var(--primary-light) !important; }
+
+.ing-table td { padding: 11px 14px; color: var(--text); }
+.ing-nombre { font-weight: 600; }
+.ing-costo  { text-align: right; font-weight: 600; }
+.ing-table-empty { text-align: center; color: var(--text-muted); padding: 32px !important; font-size: 0.85rem; }
+
+/* Panel detalle */
+.ing-detalle {
+  width: 220px;
+  min-width: 220px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+}
+
+.ing-detalle-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 20px;
+  font-size: 0.82rem;
+}
+.ing-detalle-empty span:first-child { font-size: 2rem; margin-bottom: 4px; }
+.ing-detalle-empty p { font-weight: 600; color: var(--text); font-size: 0.9rem; }
+
+.ing-detalle-content { display: flex; flex-direction: column; height: 100%; }
+
+.ing-detalle-header {
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.ing-detalle-nombre { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.ing-detalle-unidad {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: var(--border);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.ing-detalle-metrics {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.ing-metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.83rem;
+}
+.ing-metric span { color: var(--text-muted); }
+.ing-metric strong { font-weight: 700; color: var(--text); }
+.ing-costo-real { color: var(--primary); }
+
+.ing-detalle-actions {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ing-btn-danger {
+  width: 100%;
+  padding: 8px;
+  background: none;
+  border: 1px solid #EF4444;
+  border-radius: var(--radius-sm);
+  color: #EF4444;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.ing-btn-danger:hover { background: #fff5f5; }
+
+/* Modal */
+.ing-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: ingFadeIn 0.15s ease;
+}
+
+.ing-modal {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--shadow-lg);
+  animation: ingSlideUp 0.18s ease;
+}
+
+.ing-modal-title { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.ing-modal-sub   { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; }
+
+.ing-form { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+.ing-form-row { display: flex; gap: 10px; }
+.ing-form-row .ing-field { min-width: 0; }
+
+.ing-field { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.ing-field label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); }
+.ing-field input,
+.ing-field select {
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color var(--transition);
+  background: var(--surface);
+  color: var(--text);
+}
+.ing-field input:focus,
+.ing-field select:focus { border-color: var(--primary); }
+
+.ing-modal-actions { display: flex; gap: 8px; }
+
+.ing-btn-secondary {
+  flex: 1; padding: 10px;
+  background: var(--border); border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem; font-weight: 600;
+  color: var(--text); cursor: pointer;
+  transition: background var(--transition);
+}
+.ing-btn-secondary:hover { background: #d1d5db; }
+
+.ing-btn-confirm-danger {
+  flex: 1; padding: 10px;
+  background: #EF4444; border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem; font-weight: 600;
+  color: #fff; cursor: pointer;
+  transition: background var(--transition);
+}
+.ing-btn-confirm-danger:hover { background: #dc2626; }
+
+@keyframes ingFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ingSlideUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
