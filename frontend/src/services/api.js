@@ -1,5 +1,15 @@
 const API_URL = 'http://localhost:3000'
 
+// Caché en memoria para evitar re-fetching al cambiar de tab
+const _cache = {}
+const TTL    = 20_000  // 20 segundos
+
+const _leer  = (clave)        => { const e = _cache[clave]; return e && Date.now() - e.ts < TTL ? e.data : null }
+const _guardar = (clave, data) => { _cache[clave] = { data, ts: Date.now() }; return data }
+const _invalidar = (...prefijos) => { prefijos.forEach(p => Object.keys(_cache).filter(k => k.startsWith(p)).forEach(k => delete _cache[k])) }
+
+const requestCacheado = async (clave) => _leer(clave) ?? _guardar(clave, await request(clave))
+
 const request = async (path, options = {}) => {
   const token = localStorage.getItem('token')
   const res = await fetch(`${API_URL}${path}`, {
@@ -75,51 +85,51 @@ const mapVenta = v => ({ id: v._id, mesa: v.mesa, inicio: v.inicio, cierre: v.ci
 // ── Categorias ───────────────────────────────────────────────────────────────
 
 export const categoriasService = {
-  listar: async () => (await request('/api/categorias')).map(mapCat),
-  crear:  async (data) => mapCat(await request('/api/categorias', { method: 'POST', body: JSON.stringify(data) })),
-  eliminar: (id) => request(`/api/categorias/${id}`, { method: 'DELETE' }),
+  listar: async () => (await requestCacheado('/api/categorias')).map(mapCat),
+  crear:  async (data) => { _invalidar('/api/categorias', '/api/productos'); return mapCat(await request('/api/categorias', { method: 'POST', body: JSON.stringify(data) })) },
+  eliminar: async (id) => { _invalidar('/api/categorias', '/api/productos'); return request(`/api/categorias/${id}`, { method: 'DELETE' }) },
 }
 
 // ── Productos ────────────────────────────────────────────────────────────────
 
 export const productosService = {
-  listar:    async () => (await request('/api/productos')).map(mapProd),
-  crear:     async (data) => mapProd(await request('/api/productos', { method: 'POST', body: JSON.stringify(data) })),
-  actualizar: async (id, data) => mapProd(await request(`/api/productos/${id}`, { method: 'PUT', body: JSON.stringify(data) })),
-  eliminar:  (id) => request(`/api/productos/${id}`, { method: 'DELETE' }),
+  listar:     async () => (await requestCacheado('/api/productos')).map(mapProd),
+  crear:      async (data) => { _invalidar('/api/productos'); return mapProd(await request('/api/productos', { method: 'POST', body: JSON.stringify(data) })) },
+  actualizar: async (id, data) => { _invalidar('/api/productos'); return mapProd(await request(`/api/productos/${id}`, { method: 'PUT', body: JSON.stringify(data) })) },
+  eliminar:   async (id) => { _invalidar('/api/productos'); return request(`/api/productos/${id}`, { method: 'DELETE' }) },
 }
 
 // ── Ingredientes ─────────────────────────────────────────────────────────────
 
 export const ingredientesService = {
-  listar:    async () => (await request('/api/ingredientes')).map(mapIng),
-  crear:     async (data) => mapIng(await request('/api/ingredientes', { method: 'POST', body: JSON.stringify(data) })),
-  actualizar: async (id, data) => mapIng(await request(`/api/ingredientes/${id}`, { method: 'PUT', body: JSON.stringify(data) })),
-  eliminar:  (id) => request(`/api/ingredientes/${id}`, { method: 'DELETE' }),
+  listar:     async () => (await requestCacheado('/api/ingredientes')).map(mapIng),
+  crear:      async (data) => { _invalidar('/api/ingredientes', '/api/stock'); return mapIng(await request('/api/ingredientes', { method: 'POST', body: JSON.stringify(data) })) },
+  actualizar: async (id, data) => { _invalidar('/api/ingredientes', '/api/stock'); return mapIng(await request(`/api/ingredientes/${id}`, { method: 'PUT', body: JSON.stringify(data) })) },
+  eliminar:   async (id) => { _invalidar('/api/ingredientes', '/api/stock'); return request(`/api/ingredientes/${id}`, { method: 'DELETE' }) },
 }
 
 // ── Zonas ────────────────────────────────────────────────────────────────────
 
 export const zonasService = {
-  listar:  async () => (await request('/api/zonas')).map(mapZona),
-  crear:   async (data) => mapZona(await request('/api/zonas', { method: 'POST', body: JSON.stringify(data) })),
-  eliminar: (id) => request(`/api/zonas/${id}`, { method: 'DELETE' }),
+  listar:  async () => (await requestCacheado('/api/zonas')).map(mapZona),
+  crear:   async (data) => { _invalidar('/api/zonas'); return mapZona(await request('/api/zonas', { method: 'POST', body: JSON.stringify(data) })) },
+  eliminar: async (id) => { _invalidar('/api/zonas', '/api/mesas'); return request(`/api/zonas/${id}`, { method: 'DELETE' }) },
 }
 
 // ── Mesas ────────────────────────────────────────────────────────────────────
 
 export const mesasService = {
-  listar:      async () => (await request('/api/mesas')).map(mapMesa),
-  crearVarias: async (mesas) => (await request('/api/mesas/bulk', { method: 'POST', body: JSON.stringify({ mesas }) })).map(mapMesa),
-  actualizar:  async (id, data) => mapMesa(await request(`/api/mesas/${id}`, { method: 'PUT', body: JSON.stringify(data) })),
-  eliminar:    (id) => request(`/api/mesas/${id}`, { method: 'DELETE' }),
+  listar:      async () => (await requestCacheado('/api/mesas')).map(mapMesa),
+  crearVarias: async (mesas) => { _invalidar('/api/mesas'); return (await request('/api/mesas/bulk', { method: 'POST', body: JSON.stringify({ mesas }) })).map(mapMesa) },
+  actualizar:  async (id, data) => { _invalidar('/api/mesas'); return mapMesa(await request(`/api/mesas/${id}`, { method: 'PUT', body: JSON.stringify(data) })) },
+  eliminar:    async (id) => { _invalidar('/api/mesas'); return request(`/api/mesas/${id}`, { method: 'DELETE' }) },
 }
 
 // ── Ventas ───────────────────────────────────────────────────────────────────
 
 export const ventasService = {
-  listar: async () => (await request('/api/ventas')).map(mapVenta),
-  crear:  async (data) => mapVenta(await request('/api/ventas', { method: 'POST', body: JSON.stringify(data) })),
+  listar: async () => (await requestCacheado('/api/ventas')).map(mapVenta),
+  crear:  async (data) => { _invalidar('/api/ventas'); return mapVenta(await request('/api/ventas', { method: 'POST', body: JSON.stringify(data) })) },
 }
 
 // ── Gastos ───────────────────────────────────────────────────────────────────
@@ -127,16 +137,16 @@ export const ventasService = {
 const mapGasto = g => ({ id: g._id, descripcion: g.descripcion, monto: g.monto, categoria: g.categoria, fecha: g.fecha })
 
 export const gastosService = {
-  listar:  async () => (await request('/api/gastos')).map(mapGasto),
-  crear:   async (data) => mapGasto(await request('/api/gastos', { method: 'POST', body: JSON.stringify(data) })),
-  eliminar: (id) => request(`/api/gastos/${id}`, { method: 'DELETE' }),
+  listar:  async () => (await requestCacheado('/api/gastos')).map(mapGasto),
+  crear:   async (data) => { _invalidar('/api/gastos'); return mapGasto(await request('/api/gastos', { method: 'POST', body: JSON.stringify(data) })) },
+  eliminar: async (id) => { _invalidar('/api/gastos'); return request(`/api/gastos/${id}`, { method: 'DELETE' }) },
 }
 
 // ── Stock ────────────────────────────────────────────────────────────────────
 
 export const stockService = {
-  listar:              async () => (await request('/api/stock')).map(mapIng),
-  registrarMovimiento: (id, data) => request(`/api/stock/${id}/movimiento`, { method: 'POST', body: JSON.stringify(data) }),
-  actualizarMinimo:    (id, stockMinimo) => request(`/api/stock/${id}/minimo`, { method: 'PUT', body: JSON.stringify({ stockMinimo }) }),
+  listar:              async () => (await requestCacheado('/api/stock')).map(mapIng),
+  registrarMovimiento: async (id, data) => { _invalidar('/api/stock'); return request(`/api/stock/${id}/movimiento`, { method: 'POST', body: JSON.stringify(data) }) },
+  actualizarMinimo:    async (id, stockMinimo) => { _invalidar('/api/stock'); return request(`/api/stock/${id}/minimo`, { method: 'PUT', body: JSON.stringify({ stockMinimo }) }) },
   listarMovimientos:   async (id) => request(`/api/stock/${id}/movimientos`),
 }

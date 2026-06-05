@@ -26,15 +26,9 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const { user } = getSession()
   const [active, setActive]                   = useState('mesas')
-  const [montados, setMontados]               = useState(new Set(['mesas']))
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [productos, setProductos]             = useState([])
   const [categorias, setCategorias]           = useState([])
-
-  const navegar = (id) => {
-    setActive(id)
-    setMontados(prev => new Set([...prev, id]))
-  }
 
   useEffect(() => {
     const cargar = async () => {
@@ -77,7 +71,7 @@ export default function Dashboard() {
             <button
               key={item.id}
               className={`dash-nav-item ${active === item.id ? 'dash-nav-item--active' : ''}`}
-              onClick={() => navegar(item.id)}
+              onClick={() => setActive(item.id)}
             >
               <span className="dash-nav-icon">{item.icon}</span>
               <span className="dash-nav-label">{item.label}</span>
@@ -116,42 +110,18 @@ export default function Dashboard() {
         {/* Content */}
         <main className="dash-content">
 
-          {/* Módulos que se montan una sola vez y se ocultan con CSS al cambiar de tab */}
-          {montados.has('mesas') && (
-            <div className="dash-modulo" style={active !== 'mesas' ? { display: 'none' } : {}}>
-              <Mesas productos={productos} categorias={categorias} />
-            </div>
+          {active === 'mesas'        && <Mesas productos={productos} categorias={categorias} />}
+          {active === 'productos'    && (
+            <Productos
+              productos={productos} setProductos={setProductos}
+              categorias={categorias} setCategorias={setCategorias}
+            />
           )}
-          {montados.has('productos') && (
-            <div className="dash-modulo" style={active !== 'productos' ? { display: 'none' } : {}}>
-              <Productos
-                productos={productos} setProductos={setProductos}
-                categorias={categorias} setCategorias={setCategorias}
-              />
-            </div>
-          )}
-          {montados.has('ingredientes') && (
-            <div className="dash-modulo" style={active !== 'ingredientes' ? { display: 'none' } : {}}>
-              <Ingredientes />
-            </div>
-          )}
-          {montados.has('stock') && (
-            <div className="dash-modulo" style={active !== 'stock' ? { display: 'none' } : {}}>
-              <Stock />
-            </div>
-          )}
-          {montados.has('ventas') && (
-            <div className="dash-modulo" style={active !== 'ventas' ? { display: 'none' } : {}}>
-              <Ventas />
-            </div>
-          )}
-          {montados.has('gastos') && (
-            <div className="dash-modulo" style={active !== 'gastos' ? { display: 'none' } : {}}>
-              <Gastos />
-            </div>
-          )}
+          {active === 'ingredientes' && <Ingredientes />}
+          {active === 'stock'        && <Stock />}
+          {active === 'ventas'       && <Ventas />}
+          {active === 'gastos'       && <Gastos />}
 
-          {/* Módulos sin implementar */}
           {!['mesas','productos','ingredientes','stock','ventas','gastos'].includes(active) && (
             <div className="dash-panel">
               <div className="dash-panel-header">
