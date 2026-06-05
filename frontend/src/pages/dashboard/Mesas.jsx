@@ -82,6 +82,22 @@ export default function Mesas({ productos = [], categorias = [] }) {
     setSelected(null)
   }
 
+  const quitarProductoDelPedido = (nombre) => {
+    const mesaId = selected
+    const zonaId = zonaActiva
+    setZonas(prev => prev.map(z =>
+      z.id === zonaId ? {
+        ...z, mesas: z.mesas.map(m => {
+          if (m.id !== mesaId) return m
+          const items = (m.items || [])
+            .map(i => i.nombre === nombre ? { ...i, cantidad: i.cantidad - 1 } : i)
+            .filter(i => i.cantidad > 0)
+          return { ...m, items }
+        })
+      } : z
+    ))
+  }
+
   const agregarProductoAlPedido = (producto) => {
     const zonaId   = zonaActiva
     const mesaId   = selected
@@ -220,6 +236,24 @@ export default function Mesas({ productos = [], categorias = [] }) {
           <button className="mesas-add-zona" onClick={() => setShowModal(true)} title="Agregar zona">+</button>
         </div>
 
+        {/* Resumen */}
+        <div className="mesas-resumen">
+          <div className="mesas-resumen-item mesas-resumen-item--ocupada">
+            <span className="mesas-resumen-num">{zona?.mesas.filter(m => m.estado === 'ocupada').length ?? 0}</span>
+            <span>Ocupadas</span>
+          </div>
+          <div className="mesas-resumen-sep" />
+          <div className="mesas-resumen-item mesas-resumen-item--libre">
+            <span className="mesas-resumen-num">{zona?.mesas.filter(m => m.estado === 'libre').length ?? 0}</span>
+            <span>Libres</span>
+          </div>
+          <div className="mesas-resumen-sep" />
+          <div className="mesas-resumen-item">
+            <span className="mesas-resumen-num">{zona?.mesas.length ?? 0}</span>
+            <span>Total</span>
+          </div>
+        </div>
+
         {/* Leyenda */}
         <div className="mesas-leyenda">
           {Object.entries(ESTADO_CONFIG).map(([key, val]) => (
@@ -297,6 +331,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
                           <span className="mesa-pedido-cantidad">{item.cantidad}×</span>
                           <span className="mesa-pedido-nombre">{item.nombre}</span>
                           <span className="mesa-pedido-precio">${(item.precio * item.cantidad).toLocaleString('es-AR')}</span>
+                          <button className="mesa-pedido-quitar" onClick={() => quitarProductoDelPedido(item.nombre)} title="Quitar">×</button>
                         </div>
                       ))}
                     </div>
