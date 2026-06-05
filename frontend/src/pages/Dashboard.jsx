@@ -6,6 +6,7 @@ import Productos from './dashboard/Productos'
 import Ingredientes from './dashboard/Ingredientes'
 import Ventas from './dashboard/Ventas'
 import Gastos from './dashboard/Gastos'
+import Stock from './dashboard/Stock'
 import './Dashboard.css'
 
 const NAV_ITEMS = [
@@ -116,6 +117,8 @@ export default function Dashboard() {
             <Ingredientes />
           ) : active === 'gastos' ? (
             <Gastos />
+          ) : active === 'stock' ? (
+            <Stock />
           ) : active === 'productos' ? (
             <Productos
               productos={productos} setProductos={setProductos}

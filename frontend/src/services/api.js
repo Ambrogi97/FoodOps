@@ -67,7 +67,7 @@ export const clearSession = () => {
 
 const mapCat  = c => ({ id: c._id, nombre: c.nombre })
 const mapProd = p => ({ id: p._id, nombre: p.nombre, categoriaId: p.categoria, precio: p.precio, costo: p.costo, activo: p.activo })
-const mapIng  = i => ({ id: i._id, nombre: i.nombre, unidad: i.unidad, costo: i.costo })
+const mapIng  = i => ({ id: i._id, nombre: i.nombre, unidad: i.unidad, costo: i.costo, stockActual: i.stockActual ?? 0, stockMinimo: i.stockMinimo ?? 0 })
 const mapZona = z => ({ id: z._id, label: z.label, removible: z.removible })
 const mapMesa = m => ({ id: m._id, numero: m.numero, zona: m.zona, estado: m.estado, col: m.col, row: m.row, hora: m.hora || null, items: m.items || [] })
 const mapVenta = v => ({ id: v._id, mesa: v.mesa, inicio: v.inicio, cierre: v.cierre, estado: v.estado, items: v.items || [] })
@@ -130,4 +130,13 @@ export const gastosService = {
   listar:  async () => (await request('/api/gastos')).map(mapGasto),
   crear:   async (data) => mapGasto(await request('/api/gastos', { method: 'POST', body: JSON.stringify(data) })),
   eliminar: (id) => request(`/api/gastos/${id}`, { method: 'DELETE' }),
+}
+
+// ── Stock ────────────────────────────────────────────────────────────────────
+
+export const stockService = {
+  listar:              async () => (await request('/api/stock')).map(mapIng),
+  registrarMovimiento: (id, data) => request(`/api/stock/${id}/movimiento`, { method: 'POST', body: JSON.stringify(data) }),
+  actualizarMinimo:    (id, stockMinimo) => request(`/api/stock/${id}/minimo`, { method: 'PUT', body: JSON.stringify({ stockMinimo }) }),
+  listarMovimientos:   async (id) => request(`/api/stock/${id}/movimientos`),
 }
