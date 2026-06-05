@@ -33,11 +33,11 @@ router.post('/', auth, async (req, res) => {
 
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { nombre, categoria, precio, costo } = req.body
+    const { nombre, categoria, precio } = req.body
     const producto = await Producto.findOneAndUpdate(
       { _id: req.params.id, usuario: req.usuario.id },
-      { nombre: nombre?.trim(), categoria, precio: Number(precio), costo: Number(costo) || 0 },
-      { new: true }
+      { nombre: nombre?.trim(), categoria, precio: Number(precio) },
+      { returnDocument: 'after' }
     )
     if (!producto) return res.status(404).json({ message: 'Producto no encontrado' })
     res.json(producto)

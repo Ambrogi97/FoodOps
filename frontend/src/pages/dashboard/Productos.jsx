@@ -92,7 +92,6 @@ export default function Productos({ productos, setProductos, categorias, setCate
         nombre:    editando.nombre.trim(),
         categoria: editando.categoriaId,
         precio:    Number(editando.precio),
-        costo:     Number(editando.costo),
       })
       setProductos(productos.map(p => p.id === editando.id ? actualizado : p))
       setEditando(null)
@@ -383,30 +382,14 @@ export default function Productos({ productos, setProductos, categorias, setCate
                   ))}
                 </select>
               </div>
-              <div className="prod-form-row">
-                <div className="prod-field">
-                  <label>Precio</label>
-                  <input
-                    type="number"
-                    value={editando.precio}
-                    onChange={e => setEditando({ ...editando, precio: e.target.value })}
-                  />
-                </div>
-                <div className="prod-field">
-                  <label>Costo</label>
-                  <input
-                    type="number"
-                    value={editando.costo}
-                    onChange={e => setEditando({ ...editando, costo: e.target.value })}
-                  />
-                </div>
+              <div className="prod-field">
+                <label>Precio</label>
+                <input
+                  type="number"
+                  value={editando.precio}
+                  onChange={e => setEditando({ ...editando, precio: e.target.value })}
+                />
               </div>
-              {editando.precio && editando.costo && (
-                <div className="prod-form-preview">
-                  <span>Margen: <strong className="prod-margen-pos">{pct(margenPct(Number(editando.precio), Number(editando.costo)))}</strong></span>
-                  <span>Markup: <strong>{pct(markupPct(Number(editando.precio), Number(editando.costo)))}</strong></span>
-                </div>
-              )}
             </div>
 
             <div className="prod-modal-actions">
