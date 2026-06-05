@@ -26,7 +26,7 @@ const ZONAS_INICIALES = [
   },
 ]
 
-export default function Mesas() {
+export default function Mesas({ productos = [], categorias = [] }) {
   const [zonas, setZonas]           = useState(ZONAS_INICIALES)
   const [zonaActiva, setZonaActiva] = useState('salon')
   const [selected, setSelected]     = useState(null)
@@ -37,6 +37,8 @@ export default function Mesas() {
   const [viendoPedido, setViendoPedido]           = useState(false)
   const [showAgregarMesas, setShowAgregarMesas]   = useState(false)
   const [cantidadMesas, setCantidadMesas]         = useState(1)
+  const [showSelector, setShowSelector]           = useState(false)
+  const [catSelector, setCatSelector]             = useState(null)
 
   const zona = zonas.find(z => z.id === zonaActiva)
   const mesa = zona?.mesas.find(m => m.id === selected)
@@ -78,6 +80,25 @@ export default function Mesas() {
         : z
     ))
     setSelected(null)
+  }
+
+  const agregarProductoAlPedido = (producto) => {
+    setZonas(zonas.map(z =>
+      z.id === zonaActiva ? {
+        ...z, mesas: z.mesas.map(m => {
+          if (m.id !== selected) return m
+          const items = m.items || []
+          const existe = items.find(i => i.nombre === producto.nombre)
+          return {
+            ...m,
+            items: existe
+              ? items.map(i => i.nombre === producto.nombre ? { ...i, cantidad: i.cantidad + 1 } : i)
+              : [...items, { nombre: producto.nombre, cantidad: 1, precio: producto.precio }]
+          }
+        })
+      } : z
+    ))
+    setShowSelector(false)
   }
 
   const nuevoPedido = (mesaId) => {
@@ -258,7 +279,7 @@ export default function Mesas() {
                 <span>🧾</span>
                 <p>No hay pedidos</p>
                 <span>¿Querés agregar uno?</span>
-                <button className="mesa-btn mesa-btn--primary" style={{ marginTop: 8 }}>+ Agregar producto</button>
+                <button className="mesa-btn mesa-btn--primary" style={{ marginTop: 8 }} onClick={() => setShowSelector(true)}>+ Agregar producto</button>
               </div>
             ) : (
               <>
@@ -276,7 +297,7 @@ export default function Mesas() {
                   <strong>${mesa.items.reduce((acc, i) => acc + i.precio * i.cantidad, 0).toLocaleString('es-AR')}</strong>
                 </div>
                 <div className="mesa-detalle-actions">
-                  <button className="mesa-btn mesa-btn--primary">+ Agregar producto</button>
+                  <button className="mesa-btn mesa-btn--primary" onClick={() => setShowSelector(true)}>+ Agregar producto</button>
                 </div>
               </>
             )}
@@ -361,6 +382,43 @@ export default function Mesas() {
               <button className="mesa-btn mesa-btn--secondary" onClick={() => setConfirmarEliminar(null)}>Cancelar</button>
               <button className="mesa-btn mesa-btn--confirm-danger" onClick={() => eliminarMesa(confirmarEliminar)}>Sí, eliminar</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal selector de productos */}
+      {showSelector && (
+        <div className="mesas-modal-overlay" onClick={() => setShowSelector(false)}>
+          <div className="mesas-modal mesas-modal--selector" onClick={e => e.stopPropagation()}>
+            <h3 className="mesas-modal-title">Agregar producto — Mesa {selected}</h3>
+
+            <div className="selector-cats">
+              <button
+                className={`selector-cat ${catSelector === null ? 'selector-cat--active' : ''}`}
+                onClick={() => setCatSelector(null)}
+              >Todos</button>
+              {categorias.map(c => (
+                <button
+                  key={c.id}
+                  className={`selector-cat ${catSelector === c.id ? 'selector-cat--active' : ''}`}
+                  onClick={() => setCatSelector(c.id)}
+                >{c.nombre}</button>
+              ))}
+            </div>
+
+            <div className="selector-productos">
+              {productos
+                .filter(p => catSelector === null || p.categoriaId === catSelector)
+                .map(p => (
+                  <button key={p.id} className="selector-prod" onClick={() => agregarProductoAlPedido(p)}>
+                    <span className="selector-prod-nombre">{p.nombre}</span>
+                    <span className="selector-prod-precio">${p.precio.toLocaleString('es-AR')}</span>
+                  </button>
+                ))
+              }
+            </div>
+
+            <button className="mesa-btn mesa-btn--secondary" style={{ marginTop: 12 }} onClick={() => setShowSelector(false)}>Cerrar</button>
           </div>
         </div>
       )}

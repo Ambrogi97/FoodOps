@@ -1,35 +1,12 @@
 import { useState } from 'react'
 import './Productos.css'
 
-const CATEGORIAS_INICIALES = [
-  { id: 1, nombre: 'Pizzas' },
-  { id: 2, nombre: 'Panuzzo' },
-  { id: 3, nombre: 'Calzones' },
-  { id: 4, nombre: 'Bebidas' },
-  { id: 5, nombre: 'Postres' },
-]
-
-const PRODUCTOS_INICIALES = [
-  { id: 1,  categoriaId: 1, nombre: 'Margarita',        precio: 13000, costo: 4610,  activo: true },
-  { id: 2,  categoriaId: 1, nombre: 'Napolitana',        precio: 14500, costo: 5200,  activo: true },
-  { id: 3,  categoriaId: 1, nombre: 'Fugazzeta',         precio: 15000, costo: 5800,  activo: true },
-  { id: 4,  categoriaId: 2, nombre: 'Panuzzo Crudo',     precio: 13500, costo: 9526,  activo: true },
-  { id: 5,  categoriaId: 2, nombre: 'Panuzzo Speciale',  precio: 13500, costo: 7776,  activo: true },
-  { id: 6,  categoriaId: 3, nombre: 'Calzone Clásico',   precio: 14000, costo: 6100,  activo: true },
-  { id: 7,  categoriaId: 4, nombre: 'Coca Cola 500ml',   precio: 3500,  costo: 1200,  activo: true },
-  { id: 8,  categoriaId: 4, nombre: 'Agua mineral',      precio: 2000,  costo: 600,   activo: true },
-  { id: 9,  categoriaId: 4, nombre: 'Cerveza Heineken',  precio: 5000,  costo: 2100,  activo: true },
-  { id: 10, categoriaId: 5, nombre: 'Tiramisú',          precio: 7000,  costo: 2800,  activo: true },
-]
-
 const fmt = (n) => n.toLocaleString('es-AR')
 const pct = (n) => n.toFixed(1) + '%'
 const margenPct  = (p, c) => ((p - c) / p) * 100
 const markupPct  = (p, c) => ((p - c) / c) * 100
 
-export default function Productos() {
-  const [categorias, setCategorias] = useState(CATEGORIAS_INICIALES)
-  const [productos, setProductos]   = useState(PRODUCTOS_INICIALES)
+export default function Productos({ productos, setProductos, categorias, setCategorias }) {
   const [catActiva, setCatActiva]   = useState(null) // null = todas
   const [selected, setSelected]     = useState(null)
   const [busqueda, setBusqueda]     = useState('')
