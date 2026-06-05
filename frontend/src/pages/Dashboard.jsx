@@ -1,54 +1,48 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getSession, clearSession } from '../services/api'
+import { getSession, clearSession, categoriasService, productosService } from '../services/api'
 import Mesas from './dashboard/Mesas'
 import Productos from './dashboard/Productos'
 import Ingredientes from './dashboard/Ingredientes'
 import Ventas from './dashboard/Ventas'
 import './Dashboard.css'
 
-const CATEGORIAS_INICIALES = [
-  { id: 1, nombre: 'Pizzas' },
-  { id: 2, nombre: 'Panuzzo' },
-  { id: 3, nombre: 'Calzones' },
-  { id: 4, nombre: 'Bebidas' },
-  { id: 5, nombre: 'Postres' },
-]
-
-const PRODUCTOS_INICIALES = [
-  { id: 1,  categoriaId: 1, nombre: 'Margarita',       precio: 13000, costo: 4610,  activo: true },
-  { id: 2,  categoriaId: 1, nombre: 'Napolitana',       precio: 14500, costo: 5200,  activo: true },
-  { id: 3,  categoriaId: 1, nombre: 'Fugazzeta',        precio: 15000, costo: 5800,  activo: true },
-  { id: 4,  categoriaId: 2, nombre: 'Panuzzo Crudo',    precio: 13500, costo: 9526,  activo: true },
-  { id: 5,  categoriaId: 2, nombre: 'Panuzzo Speciale', precio: 13500, costo: 7776,  activo: true },
-  { id: 6,  categoriaId: 3, nombre: 'Calzone Clásico',  precio: 14000, costo: 6100,  activo: true },
-  { id: 7,  categoriaId: 4, nombre: 'Coca Cola 500ml',  precio: 3500,  costo: 1200,  activo: true },
-  { id: 8,  categoriaId: 4, nombre: 'Agua mineral',     precio: 2000,  costo: 600,   activo: true },
-  { id: 9,  categoriaId: 4, nombre: 'Cerveza Heineken', precio: 5000,  costo: 2100,  activo: true },
-  { id: 10, categoriaId: 5, nombre: 'Tiramisú',         precio: 7000,  costo: 2800,  activo: true },
-]
-
 const NAV_ITEMS = [
-  { id: 'mesas',       label: 'Mesas',       icon: '🪑' },
-  { id: 'pedidos',     label: 'Pedidos',      icon: '🧾' },
-  { id: 'productos',   label: 'Productos',    icon: '🍽️' },
-  { id: 'ingredientes',label: 'Ingredientes', icon: '🧂' },
-  { id: 'stock',       label: 'Stock',        icon: '📦' },
-  { id: 'clientes',    label: 'Clientes',     icon: '👥' },
-  { id: 'proveedores', label: 'Proveedores',  icon: '🚚' },
-  { id: 'ventas',      label: 'Ventas',       icon: '💰' },
-  { id: 'reportes',    label: 'Reportes',     icon: '📊' },
-  { id: 'gastos',      label: 'Gastos',       icon: '🧮' },
+  { id: 'mesas',        label: 'Mesas',        icon: '🪑' },
+  { id: 'pedidos',      label: 'Pedidos',       icon: '🧾' },
+  { id: 'productos',    label: 'Productos',     icon: '🍽️' },
+  { id: 'ingredientes', label: 'Ingredientes',  icon: '🧂' },
+  { id: 'stock',        label: 'Stock',         icon: '📦' },
+  { id: 'clientes',     label: 'Clientes',      icon: '👥' },
+  { id: 'proveedores',  label: 'Proveedores',   icon: '🚚' },
+  { id: 'ventas',       label: 'Ventas',        icon: '💰' },
+  { id: 'reportes',     label: 'Reportes',      icon: '📊' },
+  { id: 'gastos',       label: 'Gastos',        icon: '🧮' },
 ]
-
 
 export default function Dashboard() {
   const navigate = useNavigate()
   const { user } = getSession()
   const [active, setActive]                   = useState('mesas')
   const [showLogoutModal, setShowLogoutModal] = useState(false)
-  const [productos, setProductos]             = useState(PRODUCTOS_INICIALES)
-  const [categorias, setCategorias]           = useState(CATEGORIAS_INICIALES)
+  const [productos, setProductos]             = useState([])
+  const [categorias, setCategorias]           = useState([])
+
+  useEffect(() => {
+    const cargar = async () => {
+      try {
+        const [cats, prods] = await Promise.all([
+          categoriasService.listar(),
+          productosService.listar(),
+        ])
+        setCategorias(cats)
+        setProductos(prods)
+      } catch (e) {
+        console.error('Error cargando datos:', e)
+      }
+    }
+    cargar()
+  }, [])
 
   if (!user) {
     navigate('/login')
@@ -113,8 +107,6 @@ export default function Dashboard() {
 
         {/* Content */}
         <main className="dash-content">
-
-          {/* Contenido por sección */}
           {active === 'mesas' ? (
             <Mesas productos={productos} categorias={categorias} />
           ) : active === 'ventas' ? (
@@ -139,9 +131,9 @@ export default function Dashboard() {
               </div>
             </div>
           )}
-
         </main>
       </div>
+
       {/* Modal cerrar sesión */}
       {showLogoutModal && (
         <div className="dash-modal-overlay" onClick={() => setShowLogoutModal(false)}>

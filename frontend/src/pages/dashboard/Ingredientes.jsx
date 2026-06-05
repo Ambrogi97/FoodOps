@@ -1,65 +1,73 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { ingredientesService } from '../../services/api'
 import './Ingredientes.css'
 
 const UNIDADES = ['kg', 'g', 'l', 'ml', 'unid.']
 
-const INGREDIENTES_INICIALES = [
-  { id: 1,  nombre: 'Aceitunas',   unidad: 'kg',    costo: 13750  },
-  { id: 2,  nombre: 'Aceto',       unidad: 'l',     costo: 20000  },
-  { id: 3,  nombre: 'Albahaca',    unidad: 'kg',    costo: 10000  },
-  { id: 4,  nombre: 'Anchoa',      unidad: 'kg',    costo: 130000 },
-  { id: 5,  nombre: 'Azul',        unidad: 'kg',    costo: 31300  },
-  { id: 6,  nombre: 'Cebolla',     unidad: 'kg',    costo: 300    },
-  { id: 7,  nombre: 'Harina',      unidad: 'kg',    costo: 1700   },
-  { id: 8,  nombre: 'Muzza',       unidad: 'kg',    costo: 8800   },
-  { id: 9,  nombre: 'Salsa',       unidad: 'kg',    costo: 6200   },
-  { id: 10, nombre: 'Jamón crudo', unidad: 'kg',    costo: 79000  },
-  { id: 11, nombre: 'Cerveza',     unidad: 'l',     costo: 4200   },
-  { id: 12, nombre: 'Caja',        unidad: 'unid.', costo: 0      },
-]
-
 const fmt = (n) => n > 0 ? `$${n.toLocaleString('es-AR')}` : '—'
 
 export default function Ingredientes() {
-  const [ingredientes, setIngredientes]           = useState(INGREDIENTES_INICIALES)
+  const [ingredientes, setIngredientes]           = useState([])
+  const [cargando, setCargando]                   = useState(true)
   const [selected, setSelected]                   = useState(null)
   const [busqueda, setBusqueda]                   = useState('')
   const [editando, setEditando]                   = useState(null)
   const [creando, setCreando]                     = useState(false)
   const [nuevo, setNuevo]                         = useState({ nombre: '', unidad: 'kg', costo: '' })
   const [confirmarEliminar, setConfirmarEliminar] = useState(null)
-  const [nextId, setNextId]                       = useState(13)
 
-  const filtrados  = ingredientes.filter(i => i.nombre.toLowerCase().includes(busqueda.toLowerCase()))
+  useEffect(() => {
+    ingredientesService.listar()
+      .then(data => { setIngredientes(data); setCargando(false) })
+      .catch(e => { console.error(e); setCargando(false) })
+  }, [])
+
+  const filtrados   = ingredientes.filter(i => i.nombre.toLowerCase().includes(busqueda.toLowerCase()))
   const ingrediente = ingredientes.find(i => i.id === selected)
 
-  const guardarEdicion = () => {
+  const guardarEdicion = async () => {
     if (!editando.nombre.trim()) return
-    setIngredientes(ingredientes.map(i => i.id === editando.id
-      ? { ...editando, costo: Number(editando.costo) }
-      : i
-    ))
-    setEditando(null)
+    try {
+      const actualizado = await ingredientesService.actualizar(editando.id, {
+        nombre: editando.nombre.trim(),
+        unidad: editando.unidad,
+        costo:  Number(editando.costo) || 0,
+      })
+      setIngredientes(ingredientes.map(i => i.id === editando.id ? actualizado : i))
+      setEditando(null)
+    } catch (e) {
+      console.error(e)
+    }
   }
 
-  const crearIngrediente = () => {
+  const crearIngrediente = async () => {
     if (!nuevo.nombre.trim()) return
-    setIngredientes([...ingredientes, {
-      id: nextId,
-      nombre: nuevo.nombre.trim(),
-      unidad: nuevo.unidad,
-      costo: Number(nuevo.costo) || 0,
-    }])
-    setNextId(nextId + 1)
-    setCreando(false)
-    setNuevo({ nombre: '', unidad: 'kg', costo: '' })
+    try {
+      const creado = await ingredientesService.crear({
+        nombre: nuevo.nombre.trim(),
+        unidad: nuevo.unidad,
+        costo:  Number(nuevo.costo) || 0,
+      })
+      setIngredientes([...ingredientes, creado])
+      setCreando(false)
+      setNuevo({ nombre: '', unidad: 'kg', costo: '' })
+    } catch (e) {
+      console.error(e)
+    }
   }
 
-  const eliminarIngrediente = (id) => {
-    setIngredientes(ingredientes.filter(i => i.id !== id))
-    setSelected(null)
-    setConfirmarEliminar(null)
+  const eliminarIngrediente = async (id) => {
+    try {
+      await ingredientesService.eliminar(id)
+      setIngredientes(ingredientes.filter(i => i.id !== id))
+      setSelected(null)
+      setConfirmarEliminar(null)
+    } catch (e) {
+      console.error(e)
+    }
   }
+
+  if (cargando) return <div className="ing-layout"><div className="ing-main" style={{ display:'flex', alignItems:'center', justifyContent:'center', color:'#94a3b8' }}>Cargando...</div></div>
 
   return (
     <div className="ing-layout">

@@ -1,75 +1,105 @@
 import { useState } from 'react'
+import { categoriasService, productosService } from '../../services/api'
 import './Productos.css'
 
 const fmt = (n) => n.toLocaleString('es-AR')
 const pct = (n) => n.toFixed(1) + '%'
-const margenPct  = (p, c) => ((p - c) / p) * 100
-const markupPct  = (p, c) => ((p - c) / c) * 100
+const margenPct = (p, c) => ((p - c) / p) * 100
+const markupPct = (p, c) => ((p - c) / c) * 100
 
 export default function Productos({ productos, setProductos, categorias, setCategorias }) {
-  const [catActiva, setCatActiva]   = useState(null) // null = todas
+  const [catActiva, setCatActiva]   = useState(null)
   const [selected, setSelected]     = useState(null)
   const [busqueda, setBusqueda]     = useState('')
-  const [nextProdId, setNextProdId]               = useState(11)
-  const [confirmarEliminar, setConfirmarEliminar] = useState(null)
-  const [editando, setEditando]                   = useState(null)
-  const [creando, setCreando]                     = useState(false)
-  const [nuevoProducto, setNuevoProducto]         = useState({ nombre: '', categoriaId: 1, precio: '' })
-  const [creandoCat, setCreandoCat]               = useState(false)
-  const [nombreCat, setNombreCat]                 = useState('')
-  const [nextCatId, setNextCatId]                 = useState(6)
+  const [confirmarEliminar, setConfirmarEliminar]       = useState(null)
+  const [editando, setEditando]                         = useState(null)
+  const [creando, setCreando]                           = useState(false)
+  const [nuevoProducto, setNuevoProducto]               = useState({ nombre: '', categoriaId: '', precio: '' })
+  const [creandoCat, setCreandoCat]                     = useState(false)
+  const [nombreCat, setNombreCat]                       = useState('')
   const [confirmarEliminarCat, setConfirmarEliminarCat] = useState(null)
 
   const productosFiltrados = productos.filter(p => {
-    const matchCat = catActiva === null || p.categoriaId === catActiva
+    const matchCat  = catActiva === null || p.categoriaId === catActiva
     const matchBusq = p.nombre.toLowerCase().includes(busqueda.toLowerCase())
     return matchCat && matchBusq
   })
 
-  const producto = productos.find(p => p.id === selected)
-  const catNombre = (id) => categorias.find(c => c.id === id)?.nombre ?? '—'
+  const producto   = productos.find(p => p.id === selected)
+  const catNombre  = (id) => categorias.find(c => c.id === id)?.nombre ?? '—'
 
-  const confirmarNuevaCategoria = () => {
+  const confirmarNuevaCategoria = async () => {
     const nombre = nombreCat.trim()
     if (!nombre) return
-    setCategorias([...categorias, { id: nextCatId, nombre }])
-    setNextCatId(nextCatId + 1)
-    setCreandoCat(false)
-    setNombreCat('')
+    try {
+      const nueva = await categoriasService.crear({ nombre })
+      setCategorias([...categorias, nueva])
+      setCreandoCat(false)
+      setNombreCat('')
+    } catch (e) {
+      console.error(e)
+    }
   }
 
-  const eliminarCategoria = (id) => {
-    setCategorias(categorias.filter(c => c.id !== id))
-    setProductos(productos.filter(p => p.categoriaId !== id))
-    if (catActiva === id) { setCatActiva(null); setSelected(null) }
-    setConfirmarEliminarCat(null)
+  const eliminarCategoria = async (id) => {
+    try {
+      await categoriasService.eliminar(id)
+      setCategorias(categorias.filter(c => c.id !== id))
+      setProductos(productos.filter(p => p.categoriaId !== id))
+      if (catActiva === id) { setCatActiva(null); setSelected(null) }
+      setConfirmarEliminarCat(null)
+    } catch (e) {
+      console.error(e)
+    }
   }
 
-  const confirmarNuevoProducto = () => {
+  const confirmarNuevoProducto = async () => {
     if (!nuevoProducto.nombre.trim() || !nuevoProducto.precio) return
-    setProductos([...productos, {
-      id: nextProdId,
-      nombre: nuevoProducto.nombre.trim(),
-      categoriaId: Number(nuevoProducto.categoriaId),
-      precio: Number(nuevoProducto.precio),
-      costo: 0,
-      activo: true,
-    }])
-    setNextProdId(nextProdId + 1)
-    setCreando(false)
-    setNuevoProducto({ nombre: '', categoriaId: 1, precio: '' })
+    try {
+      const nuevo = await productosService.crear({
+        nombre:    nuevoProducto.nombre.trim(),
+        categoria: nuevoProducto.categoriaId,
+        precio:    Number(nuevoProducto.precio),
+        costo:     0,
+      })
+      setProductos([...productos, nuevo])
+      setCreando(false)
+      setNuevoProducto({ nombre: '', categoriaId: '', precio: '' })
+    } catch (e) {
+      console.error(e)
+    }
   }
 
-  const guardarEdicion = () => {
+  const guardarEdicion = async () => {
     if (!editando.nombre.trim() || !editando.precio || !editando.costo) return
-    setProductos(productos.map(p => p.id === editando.id ? { ...editando, precio: Number(editando.precio), costo: Number(editando.costo) } : p))
-    setEditando(null)
+    try {
+      const actualizado = await productosService.actualizar(editando.id, {
+        nombre:    editando.nombre.trim(),
+        categoria: editando.categoriaId,
+        precio:    Number(editando.precio),
+        costo:     Number(editando.costo),
+      })
+      setProductos(productos.map(p => p.id === editando.id ? actualizado : p))
+      setEditando(null)
+    } catch (e) {
+      console.error(e)
+    }
   }
 
-  const eliminarProducto = (id) => {
-    setProductos(productos.filter(p => p.id !== id))
-    setSelected(null)
-    setConfirmarEliminar(null)
+  const eliminarProducto = async (id) => {
+    try {
+      await productosService.eliminar(id)
+      setProductos(productos.filter(p => p.id !== id))
+      setSelected(null)
+      setConfirmarEliminar(null)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const abrirNuevoProducto = () => {
+    setNuevoProducto({ nombre: '', categoriaId: categorias[0]?.id || '', precio: '' })
+    setCreando(true)
   }
 
   return (
@@ -117,7 +147,7 @@ export default function Productos({ productos, setProductos, categorias, setCate
               value={busqueda}
               onChange={e => setBusqueda(e.target.value)}
             />
-            <button className="prod-btn-primary" onClick={() => setCreando(true)}>+ Nuevo producto</button>
+            <button className="prod-btn-primary" onClick={abrirNuevoProducto}>+ Nuevo producto</button>
           </div>
 
           <div className="prod-table-wrap">
@@ -186,7 +216,7 @@ export default function Productos({ productos, setProductos, categorias, setCate
 
       {/* Modal confirmar eliminar categoría */}
       {confirmarEliminarCat !== null && (() => {
-        const cat = categorias.find(c => c.id === confirmarEliminarCat)
+        const cat      = categorias.find(c => c.id === confirmarEliminarCat)
         const cantProds = productos.filter(p => p.categoriaId === confirmarEliminarCat).length
         return (
           <div className="prod-modal-overlay" onClick={() => setConfirmarEliminarCat(null)}>
@@ -233,7 +263,7 @@ export default function Productos({ productos, setProductos, categorias, setCate
 
       {/* Modal nuevo producto */}
       {creando && (
-        <div className="prod-modal-overlay" onClick={() => { setCreando(false); setNuevoProducto({ nombre: '', categoriaId: 1, precio: '' }) }}>
+        <div className="prod-modal-overlay" onClick={() => { setCreando(false); setNuevoProducto({ nombre: '', categoriaId: '', precio: '' }) }}>
           <div className="prod-modal prod-modal--edit" onClick={e => e.stopPropagation()}>
             <h3 className="prod-modal-title">Nuevo producto</h3>
             <div className="prod-form">
@@ -251,7 +281,7 @@ export default function Productos({ productos, setProductos, categorias, setCate
                 <label>Categoría</label>
                 <select
                   value={nuevoProducto.categoriaId}
-                  onChange={e => setNuevoProducto({ ...nuevoProducto, categoriaId: Number(e.target.value) })}
+                  onChange={e => setNuevoProducto({ ...nuevoProducto, categoriaId: e.target.value })}
                 >
                   {categorias.map(c => (
                     <option key={c.id} value={c.id}>{c.nombre}</option>
@@ -269,7 +299,7 @@ export default function Productos({ productos, setProductos, categorias, setCate
               </div>
             </div>
             <div className="prod-modal-actions">
-              <button className="prod-btn-secondary" onClick={() => { setCreando(false); setNuevoProducto({ nombre: '', categoriaId: 1, precio: '' }) }}>Cancelar</button>
+              <button className="prod-btn-secondary" onClick={() => { setCreando(false); setNuevoProducto({ nombre: '', categoriaId: '', precio: '' }) }}>Cancelar</button>
               <button
                 className="prod-btn-primary"
                 onClick={confirmarNuevoProducto}
@@ -301,7 +331,7 @@ export default function Productos({ productos, setProductos, categorias, setCate
                 <label>Categoría</label>
                 <select
                   value={editando.categoriaId}
-                  onChange={e => setEditando({ ...editando, categoriaId: Number(e.target.value) })}
+                  onChange={e => setEditando({ ...editando, categoriaId: e.target.value })}
                 >
                   {categorias.map(c => (
                     <option key={c.id} value={c.id}>{c.nombre}</option>

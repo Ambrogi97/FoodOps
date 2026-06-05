@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { zonasService, mesasService, ventasService } from '../../services/api'
 import './Mesas.css'
 
 const COLS = 12
@@ -9,36 +10,67 @@ const ESTADO_CONFIG = {
   ocupada: { label: 'Ocupada', color: '#EF4444' },
 }
 
-const ZONAS_INICIALES = [
-  {
-    id: 'salon',
-    label: 'Salón',
-    removible: false,
-    mesas: [
-      { id: 1, estado: 'libre',   col: 0, row: 0 },
-      { id: 2, estado: 'ocupada', col: 1, row: 0, cliente: 'Mesa 2',        hora: '20:15', items: [{ nombre: 'Pizza Margarita', cantidad: 1, precio: 13000 }, { nombre: 'Coca Cola', cantidad: 2, precio: 3500 }] },
-      { id: 3, estado: 'libre',   col: 2, row: 0 },
-      { id: 4, estado: 'ocupada', col: 4, row: 0, cliente: 'Belgrano 1373', hora: '19:50', items: [] },
-      { id: 5, estado: 'libre',   col: 0, row: 2 },
-      { id: 6, estado: 'ocupada', col: 1, row: 2, cliente: 'Mesa 6',        hora: '20:30', items: [{ nombre: 'Panuzzo Crudo', cantidad: 2, precio: 13500 }] },
-      { id: 7, estado: 'libre',   col: 2, row: 2 },
-    ],
-  },
+const MESAS_DEFAULT = [
+  { numero: 1, col: 0, row: 0 },
+  { numero: 2, col: 1, row: 0 },
+  { numero: 3, col: 2, row: 0 },
+  { numero: 4, col: 4, row: 0 },
+  { numero: 5, col: 0, row: 2 },
+  { numero: 6, col: 1, row: 2 },
+  { numero: 7, col: 2, row: 2 },
 ]
 
+const formatDateTime = (d = new Date()) => {
+  const pad = n => n.toString().padStart(2, '0')
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
 export default function Mesas({ productos = [], categorias = [] }) {
-  const [zonas, setZonas]           = useState(ZONAS_INICIALES)
-  const [zonaActiva, setZonaActiva] = useState('salon')
+  const [zonas, setZonas]           = useState([])
+  const [zonaActiva, setZonaActiva] = useState(null)
   const [selected, setSelected]     = useState(null)
   const [showModal, setShowModal]   = useState(false)
   const [nombreZona, setNombreZona] = useState('')
   const [draggingId, setDraggingId]               = useState(null)
-  const [confirmarEliminar, setConfirmarEliminar] = useState(null)
+  const [confirmarEliminar, setConfirmarEliminar] = useState(null) // { id, numero }
   const [showAgregarMesas, setShowAgregarMesas]   = useState(false)
   const [cantidadMesas, setCantidadMesas]         = useState(1)
   const [showSelector, setShowSelector]           = useState(false)
   const [catSelector, setCatSelector]             = useState(null)
-  const [confirmarCerrar, setConfirmarCerrar]     = useState(null)
+  const [confirmarCerrar, setConfirmarCerrar]     = useState(null) // { id, numero }
+  const [cargando, setCargando]                   = useState(true)
+
+  /* ── Carga inicial ── */
+  useEffect(() => {
+    const cargar = async () => {
+      try {
+        const [zonasData, mesasData] = await Promise.all([
+          zonasService.listar(),
+          mesasService.listar(),
+        ])
+
+        if (zonasData.length === 0) {
+          const salon    = await zonasService.crear({ label: 'Salón', removible: false })
+          const nuevas   = MESAS_DEFAULT.map(m => ({ ...m, zona: salon.id, estado: 'libre' }))
+          const creadas  = await mesasService.crearVarias(nuevas)
+          setZonas([{ ...salon, mesas: creadas }])
+          setZonaActiva(salon.id)
+        } else {
+          const zonasMapped = zonasData.map(z => ({
+            ...z,
+            mesas: mesasData.filter(m => m.zona === z.id),
+          }))
+          setZonas(zonasMapped)
+          setZonaActiva(zonasMapped[0]?.id || null)
+        }
+      } catch (e) {
+        console.error(e)
+      } finally {
+        setCargando(false)
+      }
+    }
+    cargar()
+  }, [])
 
   const zona = zonas.find(z => z.id === zonaActiva)
   const mesa = zona?.mesas.find(m => m.id === selected)
@@ -46,162 +78,178 @@ export default function Mesas({ productos = [], categorias = [] }) {
   const getMesaEnCelda = (col, row) =>
     zona?.mesas.find(m => m.col === col && m.row === row)
 
+  const nextNumero = () => {
+    const all = zonas.flatMap(z => z.mesas)
+    return all.length > 0 ? Math.max(...all.map(m => m.numero)) + 1 : 1
+  }
+
+  const actualizarMesaEnState = (mesaId, cambios) => {
+    setZonas(prev => prev.map(z => ({
+      ...z,
+      mesas: z.mesas.map(m => m.id === mesaId ? { ...m, ...cambios } : m),
+    })))
+  }
+
   /* ── Drag & Drop ── */
   const handleDragStart = (e, mesaId) => {
-    e.dataTransfer.setData('mesaId', String(mesaId))
+    e.dataTransfer.setData('mesaId', mesaId)
     setDraggingId(mesaId)
     setSelected(null)
   }
 
   const handleDragEnd = () => setDraggingId(null)
 
-  const handleDrop = (e, col, row) => {
+  const handleDrop = async (e, col, row) => {
     e.preventDefault()
-    const mesaId = parseInt(e.dataTransfer.getData('mesaId'))
+    const mesaId  = e.dataTransfer.getData('mesaId')
     const ocupada = zona.mesas.some(m => m.col === col && m.row === row && m.id !== mesaId)
     if (ocupada) return
-    setZonas(prev => prev.map(z =>
-      z.id === zonaActiva
-        ? { ...z, mesas: z.mesas.map(m => m.id === mesaId ? { ...m, col, row } : m) }
-        : z
-    ))
+    actualizarMesaEnState(mesaId, { col, row })
     setDraggingId(null)
+    try {
+      await mesasService.actualizar(mesaId, { col, row })
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   const handleDragOver = (e) => e.preventDefault()
 
-  /* ── Acciones ── */
-  const cerrarMesa = (mesaId) => {
-    setZonas(zonas.map(z =>
-      z.id === zonaActiva
-        ? { ...z, mesas: z.mesas.map(m => m.id === mesaId
-            ? { id: m.id, estado: 'libre', col: m.col, row: m.row }
-            : m) }
-        : z
-    ))
-    setSelected(null)
-  }
-
-  const quitarProductoDelPedido = (nombre) => {
-    const mesaId = selected
-    const zonaId = zonaActiva
-    setZonas(prev => prev.map(z =>
-      z.id === zonaId ? {
-        ...z, mesas: z.mesas.map(m => {
-          if (m.id !== mesaId) return m
-          const items = (m.items || [])
-            .map(i => i.nombre === nombre ? { ...i, cantidad: i.cantidad - 1 } : i)
-            .filter(i => i.cantidad > 0)
-          return { ...m, items }
+  /* ── Acciones de mesa ── */
+  const cerrarMesa = async (mesaId) => {
+    const m = zona.mesas.find(x => x.id === mesaId)
+    if (m?.items?.length > 0 && m.hora) {
+      const cierre = formatDateTime()
+      try {
+        await ventasService.crear({
+          mesa:   `Mesa ${m.numero}`,
+          inicio: m.hora,
+          cierre,
+          items:  m.items,
         })
-      } : z
-    ))
-  }
-
-  const agregarProductoAlPedido = (producto) => {
-    const zonaId   = zonaActiva
-    const mesaId   = selected
-    setZonas(prev => prev.map(z =>
-      z.id === zonaId ? {
-        ...z, mesas: z.mesas.map(m => {
-          if (m.id !== mesaId) return m
-          const items = m.items || []
-          const existe = items.find(i => i.nombre === producto.nombre)
-          return {
-            ...m,
-            items: existe
-              ? items.map(i => i.nombre === producto.nombre ? { ...i, cantidad: i.cantidad + 1 } : i)
-              : [...items, { nombre: producto.nombre, cantidad: 1, precio: producto.precio }]
-          }
-        })
-      } : z
-    ))
-    setShowSelector(false)
-  }
-
-  const nuevoPedido = (mesaId) => {
-    const hora    = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
-    const zonaId  = zonaActiva
-    setZonas(prev => prev.map(z =>
-      z.id === zonaId
-        ? { ...z, mesas: z.mesas.map(m => m.id === mesaId ? { ...m, estado: 'ocupada', hora, items: [] } : m) }
-        : z
-    ))
-  }
-
-  const confirmarAgregarMesas = () => {
-    const cantidad = Math.max(1, Math.min(cantidadMesas, 20))
-    const celdasOcupadas = new Set(zona.mesas.map(m => `${m.col}-${m.row}`))
-    const idsUsados = new Set(zonas.flatMap(z => z.mesas.map(m => m.id)))
-
-    const siguienteId = (desde = 1) => {
-      let id = desde
-      while (idsUsados.has(id)) id++
-      return id
+      } catch (e) {
+        console.error('Error registrando venta:', e)
+      }
     }
+    actualizarMesaEnState(mesaId, { estado: 'libre', hora: null, items: [] })
+    setSelected(null)
+    setConfirmarCerrar(null)
+    try {
+      await mesasService.actualizar(mesaId, { estado: 'libre', hora: null, items: [] })
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const quitarProductoDelPedido = async (nombre) => {
+    const mesaId = selected
+    const m = zona.mesas.find(x => x.id === mesaId)
+    const items = (m.items || [])
+      .map(i => i.nombre === nombre ? { ...i, cantidad: i.cantidad - 1 } : i)
+      .filter(i => i.cantidad > 0)
+    actualizarMesaEnState(mesaId, { items })
+    try {
+      await mesasService.actualizar(mesaId, { items })
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const agregarProductoAlPedido = async (producto) => {
+    const mesaId = selected
+    const m      = zona.mesas.find(x => x.id === mesaId)
+    const items  = m.items || []
+    const existe = items.find(i => i.nombre === producto.nombre)
+    const nuevosItems = existe
+      ? items.map(i => i.nombre === producto.nombre ? { ...i, cantidad: i.cantidad + 1 } : i)
+      : [...items, { nombre: producto.nombre, cantidad: 1, precio: producto.precio }]
+    actualizarMesaEnState(mesaId, { items: nuevosItems })
+    setShowSelector(false)
+    try {
+      await mesasService.actualizar(mesaId, { items: nuevosItems })
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const nuevoPedido = async (mesaId) => {
+    const hora = formatDateTime()
+    actualizarMesaEnState(mesaId, { estado: 'ocupada', hora, items: [] })
+    try {
+      await mesasService.actualizar(mesaId, { estado: 'ocupada', hora, items: [] })
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const confirmarAgregarMesas = async () => {
+    const cantidad       = Math.max(1, Math.min(cantidadMesas, 20))
+    const celdasOcupadas = new Set(zona.mesas.map(m => `${m.col}-${m.row}`))
+    let   numeroActual   = nextNumero()
 
     const nuevas = []
-    let idActual = 1
-
     for (let r = 0; r < ROWS && nuevas.length < cantidad; r++) {
       for (let c = 0; c < COLS && nuevas.length < cantidad; c++) {
         if (!celdasOcupadas.has(`${c}-${r}`)) {
           celdasOcupadas.add(`${c}-${r}`)
-          idActual = siguienteId(idActual)
-          idsUsados.add(idActual)
-          nuevas.push({ id: idActual, estado: 'libre', col: c, row: r })
-          idActual++
+          nuevas.push({ numero: numeroActual++, zona: zonaActiva, col: c, row: r, estado: 'libre' })
         }
       }
     }
-
     if (nuevas.length === 0) return
-    setZonas(zonas.map(z =>
-      z.id === zonaActiva
-        ? { ...z, mesas: [...z.mesas, ...nuevas] }
-        : z
-    ))
+
+    try {
+      const creadas = await mesasService.crearVarias(nuevas)
+      setZonas(prev => prev.map(z =>
+        z.id === zonaActiva ? { ...z, mesas: [...z.mesas, ...creadas] } : z
+      ))
+    } catch (e) {
+      console.error(e)
+    }
     setShowAgregarMesas(false)
     setCantidadMesas(1)
   }
 
-  const eliminarMesa = (mesaId) => {
-    // Eliminar la mesa y renumerar todas las mesas de todas las zonas
-    const zonasActualizadas = zonas.map(z =>
-      z.id === zonaActiva
-        ? { ...z, mesas: z.mesas.filter(m => m.id !== mesaId) }
-        : z
-    )
-
-    // Recolectar todas las mesas en orden (por zona, luego por row y col)
-    // y asignar IDs consecutivos desde 1
-    let contador = 1
-    const zonasRenumeradas = zonasActualizadas.map(z => ({
-      ...z,
-      mesas: [...z.mesas]
-        .sort((a, b) => a.row - b.row || a.col - b.col)
-        .map(m => ({ ...m, id: contador++ })),
-    }))
-
+  const eliminarMesa = async (mesaId) => {
+    try {
+      await mesasService.eliminar(mesaId)
+      setZonas(prev => prev.map(z =>
+        z.id === zonaActiva ? { ...z, mesas: z.mesas.filter(m => m.id !== mesaId) } : z
+      ))
+    } catch (e) {
+      console.error(e)
+    }
     setConfirmarEliminar(null)
     setSelected(null)
-    setZonas(zonasRenumeradas)
   }
 
-  const agregarZona = () => {
-    const nombre = nombreZona.trim()
-    if (!nombre) return
-    const id = nombre.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now()
-    setZonas([...zonas, { id, label: nombre, removible: true, mesas: [] }])
-    setZonaActiva(id)
-    setSelected(null)
+  const agregarZona = async () => {
+    const label = nombreZona.trim()
+    if (!label) return
+    try {
+      const nueva = await zonasService.crear({ label, removible: true })
+      setZonas([...zonas, { ...nueva, mesas: [] }])
+      setZonaActiva(nueva.id)
+      setSelected(null)
+    } catch (e) {
+      console.error(e)
+    }
     setNombreZona('')
     setShowModal(false)
   }
 
-  const eliminarZona = (id) => {
-    setZonas(zonas.filter(z => z.id !== id))
-    if (zonaActiva === id) { setZonaActiva('salon'); setSelected(null) }
+  const eliminarZona = async (id) => {
+    try {
+      await zonasService.eliminar(id)
+      const restantes = zonas.filter(z => z.id !== id)
+      setZonas(restantes)
+      if (zonaActiva === id) {
+        setZonaActiva(restantes[0]?.id || null)
+        setSelected(null)
+      }
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   /* ── Render celdas ── */
@@ -212,6 +260,12 @@ export default function Mesas({ productos = [], categorias = [] }) {
       celdas.push({ col, row, mesa: m })
     }
   }
+
+  if (cargando) return (
+    <div className="mesas-layout" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+      Cargando...
+    </div>
+  )
 
   return (
     <div className="mesas-layout">
@@ -284,7 +338,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
                     onDragEnd={handleDragEnd}
                     onClick={() => setSelected(selected === m.id ? null : m.id)}
                   >
-                    <span className="mesa-numero">{m.id}</span>
+                    <span className="mesa-numero">{m.numero}</span>
                     <span className="mesa-estado-dot" style={{ background: ESTADO_CONFIG[m.estado].color }} />
                   </div>
                 )}
@@ -305,7 +359,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
         ) : (
           <div className="mesa-detalle">
 
-            {/* Header siempre visible */}
+            {/* Header */}
             <div className="mesa-detalle-header">
               <div
                 className="mesa-detalle-badge"
@@ -313,10 +367,10 @@ export default function Mesas({ productos = [], categorias = [] }) {
               >
                 {ESTADO_CONFIG[mesa.estado].label}
               </div>
-              <h2 className="mesa-detalle-title">Mesa {mesa.id}</h2>
+              <h2 className="mesa-detalle-title">Mesa {mesa.numero}</h2>
               <p className="mesa-detalle-salon">{zona.label}</p>
               {mesa.estado === 'ocupada' && mesa.hora && (
-                <p className="mesa-detalle-hora">Desde las {mesa.hora}</p>
+                <p className="mesa-detalle-hora">Desde las {mesa.hora.split(' ')[1]}</p>
               )}
             </div>
 
@@ -357,10 +411,10 @@ export default function Mesas({ productos = [], categorias = [] }) {
               ) : (
                 <>
                   <button className="mesa-btn mesa-btn--primary" onClick={() => setShowSelector(true)}>+ Agregar producto</button>
-                  <button className="mesa-btn mesa-btn--secondary" onClick={() => setConfirmarCerrar(mesa.id)}>Cerrar mesa</button>
+                  <button className="mesa-btn mesa-btn--secondary" onClick={() => setConfirmarCerrar({ id: mesa.id, numero: mesa.numero })}>Cerrar mesa</button>
                 </>
               )}
-              <button className="mesa-btn mesa-btn--danger" onClick={() => setConfirmarEliminar(mesa.id)}>Eliminar mesa</button>
+              <button className="mesa-btn mesa-btn--danger" onClick={() => setConfirmarEliminar({ id: mesa.id, numero: mesa.numero })}>Eliminar mesa</button>
             </div>
 
           </div>
@@ -397,11 +451,11 @@ export default function Mesas({ productos = [], categorias = [] }) {
       {confirmarCerrar !== null && (
         <div className="mesas-modal-overlay" onClick={() => setConfirmarCerrar(null)}>
           <div className="mesas-modal" onClick={e => e.stopPropagation()}>
-            <h3 className="mesas-modal-title">¿Cerrar mesa {confirmarCerrar}?</h3>
-            <p className="mesas-modal-sub">Se perderá el pedido actual. Esta acción no se puede deshacer.</p>
+            <h3 className="mesas-modal-title">¿Cerrar mesa {confirmarCerrar.numero}?</h3>
+            <p className="mesas-modal-sub">Se registrará la venta y se liberará la mesa.</p>
             <div className="mesas-modal-actions">
               <button className="mesa-btn mesa-btn--secondary" onClick={() => setConfirmarCerrar(null)}>Cancelar</button>
-              <button className="mesa-btn mesa-btn--confirm-danger" onClick={() => cerrarMesa(confirmarCerrar)}>Sí, cerrar</button>
+              <button className="mesa-btn mesa-btn--confirm-danger" onClick={() => cerrarMesa(confirmarCerrar.id)}>Sí, cerrar</button>
             </div>
           </div>
         </div>
@@ -411,11 +465,11 @@ export default function Mesas({ productos = [], categorias = [] }) {
       {confirmarEliminar !== null && (
         <div className="mesas-modal-overlay" onClick={() => setConfirmarEliminar(null)}>
           <div className="mesas-modal" onClick={e => e.stopPropagation()}>
-            <h3 className="mesas-modal-title">¿Eliminar mesa {confirmarEliminar}?</h3>
+            <h3 className="mesas-modal-title">¿Eliminar mesa {confirmarEliminar.numero}?</h3>
             <p className="mesas-modal-sub">Esta acción no se puede deshacer.</p>
             <div className="mesas-modal-actions">
               <button className="mesa-btn mesa-btn--secondary" onClick={() => setConfirmarEliminar(null)}>Cancelar</button>
-              <button className="mesa-btn mesa-btn--confirm-danger" onClick={() => eliminarMesa(confirmarEliminar)}>Sí, eliminar</button>
+              <button className="mesa-btn mesa-btn--confirm-danger" onClick={() => eliminarMesa(confirmarEliminar.id)}>Sí, eliminar</button>
             </div>
           </div>
         </div>
@@ -425,7 +479,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
       {showSelector && (
         <div className="mesas-modal-overlay" onClick={() => setShowSelector(false)}>
           <div className="mesas-modal mesas-modal--selector" onClick={e => e.stopPropagation()}>
-            <h3 className="mesas-modal-title">Agregar producto — Mesa {selected}</h3>
+            <h3 className="mesas-modal-title">Agregar producto — Mesa {mesa?.numero}</h3>
 
             <div className="selector-cats">
               <button
