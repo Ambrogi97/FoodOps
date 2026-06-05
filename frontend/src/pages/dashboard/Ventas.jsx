@@ -25,17 +25,24 @@ const VENTAS_MOCK = [
 
 const totalVenta = (v) => v.items.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
 
+const fechaHoy = () => {
+  const d = new Date()
+  return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`
+}
+
 const filtrarPorPeriodo = (ventas, periodo) => {
-  const hoyStr = new Date().toDateString()
+  const hoy = fechaHoy()
   return ventas.filter(v => {
-    const fechaV = new Date(v.cierre.split(' ')[0].split('/').reverse().join('-'))
-    if (periodo === 'Hoy') return fechaV.toDateString() === hoyStr
+    const [dia, mes, anio] = v.cierre.split(' ')[0].split('/')
+    const [diaH, mesH, anioH] = hoy.split('/')
+    if (periodo === 'Hoy') return dia === diaH && mes === mesH && anio === anioH
     if (periodo === 'Esta semana') {
-      const diff = (new Date() - fechaV) / (1000 * 60 * 60 * 24)
-      return diff <= 7
+      const fechaV = new Date(anio, mes - 1, dia)
+      const diff   = (new Date() - fechaV) / (1000 * 60 * 60 * 24)
+      return diff < 7
     }
     if (periodo === 'Este mes') {
-      return fechaV.getMonth() === new Date().getMonth() && fechaV.getFullYear() === new Date().getFullYear()
+      return mes === mesH && anio === anioH
     }
     return true
   })
