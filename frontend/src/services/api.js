@@ -10,6 +10,12 @@ const request = async (path, options = {}) => {
       ...(options.headers || {}),
     },
   })
+  if (res.status === 401) {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    window.location.href = '/login'
+    return
+  }
   const json = await res.json()
   if (!res.ok) throw new Error(json.message || 'Error en la solicitud')
   return json
@@ -114,4 +120,14 @@ export const mesasService = {
 export const ventasService = {
   listar: async () => (await request('/api/ventas')).map(mapVenta),
   crear:  async (data) => mapVenta(await request('/api/ventas', { method: 'POST', body: JSON.stringify(data) })),
+}
+
+// ── Gastos ───────────────────────────────────────────────────────────────────
+
+const mapGasto = g => ({ id: g._id, descripcion: g.descripcion, monto: g.monto, categoria: g.categoria, fecha: g.fecha })
+
+export const gastosService = {
+  listar:  async () => (await request('/api/gastos')).map(mapGasto),
+  crear:   async (data) => mapGasto(await request('/api/gastos', { method: 'POST', body: JSON.stringify(data) })),
+  eliminar: (id) => request(`/api/gastos/${id}`, { method: 'DELETE' }),
 }

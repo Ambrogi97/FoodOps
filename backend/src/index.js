@@ -9,6 +9,7 @@ const ingredientesRoutes = require('./routes/ingredientes')
 const zonasRoutes       = require('./routes/zonas')
 const mesasRoutes       = require('./routes/mesas')
 const ventasRoutes      = require('./routes/ventas')
+const gastosRoutes      = require('./routes/gastos')
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -25,6 +26,7 @@ app.use('/api/ingredientes', ingredientesRoutes)
 app.use('/api/zonas',        zonasRoutes)
 app.use('/api/mesas',        mesasRoutes)
 app.use('/api/ventas',       ventasRoutes)
+app.use('/api/gastos',       gastosRoutes)
 
 app.get('/', (req, res) => {
   res.json({ message: 'FoodOps API running' })
