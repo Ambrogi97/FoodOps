@@ -36,7 +36,8 @@ export default function Productos() {
   const [catActiva, setCatActiva]   = useState(null) // null = todas
   const [selected, setSelected]     = useState(null)
   const [busqueda, setBusqueda]     = useState('')
-  const [nextProdId, setNextProdId] = useState(11)
+  const [nextProdId, setNextProdId]         = useState(11)
+  const [confirmarEliminar, setConfirmarEliminar] = useState(null)
 
   const productosFiltrados = productos.filter(p => {
     const matchCat = catActiva === null || p.categoriaId === catActiva
@@ -46,6 +47,12 @@ export default function Productos() {
 
   const producto = productos.find(p => p.id === selected)
   const catNombre = (id) => categorias.find(c => c.id === id)?.nombre ?? '—'
+
+  const eliminarProducto = (id) => {
+    setProductos(productos.filter(p => p.id !== id))
+    setSelected(null)
+    setConfirmarEliminar(null)
+  }
 
   return (
     <div className="prod-layout">
@@ -181,7 +188,7 @@ export default function Productos() {
 
                 <div className="prod-detalle-actions">
                   <button className="prod-btn-primary" style={{ width: '100%' }}>Editar producto</button>
-                  <button className="prod-btn-danger">Eliminar</button>
+                  <button className="prod-btn-danger" onClick={() => setConfirmarEliminar(producto.id)}>Eliminar</button>
                 </div>
               </div>
             )}
@@ -205,6 +212,23 @@ export default function Productos() {
           <span>Próximamente</span>
         </div>
       )}
+
+      {/* Modal confirmar eliminar */}
+      {confirmarEliminar !== null && (() => {
+        const p = productos.find(x => x.id === confirmarEliminar)
+        return (
+          <div className="prod-modal-overlay" onClick={() => setConfirmarEliminar(null)}>
+            <div className="prod-modal" onClick={e => e.stopPropagation()}>
+              <h3 className="prod-modal-title">¿Eliminar producto?</h3>
+              <p className="prod-modal-sub">Vas a eliminar <strong>{p?.nombre}</strong>. Esta acción no se puede deshacer.</p>
+              <div className="prod-modal-actions">
+                <button className="prod-btn-secondary" onClick={() => setConfirmarEliminar(null)}>Cancelar</button>
+                <button className="prod-btn-confirm-danger" onClick={() => eliminarProducto(confirmarEliminar)}>Sí, eliminar</button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
     </div>
   )
