@@ -34,7 +34,6 @@ export default function Mesas({ productos = [], categorias = [] }) {
   const [nombreZona, setNombreZona] = useState('')
   const [draggingId, setDraggingId]               = useState(null)
   const [confirmarEliminar, setConfirmarEliminar] = useState(null)
-  const [viendoPedido, setViendoPedido]           = useState(false)
   const [showAgregarMesas, setShowAgregarMesas]   = useState(false)
   const [cantidadMesas, setCantidadMesas]         = useState(1)
   const [showSelector, setShowSelector]           = useState(false)
@@ -84,10 +83,12 @@ export default function Mesas({ productos = [], categorias = [] }) {
   }
 
   const agregarProductoAlPedido = (producto) => {
-    setZonas(zonas.map(z =>
-      z.id === zonaActiva ? {
+    const zonaId   = zonaActiva
+    const mesaId   = selected
+    setZonas(prev => prev.map(z =>
+      z.id === zonaId ? {
         ...z, mesas: z.mesas.map(m => {
-          if (m.id !== selected) return m
+          if (m.id !== mesaId) return m
           const items = m.items || []
           const existe = items.find(i => i.nombre === producto.nombre)
           return {
@@ -103,10 +104,11 @@ export default function Mesas({ productos = [], categorias = [] }) {
   }
 
   const nuevoPedido = (mesaId) => {
-    const hora = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
-    setZonas(zonas.map(z =>
-      z.id === zonaActiva
-        ? { ...z, mesas: z.mesas.map(m => m.id === mesaId ? { ...m, estado: 'ocupada', hora, total: '$0' } : m) }
+    const hora    = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+    const zonaId  = zonaActiva
+    setZonas(prev => prev.map(z =>
+      z.id === zonaId
+        ? { ...z, mesas: z.mesas.map(m => m.id === mesaId ? { ...m, estado: 'ocupada', hora, items: [] } : m) }
         : z
     ))
   }
@@ -165,9 +167,9 @@ export default function Mesas({ productos = [], categorias = [] }) {
         .map(m => ({ ...m, id: contador++ })),
     }))
 
-    setZonas(zonasRenumeradas)
-    setSelected(null)
     setConfirmarEliminar(null)
+    setSelected(null)
+    setZonas(zonasRenumeradas)
   }
 
   const agregarZona = () => {
@@ -246,7 +248,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
                     draggable
                     onDragStart={e => handleDragStart(e, m.id)}
                     onDragEnd={handleDragEnd}
-                    onClick={() => { setSelected(selected === m.id ? null : m.id); setViendoPedido(false) }}
+                    onClick={() => setSelected(selected === m.id ? null : m.id)}
                   >
                     <span className="mesa-numero">{m.id}</span>
                     <span className="mesa-estado-dot" style={{ background: ESTADO_CONFIG[m.estado].color }} />
@@ -266,48 +268,10 @@ export default function Mesas({ productos = [], categorias = [] }) {
             <p>Seleccioná una mesa</p>
             <span>para ver su estado</span>
           </div>
-
-        ) : viendoPedido ? (
-          <div className="mesa-detalle">
-            <div className="mesa-detalle-header">
-              <button className="mesa-pedido-back" onClick={() => setViendoPedido(false)}>← Volver</button>
-              <h2 className="mesa-detalle-title">Pedido — Mesa {mesa.id}</h2>
-              <p className="mesa-detalle-salon">{zona.label} · Desde las {mesa.hora}</p>
-            </div>
-
-            {!mesa.items || mesa.items.length === 0 ? (
-              <div className="mesa-pedido-empty">
-                <span>🧾</span>
-                <p>No hay pedidos</p>
-                <span>¿Querés agregar uno?</span>
-                <button className="mesa-btn mesa-btn--primary" style={{ marginTop: 8 }} onClick={() => setShowSelector(true)}>+ Agregar producto</button>
-                <button className="mesa-btn mesa-btn--secondary" style={{ marginTop: 6 }} onClick={() => setConfirmarCerrar(mesa.id)}>Cerrar mesa</button>
-              </div>
-            ) : (
-              <>
-                <div className="mesa-pedido-items">
-                  {mesa.items.map((item, i) => (
-                    <div key={i} className="mesa-pedido-item">
-                      <span className="mesa-pedido-cantidad">{item.cantidad}×</span>
-                      <span className="mesa-pedido-nombre">{item.nombre}</span>
-                      <span className="mesa-pedido-precio">${(item.precio * item.cantidad).toLocaleString('es-AR')}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mesa-pedido-total">
-                  <span>Total</span>
-                  <strong>${mesa.items.reduce((acc, i) => acc + i.precio * i.cantidad, 0).toLocaleString('es-AR')}</strong>
-                </div>
-                <div className="mesa-detalle-actions">
-                  <button className="mesa-btn mesa-btn--primary" onClick={() => setShowSelector(true)}>+ Agregar producto</button>
-                  <button className="mesa-btn mesa-btn--secondary" onClick={() => setConfirmarCerrar(mesa.id)}>Cerrar mesa</button>
-                </div>
-              </>
-            )}
-          </div>
-
         ) : (
           <div className="mesa-detalle">
+
+            {/* Header siempre visible */}
             <div className="mesa-detalle-header">
               <div
                 className="mesa-detalle-badge"
@@ -317,34 +281,53 @@ export default function Mesas({ productos = [], categorias = [] }) {
               </div>
               <h2 className="mesa-detalle-title">Mesa {mesa.id}</h2>
               <p className="mesa-detalle-salon">{zona.label}</p>
+              {mesa.estado === 'ocupada' && mesa.hora && (
+                <p className="mesa-detalle-hora">Desde las {mesa.hora}</p>
+              )}
             </div>
 
+            {/* Items del pedido */}
             {mesa.estado === 'ocupada' && (
-              <div className="mesa-detalle-info">
-                {mesa.cliente && (
-                  <div className="mesa-detalle-row">
-                    <span>Cliente</span>
-                    <strong>{mesa.cliente}</strong>
+              <>
+                {mesa.items && mesa.items.length > 0 ? (
+                  <>
+                    <div className="mesa-pedido-items">
+                      {mesa.items.map((item, i) => (
+                        <div key={i} className="mesa-pedido-item">
+                          <span className="mesa-pedido-cantidad">{item.cantidad}×</span>
+                          <span className="mesa-pedido-nombre">{item.nombre}</span>
+                          <span className="mesa-pedido-precio">${(item.precio * item.cantidad).toLocaleString('es-AR')}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mesa-pedido-total">
+                      <span>Total</span>
+                      <strong>${mesa.items.reduce((acc, i) => acc + i.precio * i.cantidad, 0).toLocaleString('es-AR')}</strong>
+                    </div>
+                  </>
+                ) : (
+                  <div className="mesa-pedido-empty">
+                    <span>🧾</span>
+                    <p>Sin productos</p>
+                    <span>Agregá items al pedido</span>
                   </div>
                 )}
-                <div className="mesa-detalle-row">
-                  <span>Hora inicio</span>
-                  <strong>{mesa.hora}</strong>
-                </div>
-              </div>
+              </>
             )}
 
+            {/* Acciones */}
             <div className="mesa-detalle-actions">
               {mesa.estado === 'libre' ? (
                 <button className="mesa-btn mesa-btn--primary" onClick={() => nuevoPedido(mesa.id)}>Abrir mesa</button>
               ) : (
                 <>
-                  <button className="mesa-btn mesa-btn--primary" onClick={() => setViendoPedido(true)}>Ver pedido</button>
+                  <button className="mesa-btn mesa-btn--primary" onClick={() => setShowSelector(true)}>+ Agregar producto</button>
                   <button className="mesa-btn mesa-btn--secondary" onClick={() => setConfirmarCerrar(mesa.id)}>Cerrar mesa</button>
                 </>
               )}
               <button className="mesa-btn mesa-btn--danger" onClick={() => setConfirmarEliminar(mesa.id)}>Eliminar mesa</button>
             </div>
+
           </div>
         )}
       </div>
@@ -383,7 +366,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
             <p className="mesas-modal-sub">Se perderá el pedido actual. Esta acción no se puede deshacer.</p>
             <div className="mesas-modal-actions">
               <button className="mesa-btn mesa-btn--secondary" onClick={() => setConfirmarCerrar(null)}>Cancelar</button>
-              <button className="mesa-btn mesa-btn--confirm-danger" onClick={() => { cerrarMesa(confirmarCerrar); setViendoPedido(false) }}>Sí, cerrar</button>
+              <button className="mesa-btn mesa-btn--confirm-danger" onClick={() => cerrarMesa(confirmarCerrar)}>Sí, cerrar</button>
             </div>
           </div>
         </div>

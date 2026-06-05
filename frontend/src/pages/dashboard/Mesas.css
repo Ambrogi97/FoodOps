@@ -293,6 +293,13 @@
   color: var(--text-muted);
 }
 
+.mesa-detalle-hora {
+  font-size: 0.8rem;
+  color: var(--primary);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
 .mesa-detalle-info {
   padding: 16px 20px;
   display: flex;
