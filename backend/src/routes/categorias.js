@@ -24,6 +24,22 @@ router.post('/', auth, async (req, res) => {
   }
 })
 
+router.put('/:id', auth, async (req, res) => {
+  try {
+    const { nombre } = req.body
+    if (!nombre?.trim()) return res.status(400).json({ message: 'El nombre es requerido' })
+    const categoria = await Categoria.findOneAndUpdate(
+      { _id: req.params.id, usuario: req.usuario.id },
+      { nombre: nombre.trim() },
+      { new: true }
+    )
+    if (!categoria) return res.status(404).json({ message: 'Categoría no encontrada' })
+    res.json(categoria)
+  } catch (e) {
+    res.status(500).json({ message: e.message })
+  }
+})
+
 router.delete('/:id', auth, async (req, res) => {
   try {
     const categoria = await Categoria.findOneAndDelete({ _id: req.params.id, usuario: req.usuario.id })

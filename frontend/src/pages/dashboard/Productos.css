@@ -58,6 +58,7 @@
   background: none !important;
 }
 
+.prod-cat-edit,
 .prod-cat-remove {
   width: 20px;
   height: 20px;
@@ -66,7 +67,7 @@
   background: var(--border);
   border: none;
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -75,7 +76,9 @@
   line-height: 1;
   opacity: 0;
 }
+.prod-cat-row:hover .prod-cat-edit,
 .prod-cat-row:hover .prod-cat-remove { opacity: 1; }
+.prod-cat-edit:hover  { background: var(--primary); color: #fff; }
 .prod-cat-remove:hover { background: #EF4444; color: #fff; }
 
 .prod-sidebar-title {

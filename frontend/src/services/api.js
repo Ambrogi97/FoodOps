@@ -86,8 +86,9 @@ const mapVenta = v => ({ id: v._id, mesa: v.mesa, inicio: v.inicio, cierre: v.ci
 
 export const categoriasService = {
   listar: async () => (await requestCacheado('/api/categorias')).map(mapCat),
-  crear:  async (data) => { _invalidar('/api/categorias', '/api/productos'); return mapCat(await request('/api/categorias', { method: 'POST', body: JSON.stringify(data) })) },
-  eliminar: async (id) => { _invalidar('/api/categorias', '/api/productos'); return request(`/api/categorias/${id}`, { method: 'DELETE' }) },
+  crear:      async (data) => { _invalidar('/api/categorias', '/api/productos'); return mapCat(await request('/api/categorias', { method: 'POST', body: JSON.stringify(data) })) },
+  actualizar: async (id, data) => { _invalidar('/api/categorias'); return mapCat(await request(`/api/categorias/${id}`, { method: 'PUT', body: JSON.stringify(data) })) },
+  eliminar:   async (id) => { _invalidar('/api/categorias', '/api/productos'); return request(`/api/categorias/${id}`, { method: 'DELETE' }) },
 }
 
 // ── Productos ────────────────────────────────────────────────────────────────

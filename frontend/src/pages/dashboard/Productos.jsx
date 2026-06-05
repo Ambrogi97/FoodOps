@@ -18,6 +18,8 @@ export default function Productos({ productos, setProductos, categorias, setCate
   const [creandoCat, setCreandoCat]                     = useState(false)
   const [nombreCat, setNombreCat]                       = useState('')
   const [confirmarEliminarCat, setConfirmarEliminarCat] = useState(null)
+  const [editandoCat, setEditandoCat]                   = useState(null)
+  const [nombreCatEdit, setNombreCatEdit]               = useState('')
 
   const productosFiltrados = productos.filter(p => {
     const matchCat  = catActiva === null || p.categoriaId === catActiva
@@ -36,6 +38,18 @@ export default function Productos({ productos, setProductos, categorias, setCate
       setCategorias([...categorias, nueva])
       setCreandoCat(false)
       setNombreCat('')
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const guardarEdicionCat = async () => {
+    const nombre = nombreCatEdit.trim()
+    if (!nombre || nombre === editandoCat.nombre) { setEditandoCat(null); return }
+    try {
+      const actualizada = await categoriasService.actualizar(editandoCat.id, { nombre })
+      setCategorias(categorias.map(c => c.id === actualizada.id ? actualizada : c))
+      setEditandoCat(null)
     } catch (e) {
       console.error(e)
     }
@@ -128,6 +142,11 @@ export default function Productos({ productos, setProductos, categorias, setCate
                 {c.nombre}
                 <span className="prod-cat-count">{productos.filter(p => p.categoriaId === c.id).length}</span>
               </button>
+              <button
+                className="prod-cat-edit"
+                onClick={() => { setEditandoCat(c); setNombreCatEdit(c.nombre) }}
+                title="Renombrar categoría"
+              >✎</button>
               <button
                 className="prod-cat-remove"
                 onClick={() => setConfirmarEliminarCat(c.id)}
@@ -234,6 +253,31 @@ export default function Productos({ productos, setProductos, categorias, setCate
           </div>
         )
       })()}
+
+      {/* Modal editar categoría */}
+      {editandoCat && (
+        <div className="prod-modal-overlay" onClick={() => setEditandoCat(null)}>
+          <div className="prod-modal" onClick={e => e.stopPropagation()}>
+            <h3 className="prod-modal-title">Renombrar categoría</h3>
+            <div className="prod-form">
+              <div className="prod-field">
+                <label>Nombre</label>
+                <input
+                  type="text"
+                  value={nombreCatEdit}
+                  onChange={e => setNombreCatEdit(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && guardarEdicionCat()}
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="prod-modal-actions">
+              <button className="prod-btn-secondary" onClick={() => setEditandoCat(null)}>Cancelar</button>
+              <button className="prod-btn-primary" onClick={guardarEdicionCat} disabled={!nombreCatEdit.trim()}>Guardar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal nueva categoría */}
       {creandoCat && (
