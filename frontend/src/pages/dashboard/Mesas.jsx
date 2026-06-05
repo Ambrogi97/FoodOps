@@ -16,11 +16,11 @@ const ZONAS_INICIALES = [
     removible: false,
     mesas: [
       { id: 1, estado: 'libre',   col: 0, row: 0 },
-      { id: 2, estado: 'ocupada', col: 1, row: 0, cliente: 'Mesa 2',       hora: '20:15', total: '$13.500' },
+      { id: 2, estado: 'ocupada', col: 1, row: 0, cliente: 'Mesa 2',        hora: '20:15', items: [{ nombre: 'Pizza Margarita', cantidad: 1, precio: 13000 }, { nombre: 'Coca Cola', cantidad: 2, precio: 3500 }] },
       { id: 3, estado: 'libre',   col: 2, row: 0 },
-      { id: 4, estado: 'ocupada', col: 4, row: 0, cliente: 'Belgrano 1373', hora: '19:50', total: '$33.000' },
+      { id: 4, estado: 'ocupada', col: 4, row: 0, cliente: 'Belgrano 1373', hora: '19:50', items: [] },
       { id: 5, estado: 'libre',   col: 0, row: 2 },
-      { id: 6, estado: 'ocupada', col: 1, row: 2, cliente: 'Mesa 6',       hora: '20:30', total: '$8.000' },
+      { id: 6, estado: 'ocupada', col: 1, row: 2, cliente: 'Mesa 6',        hora: '20:30', items: [{ nombre: 'Panuzzo Crudo', cantidad: 2, precio: 13500 }] },
       { id: 7, estado: 'libre',   col: 2, row: 2 },
     ],
   },
@@ -34,6 +34,7 @@ export default function Mesas() {
   const [nombreZona, setNombreZona] = useState('')
   const [draggingId, setDraggingId]               = useState(null)
   const [confirmarEliminar, setConfirmarEliminar] = useState(null)
+  const [viendoPedido, setViendoPedido]           = useState(false)
   const [showAgregarMesas, setShowAgregarMesas]   = useState(false)
   const [cantidadMesas, setCantidadMesas]         = useState(1)
 
@@ -223,7 +224,7 @@ export default function Mesas() {
                     draggable
                     onDragStart={e => handleDragStart(e, m.id)}
                     onDragEnd={handleDragEnd}
-                    onClick={() => setSelected(selected === m.id ? null : m.id)}
+                    onClick={() => { setSelected(selected === m.id ? null : m.id); setViendoPedido(false) }}
                   >
                     <span className="mesa-numero">{m.id}</span>
                     <span className="mesa-estado-dot" style={{ background: ESTADO_CONFIG[m.estado].color }} />
@@ -243,6 +244,44 @@ export default function Mesas() {
             <p>Seleccioná una mesa</p>
             <span>para ver su estado</span>
           </div>
+
+        ) : viendoPedido ? (
+          <div className="mesa-detalle">
+            <div className="mesa-detalle-header">
+              <button className="mesa-pedido-back" onClick={() => setViendoPedido(false)}>← Volver</button>
+              <h2 className="mesa-detalle-title">Pedido — Mesa {mesa.id}</h2>
+              <p className="mesa-detalle-salon">{zona.label} · Desde las {mesa.hora}</p>
+            </div>
+
+            {!mesa.items || mesa.items.length === 0 ? (
+              <div className="mesa-pedido-empty">
+                <span>🧾</span>
+                <p>No hay pedidos</p>
+                <span>¿Querés agregar uno?</span>
+                <button className="mesa-btn mesa-btn--primary" style={{ marginTop: 8 }}>+ Agregar producto</button>
+              </div>
+            ) : (
+              <>
+                <div className="mesa-pedido-items">
+                  {mesa.items.map((item, i) => (
+                    <div key={i} className="mesa-pedido-item">
+                      <span className="mesa-pedido-cantidad">{item.cantidad}×</span>
+                      <span className="mesa-pedido-nombre">{item.nombre}</span>
+                      <span className="mesa-pedido-precio">${(item.precio * item.cantidad).toLocaleString('es-AR')}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mesa-pedido-total">
+                  <span>Total</span>
+                  <strong>${mesa.items.reduce((acc, i) => acc + i.precio * i.cantidad, 0).toLocaleString('es-AR')}</strong>
+                </div>
+                <div className="mesa-detalle-actions">
+                  <button className="mesa-btn mesa-btn--primary">+ Agregar producto</button>
+                </div>
+              </>
+            )}
+          </div>
+
         ) : (
           <div className="mesa-detalle">
             <div className="mesa-detalle-header">
@@ -268,19 +307,15 @@ export default function Mesas() {
                   <span>Hora inicio</span>
                   <strong>{mesa.hora}</strong>
                 </div>
-                <div className="mesa-detalle-row">
-                  <span>Total actual</span>
-                  <strong>{mesa.total}</strong>
-                </div>
               </div>
             )}
 
             <div className="mesa-detalle-actions">
               {mesa.estado === 'libre' ? (
-                <button className="mesa-btn mesa-btn--primary" onClick={() => nuevoPedido(mesa.id)}>+ Nuevo pedido</button>
+                <button className="mesa-btn mesa-btn--primary" onClick={() => nuevoPedido(mesa.id)}>Abrir mesa</button>
               ) : (
                 <>
-                  <button className="mesa-btn mesa-btn--primary">Ver pedido</button>
+                  <button className="mesa-btn mesa-btn--primary" onClick={() => setViendoPedido(true)}>Ver pedido</button>
                   <button className="mesa-btn mesa-btn--secondary" onClick={() => cerrarMesa(mesa.id)}>Cerrar mesa</button>
                 </>
               )}
