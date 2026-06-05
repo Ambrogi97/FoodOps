@@ -37,7 +37,7 @@ export default function Productos() {
   const [confirmarEliminar, setConfirmarEliminar] = useState(null)
   const [editando, setEditando]                   = useState(null)
   const [creando, setCreando]                     = useState(false)
-  const [nuevoProducto, setNuevoProducto]         = useState({ nombre: '', categoriaId: 1, precio: '', costo: '' })
+  const [nuevoProducto, setNuevoProducto]         = useState({ nombre: '', categoriaId: 1, precio: '' })
 
   const productosFiltrados = productos.filter(p => {
     const matchCat = catActiva === null || p.categoriaId === catActiva
@@ -49,18 +49,18 @@ export default function Productos() {
   const catNombre = (id) => categorias.find(c => c.id === id)?.nombre ?? '—'
 
   const confirmarNuevoProducto = () => {
-    if (!nuevoProducto.nombre.trim() || !nuevoProducto.precio || !nuevoProducto.costo) return
+    if (!nuevoProducto.nombre.trim() || !nuevoProducto.precio) return
     setProductos([...productos, {
       id: nextProdId,
       nombre: nuevoProducto.nombre.trim(),
       categoriaId: Number(nuevoProducto.categoriaId),
       precio: Number(nuevoProducto.precio),
-      costo: Number(nuevoProducto.costo),
+      costo: 0,
       activo: true,
     }])
     setNextProdId(nextProdId + 1)
     setCreando(false)
-    setNuevoProducto({ nombre: '', categoriaId: 1, precio: '', costo: '' })
+    setNuevoProducto({ nombre: '', categoriaId: 1, precio: '' })
   }
 
   const guardarEdicion = () => {
@@ -180,7 +180,7 @@ export default function Productos() {
 
       {/* Modal nuevo producto */}
       {creando && (
-        <div className="prod-modal-overlay" onClick={() => setCreando(false)}>
+        <div className="prod-modal-overlay" onClick={() => { setCreando(false); setNuevoProducto({ nombre: '', categoriaId: 1, precio: '' }) }}>
           <div className="prod-modal prod-modal--edit" onClick={e => e.stopPropagation()}>
             <h3 className="prod-modal-title">Nuevo producto</h3>
             <div className="prod-form">
@@ -205,39 +205,22 @@ export default function Productos() {
                   ))}
                 </select>
               </div>
-              <div className="prod-form-row">
-                <div className="prod-field">
-                  <label>Precio</label>
-                  <input
-                    type="number"
-                    placeholder="0"
-                    value={nuevoProducto.precio}
-                    onChange={e => setNuevoProducto({ ...nuevoProducto, precio: e.target.value })}
-                  />
-                </div>
-                <div className="prod-field">
-                  <label>Costo</label>
-                  <input
-                    type="number"
-                    placeholder="0"
-                    value={nuevoProducto.costo}
-                    onChange={e => setNuevoProducto({ ...nuevoProducto, costo: e.target.value })}
-                  />
-                </div>
+              <div className="prod-field">
+                <label>Precio</label>
+                <input
+                  type="number"
+                  placeholder="0"
+                  value={nuevoProducto.precio}
+                  onChange={e => setNuevoProducto({ ...nuevoProducto, precio: e.target.value })}
+                />
               </div>
-              {nuevoProducto.precio && nuevoProducto.costo && (
-                <div className="prod-form-preview">
-                  <span>Margen: <strong className="prod-margen-pos">{pct(margenPct(Number(nuevoProducto.precio), Number(nuevoProducto.costo)))}</strong></span>
-                  <span>Markup: <strong>{pct(markupPct(Number(nuevoProducto.precio), Number(nuevoProducto.costo)))}</strong></span>
-                </div>
-              )}
             </div>
             <div className="prod-modal-actions">
-              <button className="prod-btn-secondary" onClick={() => setCreando(false)}>Cancelar</button>
+              <button className="prod-btn-secondary" onClick={() => { setCreando(false); setNuevoProducto({ nombre: '', categoriaId: 1, precio: '' }) }}>Cancelar</button>
               <button
                 className="prod-btn-primary"
                 onClick={confirmarNuevoProducto}
-                disabled={!nuevoProducto.nombre.trim() || !nuevoProducto.precio || !nuevoProducto.costo}
+                disabled={!nuevoProducto.nombre.trim() || !nuevoProducto.precio}
               >
                 Crear
               </button>
