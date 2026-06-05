@@ -4,18 +4,18 @@ import './Ingredientes.css'
 const UNIDADES = ['kg', 'g', 'l', 'ml', 'unid.']
 
 const INGREDIENTES_INICIALES = [
-  { id: 1,  nombre: 'Aceitunas',     unidad: 'kg',    merma: 0,   costo: 13750 },
-  { id: 2,  nombre: 'Aceto',         unidad: 'l',     merma: 0,   costo: 20000 },
-  { id: 3,  nombre: 'Albahaca',      unidad: 'kg',    merma: 5,   costo: 10000 },
-  { id: 4,  nombre: 'Anchoa',        unidad: 'kg',    merma: 0,   costo: 130000 },
-  { id: 5,  nombre: 'Azul',          unidad: 'kg',    merma: 0,   costo: 31300 },
-  { id: 6,  nombre: 'Cebolla',       unidad: 'kg',    merma: 10,  costo: 300 },
-  { id: 7,  nombre: 'Harina',        unidad: 'kg',    merma: 0,   costo: 1700 },
-  { id: 8,  nombre: 'Muzza',         unidad: 'kg',    merma: 0,   costo: 8800 },
-  { id: 9,  nombre: 'Salsa',         unidad: 'kg',    merma: 0,   costo: 6200 },
-  { id: 10, nombre: 'Jamón crudo',   unidad: 'kg',    merma: 5,   costo: 79000 },
-  { id: 11, nombre: 'Cerveza',       unidad: 'l',     merma: 0,   costo: 4200 },
-  { id: 12, nombre: 'Caja',          unidad: 'unid.', merma: 0,   costo: 0 },
+  { id: 1,  nombre: 'Aceitunas',   unidad: 'kg',    costo: 13750  },
+  { id: 2,  nombre: 'Aceto',       unidad: 'l',     costo: 20000  },
+  { id: 3,  nombre: 'Albahaca',    unidad: 'kg',    costo: 10000  },
+  { id: 4,  nombre: 'Anchoa',      unidad: 'kg',    costo: 130000 },
+  { id: 5,  nombre: 'Azul',        unidad: 'kg',    costo: 31300  },
+  { id: 6,  nombre: 'Cebolla',     unidad: 'kg',    costo: 300    },
+  { id: 7,  nombre: 'Harina',      unidad: 'kg',    costo: 1700   },
+  { id: 8,  nombre: 'Muzza',       unidad: 'kg',    costo: 8800   },
+  { id: 9,  nombre: 'Salsa',       unidad: 'kg',    costo: 6200   },
+  { id: 10, nombre: 'Jamón crudo', unidad: 'kg',    costo: 79000  },
+  { id: 11, nombre: 'Cerveza',     unidad: 'l',     costo: 4200   },
+  { id: 12, nombre: 'Caja',        unidad: 'unid.', costo: 0      },
 ]
 
 const fmt = (n) => n > 0 ? `$${n.toLocaleString('es-AR')}` : '—'
@@ -26,7 +26,7 @@ export default function Ingredientes() {
   const [busqueda, setBusqueda]                   = useState('')
   const [editando, setEditando]                   = useState(null)
   const [creando, setCreando]                     = useState(false)
-  const [nuevo, setNuevo]                         = useState({ nombre: '', unidad: 'kg', merma: 0, costo: '' })
+  const [nuevo, setNuevo]                         = useState({ nombre: '', unidad: 'kg', costo: '' })
   const [confirmarEliminar, setConfirmarEliminar] = useState(null)
   const [nextId, setNextId]                       = useState(13)
 
@@ -36,7 +36,7 @@ export default function Ingredientes() {
   const guardarEdicion = () => {
     if (!editando.nombre.trim()) return
     setIngredientes(ingredientes.map(i => i.id === editando.id
-      ? { ...editando, merma: Number(editando.merma), costo: Number(editando.costo) }
+      ? { ...editando, costo: Number(editando.costo) }
       : i
     ))
     setEditando(null)
@@ -48,12 +48,11 @@ export default function Ingredientes() {
       id: nextId,
       nombre: nuevo.nombre.trim(),
       unidad: nuevo.unidad,
-      merma: Number(nuevo.merma) || 0,
       costo: Number(nuevo.costo) || 0,
     }])
     setNextId(nextId + 1)
     setCreando(false)
-    setNuevo({ nombre: '', unidad: 'kg', merma: 0, costo: '' })
+    setNuevo({ nombre: '', unidad: 'kg', costo: '' })
   }
 
   const eliminarIngrediente = (id) => {
@@ -84,13 +83,12 @@ export default function Ingredientes() {
               <tr>
                 <th>Nombre</th>
                 <th>Unidad</th>
-                <th>Merma %</th>
                 <th style={{ textAlign: 'right' }}>Costo / unidad</th>
               </tr>
             </thead>
             <tbody>
               {filtrados.length === 0 ? (
-                <tr><td colSpan={4} className="ing-table-empty">No se encontraron ingredientes</td></tr>
+                <tr><td colSpan={3} className="ing-table-empty">No se encontraron ingredientes</td></tr>
               ) : filtrados.map(i => (
                 <tr
                   key={i.id}
@@ -99,7 +97,6 @@ export default function Ingredientes() {
                 >
                   <td className="ing-nombre">{i.nombre}</td>
                   <td>{i.unidad}</td>
-                  <td>{i.merma > 0 ? `${i.merma}%` : '—'}</td>
                   <td className="ing-costo">{fmt(i.costo)}</td>
                 </tr>
               ))}
@@ -128,18 +125,6 @@ export default function Ingredientes() {
                 <span>Costo por {ingrediente.unidad}</span>
                 <strong>{fmt(ingrediente.costo)}</strong>
               </div>
-              <div className="ing-metric">
-                <span>Merma</span>
-                <strong>{ingrediente.merma > 0 ? `${ingrediente.merma}%` : '—'}</strong>
-              </div>
-              {ingrediente.merma > 0 && ingrediente.costo > 0 && (
-                <div className="ing-metric">
-                  <span>Costo real (con merma)</span>
-                  <strong className="ing-costo-real">
-                    ${Math.round(ingrediente.costo / (1 - ingrediente.merma / 100)).toLocaleString('es-AR')}
-                  </strong>
-                </div>
-              )}
             </div>
 
             <div className="ing-detalle-actions">
@@ -152,7 +137,7 @@ export default function Ingredientes() {
 
       {/* Modal nuevo ingrediente */}
       {creando && (
-        <div className="ing-modal-overlay" onClick={() => { setCreando(false); setNuevo({ nombre: '', unidad: 'kg', merma: 0, costo: '' }) }}>
+        <div className="ing-modal-overlay" onClick={() => { setCreando(false); setNuevo({ nombre: '', unidad: 'kg', costo: '' }) }}>
           <div className="ing-modal" onClick={e => e.stopPropagation()}>
             <h3 className="ing-modal-title">Nuevo ingrediente</h3>
             <div className="ing-form">
@@ -160,17 +145,11 @@ export default function Ingredientes() {
                 <label>Nombre</label>
                 <input type="text" placeholder="Ej: Tomate" value={nuevo.nombre} onChange={e => setNuevo({ ...nuevo, nombre: e.target.value })} autoFocus />
               </div>
-              <div className="ing-form-row">
-                <div className="ing-field">
-                  <label>Unidad</label>
-                  <select value={nuevo.unidad} onChange={e => setNuevo({ ...nuevo, unidad: e.target.value })}>
-                    {UNIDADES.map(u => <option key={u} value={u}>{u}</option>)}
-                  </select>
-                </div>
-                <div className="ing-field">
-                  <label>Merma %</label>
-                  <input type="number" min="0" max="100" placeholder="0" value={nuevo.merma} onChange={e => setNuevo({ ...nuevo, merma: e.target.value })} />
-                </div>
+              <div className="ing-field">
+                <label>Unidad</label>
+                <select value={nuevo.unidad} onChange={e => setNuevo({ ...nuevo, unidad: e.target.value })}>
+                  {UNIDADES.map(u => <option key={u} value={u}>{u}</option>)}
+                </select>
               </div>
               <div className="ing-field">
                 <label>Costo por unidad</label>
@@ -178,7 +157,7 @@ export default function Ingredientes() {
               </div>
             </div>
             <div className="ing-modal-actions">
-              <button className="ing-btn-secondary" onClick={() => { setCreando(false); setNuevo({ nombre: '', unidad: 'kg', merma: 0, costo: '' }) }}>Cancelar</button>
+              <button className="ing-btn-secondary" onClick={() => { setCreando(false); setNuevo({ nombre: '', unidad: 'kg', costo: '' }) }}>Cancelar</button>
               <button className="ing-btn-primary" onClick={crearIngrediente} disabled={!nuevo.nombre.trim()}>Crear</button>
             </div>
           </div>
@@ -195,17 +174,11 @@ export default function Ingredientes() {
                 <label>Nombre</label>
                 <input type="text" value={editando.nombre} onChange={e => setEditando({ ...editando, nombre: e.target.value })} autoFocus />
               </div>
-              <div className="ing-form-row">
-                <div className="ing-field">
-                  <label>Unidad</label>
-                  <select value={editando.unidad} onChange={e => setEditando({ ...editando, unidad: e.target.value })}>
-                    {UNIDADES.map(u => <option key={u} value={u}>{u}</option>)}
-                  </select>
-                </div>
-                <div className="ing-field">
-                  <label>Merma %</label>
-                  <input type="number" min="0" max="100" value={editando.merma} onChange={e => setEditando({ ...editando, merma: e.target.value })} />
-                </div>
+              <div className="ing-field">
+                <label>Unidad</label>
+                <select value={editando.unidad} onChange={e => setEditando({ ...editando, unidad: e.target.value })}>
+                  {UNIDADES.map(u => <option key={u} value={u}>{u}</option>)}
+                </select>
               </div>
               <div className="ing-field">
                 <label>Costo por unidad</label>
