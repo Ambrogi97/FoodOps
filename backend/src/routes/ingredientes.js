@@ -14,12 +14,13 @@ router.get('/', auth, async (req, res) => {
 
 router.post('/', auth, async (req, res) => {
   try {
-    const { nombre, unidad, costo } = req.body
+    const { nombre, unidad, costo, stockActual } = req.body
     if (!nombre?.trim() || !unidad) return res.status(400).json({ message: 'Faltan campos requeridos' })
     const ingrediente = await Ingrediente.create({
       nombre: nombre.trim(),
       unidad,
-      costo: Number(costo) || 0,
+      costo:       Number(costo)       || 0,
+      stockActual: Number(stockActual) || 0,
       usuario: req.usuario.id,
     })
     res.status(201).json(ingrediente)
@@ -30,11 +31,13 @@ router.post('/', auth, async (req, res) => {
 
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { nombre, unidad, costo } = req.body
+    const { nombre, unidad, costo, stockActual } = req.body
+    const update = { nombre: nombre?.trim(), unidad, costo: Number(costo) || 0 }
+    if (stockActual !== undefined) update.stockActual = Number(stockActual) || 0
     const ingrediente = await Ingrediente.findOneAndUpdate(
       { _id: req.params.id, usuario: req.usuario.id },
-      { nombre: nombre?.trim(), unidad, costo: Number(costo) || 0 },
-      { new: true }
+      update,
+      { returnDocument: 'after' }
     )
     if (!ingrediente) return res.status(404).json({ message: 'Ingrediente no encontrado' })
     res.json(ingrediente)

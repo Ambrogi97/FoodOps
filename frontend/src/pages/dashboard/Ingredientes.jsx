@@ -13,7 +13,7 @@ export default function Ingredientes() {
   const [busqueda, setBusqueda]                   = useState('')
   const [editando, setEditando]                   = useState(null)
   const [creando, setCreando]                     = useState(false)
-  const [nuevo, setNuevo]                         = useState({ nombre: '', unidad: 'kg', costo: '' })
+  const [nuevo, setNuevo]                         = useState({ nombre: '', unidad: 'kg', costo: '', stockActual: '' })
   const [confirmarEliminar, setConfirmarEliminar] = useState(null)
 
   useEffect(() => {
@@ -29,9 +29,10 @@ export default function Ingredientes() {
     if (!editando.nombre.trim()) return
     try {
       const actualizado = await ingredientesService.actualizar(editando.id, {
-        nombre: editando.nombre.trim(),
-        unidad: editando.unidad,
-        costo:  Number(editando.costo) || 0,
+        nombre:      editando.nombre.trim(),
+        unidad:      editando.unidad,
+        costo:       Number(editando.costo)       || 0,
+        stockActual: Number(editando.stockActual) || 0,
       })
       setIngredientes(ingredientes.map(i => i.id === editando.id ? actualizado : i))
       setEditando(null)
@@ -44,13 +45,14 @@ export default function Ingredientes() {
     if (!nuevo.nombre.trim()) return
     try {
       const creado = await ingredientesService.crear({
-        nombre: nuevo.nombre.trim(),
-        unidad: nuevo.unidad,
-        costo:  Number(nuevo.costo) || 0,
+        nombre:      nuevo.nombre.trim(),
+        unidad:      nuevo.unidad,
+        costo:       Number(nuevo.costo)       || 0,
+        stockActual: Number(nuevo.stockActual) || 0,
       })
       setIngredientes([...ingredientes, creado])
       setCreando(false)
-      setNuevo({ nombre: '', unidad: 'kg', costo: '' })
+      setNuevo({ nombre: '', unidad: 'kg', costo: '', stockActual: '' })
     } catch (e) {
       console.error(e)
     }
@@ -91,6 +93,7 @@ export default function Ingredientes() {
               <tr>
                 <th>Nombre</th>
                 <th>Unidad</th>
+                <th style={{ textAlign: 'right' }}>Stock</th>
                 <th style={{ textAlign: 'right' }}>Costo / unidad</th>
               </tr>
             </thead>
@@ -105,6 +108,7 @@ export default function Ingredientes() {
                 >
                   <td className="ing-nombre">{i.nombre}</td>
                   <td>{i.unidad}</td>
+                  <td className="ing-costo" style={{ textAlign: 'right' }}>{i.stockActual.toLocaleString('es-AR')}</td>
                   <td className="ing-costo">{fmt(i.costo)}</td>
                 </tr>
               ))}
@@ -129,6 +133,10 @@ export default function Ingredientes() {
             </div>
 
             <div className="ing-detalle-metrics">
+              <div className="ing-metric">
+                <span>Stock actual</span>
+                <strong>{ingrediente.stockActual.toLocaleString('es-AR')} {ingrediente.unidad}</strong>
+              </div>
               <div className="ing-metric">
                 <span>Costo por {ingrediente.unidad}</span>
                 <strong>{fmt(ingrediente.costo)}</strong>
@@ -160,12 +168,16 @@ export default function Ingredientes() {
                 </select>
               </div>
               <div className="ing-field">
+                <label>Stock inicial</label>
+                <input type="number" placeholder="0" value={nuevo.stockActual} onChange={e => setNuevo({ ...nuevo, stockActual: e.target.value })} />
+              </div>
+              <div className="ing-field">
                 <label>Costo por unidad</label>
                 <input type="number" placeholder="0" value={nuevo.costo} onChange={e => setNuevo({ ...nuevo, costo: e.target.value })} />
               </div>
             </div>
             <div className="ing-modal-actions">
-              <button className="ing-btn-secondary" onClick={() => { setCreando(false); setNuevo({ nombre: '', unidad: 'kg', costo: '' }) }}>Cancelar</button>
+              <button className="ing-btn-secondary" onClick={() => { setCreando(false); setNuevo({ nombre: '', unidad: 'kg', costo: '', stockActual: '' }) }}>Cancelar</button>
               <button className="ing-btn-primary" onClick={crearIngrediente} disabled={!nuevo.nombre.trim()}>Crear</button>
             </div>
           </div>
@@ -187,6 +199,10 @@ export default function Ingredientes() {
                 <select value={editando.unidad} onChange={e => setEditando({ ...editando, unidad: e.target.value })}>
                   {UNIDADES.map(u => <option key={u} value={u}>{u}</option>)}
                 </select>
+              </div>
+              <div className="ing-field">
+                <label>Stock actual</label>
+                <input type="number" value={editando.stockActual} onChange={e => setEditando({ ...editando, stockActual: e.target.value })} />
               </div>
               <div className="ing-field">
                 <label>Costo por unidad</label>
