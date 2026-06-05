@@ -26,9 +26,15 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const { user } = getSession()
   const [active, setActive]                   = useState('mesas')
+  const [montados, setMontados]               = useState(new Set(['mesas']))
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [productos, setProductos]             = useState([])
   const [categorias, setCategorias]           = useState([])
+
+  const navegar = (id) => {
+    setActive(id)
+    setMontados(prev => new Set([...prev, id]))
+  }
 
   useEffect(() => {
     const cargar = async () => {
@@ -71,7 +77,7 @@ export default function Dashboard() {
             <button
               key={item.id}
               className={`dash-nav-item ${active === item.id ? 'dash-nav-item--active' : ''}`}
-              onClick={() => setActive(item.id)}
+              onClick={() => navegar(item.id)}
             >
               <span className="dash-nav-icon">{item.icon}</span>
               <span className="dash-nav-label">{item.label}</span>
@@ -109,26 +115,47 @@ export default function Dashboard() {
 
         {/* Content */}
         <main className="dash-content">
-          {active === 'mesas' ? (
-            <Mesas productos={productos} categorias={categorias} />
-          ) : active === 'ventas' ? (
-            <Ventas />
-          ) : active === 'ingredientes' ? (
-            <Ingredientes />
-          ) : active === 'gastos' ? (
-            <Gastos />
-          ) : active === 'stock' ? (
-            <Stock />
-          ) : active === 'productos' ? (
-            <Productos
-              productos={productos} setProductos={setProductos}
-              categorias={categorias} setCategorias={setCategorias}
-            />
-          ) : (
+
+          {/* Módulos que se montan una sola vez y se ocultan con CSS al cambiar de tab */}
+          {montados.has('mesas') && (
+            <div style={{ display: active === 'mesas' ? 'contents' : 'none' }}>
+              <Mesas productos={productos} categorias={categorias} />
+            </div>
+          )}
+          {montados.has('productos') && (
+            <div style={{ display: active === 'productos' ? 'contents' : 'none' }}>
+              <Productos
+                productos={productos} setProductos={setProductos}
+                categorias={categorias} setCategorias={setCategorias}
+              />
+            </div>
+          )}
+          {montados.has('ingredientes') && (
+            <div style={{ display: active === 'ingredientes' ? 'contents' : 'none' }}>
+              <Ingredientes />
+            </div>
+          )}
+          {montados.has('stock') && (
+            <div style={{ display: active === 'stock' ? 'contents' : 'none' }}>
+              <Stock />
+            </div>
+          )}
+          {montados.has('ventas') && (
+            <div style={{ display: active === 'ventas' ? 'contents' : 'none' }}>
+              <Ventas />
+            </div>
+          )}
+          {montados.has('gastos') && (
+            <div style={{ display: active === 'gastos' ? 'contents' : 'none' }}>
+              <Gastos />
+            </div>
+          )}
+
+          {/* Módulos sin implementar */}
+          {!['mesas','productos','ingredientes','stock','ventas','gastos'].includes(active) && (
             <div className="dash-panel">
               <div className="dash-panel-header">
                 <h2 className="dash-panel-title">{NAV_ITEMS.find(i => i.id === active)?.label}</h2>
-                <button className="dash-btn-primary">+ Nuevo</button>
               </div>
               <div className="dash-empty">
                 <div className="dash-empty-icon">{NAV_ITEMS.find(i => i.id === active)?.icon}</div>
@@ -137,6 +164,7 @@ export default function Dashboard() {
               </div>
             </div>
           )}
+
         </main>
       </div>
 
