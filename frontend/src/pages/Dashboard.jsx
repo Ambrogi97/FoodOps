@@ -4,6 +4,7 @@ import { getSession, clearSession } from '../services/api'
 import Mesas from './dashboard/Mesas'
 import Productos from './dashboard/Productos'
 import Ingredientes from './dashboard/Ingredientes'
+import Ventas from './dashboard/Ventas'
 import './Dashboard.css'
 
 const CATEGORIAS_INICIALES = [
@@ -116,6 +117,8 @@ export default function Dashboard() {
           {/* Contenido por sección */}
           {active === 'mesas' ? (
             <Mesas productos={productos} categorias={categorias} />
+          ) : active === 'ventas' ? (
+            <Ventas />
           ) : active === 'ingredientes' ? (
             <Ingredientes />
           ) : active === 'productos' ? (
