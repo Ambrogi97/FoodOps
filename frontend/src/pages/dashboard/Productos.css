@@ -5,33 +5,6 @@
   gap: 0;
 }
 
-/* Tabs */
-.prod-tabs {
-  display: flex;
-  gap: 2px;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 0;
-  margin-bottom: 16px;
-}
-
-.prod-tab {
-  padding: 8px 18px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: all var(--transition);
-}
-.prod-tab--active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
-}
-.prod-tab:hover:not(.prod-tab--active) { color: var(--text); }
-
 /* Body */
 .prod-body {
   display: flex;
@@ -293,6 +266,8 @@
   box-shadow: var(--shadow-lg);
   animation: slideUp 0.18s ease;
 }
+.prod-modal--edit { max-width: 420px; }
+
 .prod-modal-title {
   font-size: 1.1rem;
   font-weight: 700;
@@ -342,6 +317,57 @@
 @keyframes slideUp {
   from { transform: translateY(12px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* Formulario edición */
+.prod-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.prod-form-row {
+  display: flex;
+  gap: 10px;
+}
+
+.prod-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.prod-field label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.prod-field input,
+.prod-field select {
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color var(--transition);
+  background: var(--surface);
+  color: var(--text);
+}
+.prod-field input:focus,
+.prod-field select:focus { border-color: var(--primary); }
+
+.prod-form-preview {
+  display: flex;
+  gap: 16px;
+  padding: 10px 12px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  color: var(--text-muted);
 }
 
 /* Placeholder */

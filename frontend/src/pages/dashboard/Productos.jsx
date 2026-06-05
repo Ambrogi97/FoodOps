@@ -27,17 +27,15 @@ const pct = (n) => n.toFixed(1) + '%'
 const margenPct  = (p, c) => ((p - c) / p) * 100
 const markupPct  = (p, c) => ((p - c) / c) * 100
 
-const TABS = ['Productos', 'Ingredientes', 'Categorías']
-
 export default function Productos() {
-  const [tab, setTab]               = useState('Productos')
   const [categorias, setCategorias] = useState(CATEGORIAS_INICIALES)
   const [productos, setProductos]   = useState(PRODUCTOS_INICIALES)
   const [catActiva, setCatActiva]   = useState(null) // null = todas
   const [selected, setSelected]     = useState(null)
   const [busqueda, setBusqueda]     = useState('')
-  const [nextProdId, setNextProdId]         = useState(11)
+  const [nextProdId, setNextProdId]               = useState(11)
   const [confirmarEliminar, setConfirmarEliminar] = useState(null)
+  const [editando, setEditando]                   = useState(null)
 
   const productosFiltrados = productos.filter(p => {
     const matchCat = catActiva === null || p.categoriaId === catActiva
@@ -48,6 +46,12 @@ export default function Productos() {
   const producto = productos.find(p => p.id === selected)
   const catNombre = (id) => categorias.find(c => c.id === id)?.nombre ?? '—'
 
+  const guardarEdicion = () => {
+    if (!editando.nombre.trim() || !editando.precio || !editando.costo) return
+    setProductos(productos.map(p => p.id === editando.id ? { ...editando, precio: Number(editando.precio), costo: Number(editando.costo) } : p))
+    setEditando(null)
+  }
+
   const eliminarProducto = (id) => {
     setProductos(productos.filter(p => p.id !== id))
     setSelected(null)
@@ -56,160 +60,180 @@ export default function Productos() {
 
   return (
     <div className="prod-layout">
+      <div className="prod-body">
 
-      {/* Tabs */}
-      <div className="prod-tabs">
-        {TABS.map(t => (
+        {/* Sidebar categorías */}
+        <aside className="prod-sidebar">
+          <p className="prod-sidebar-title">Categorías</p>
           <button
-            key={t}
-            className={`prod-tab ${tab === t ? 'prod-tab--active' : ''}`}
-            onClick={() => setTab(t)}
+            className={`prod-cat-item ${catActiva === null ? 'prod-cat-item--active' : ''}`}
+            onClick={() => { setCatActiva(null); setSelected(null) }}
           >
-            {t}
+            Todas
+            <span className="prod-cat-count">{productos.length}</span>
           </button>
-        ))}
+          {categorias.map(c => (
+            <button
+              key={c.id}
+              className={`prod-cat-item ${catActiva === c.id ? 'prod-cat-item--active' : ''}`}
+              onClick={() => { setCatActiva(c.id); setSelected(null) }}
+            >
+              {c.nombre}
+              <span className="prod-cat-count">{productos.filter(p => p.categoriaId === c.id).length}</span>
+            </button>
+          ))}
+        </aside>
+
+        {/* Tabla */}
+        <div className="prod-main">
+          <div className="prod-toolbar">
+            <input
+              className="prod-search"
+              type="text"
+              placeholder="Buscar producto..."
+              value={busqueda}
+              onChange={e => setBusqueda(e.target.value)}
+            />
+            <button className="prod-btn-primary">+ Nuevo producto</button>
+          </div>
+
+          <div className="prod-table-wrap">
+            <table className="prod-table">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Categoría</th>
+                  <th style={{ textAlign: 'right' }}>Precio</th>
+                </tr>
+              </thead>
+              <tbody>
+                {productosFiltrados.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="prod-table-empty">No hay productos en esta categoría</td>
+                  </tr>
+                ) : (
+                  productosFiltrados.map(p => (
+                    <tr
+                      key={p.id}
+                      className={selected === p.id ? 'prod-row--active' : ''}
+                      onClick={() => setSelected(selected === p.id ? null : p.id)}
+                    >
+                      <td className="prod-nombre">{p.nombre}</td>
+                      <td>{catNombre(p.categoriaId)}</td>
+                      <td className="prod-precio"><strong>${fmt(p.precio)}</strong></td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Panel detalle */}
+        <div className="prod-detalle">
+          {!producto ? (
+            <div className="prod-detalle-empty">
+              <span>🍽️</span>
+              <p>Seleccioná un producto</p>
+              <span>para ver sus detalles</span>
+            </div>
+          ) : (
+            <div className="prod-detalle-content">
+              <div className="prod-detalle-header">
+                <h3 className="prod-detalle-nombre">{producto.nombre}</h3>
+                <span className="prod-detalle-cat">{catNombre(producto.categoriaId)}</span>
+              </div>
+
+              <div className="prod-detalle-metrics">
+                <div className="prod-metric">
+                  <span>Precio</span>
+                  <strong>${fmt(producto.precio)}</strong>
+                </div>
+                <div className="prod-metric">
+                  <span>Costo</span>
+                  <strong>${fmt(producto.costo)}</strong>
+                </div>
+                <div className="prod-metric">
+                  <span>Margen $</span>
+                  <strong className="prod-margen-pos">${fmt(producto.precio - producto.costo)}</strong>
+                </div>
+                <div className="prod-metric">
+                  <span>Margen %</span>
+                  <strong className="prod-margen-pos">{pct(margenPct(producto.precio, producto.costo))}</strong>
+                </div>
+                <div className="prod-metric">
+                  <span>Markup %</span>
+                  <strong>{pct(markupPct(producto.precio, producto.costo))}</strong>
+                </div>
+              </div>
+
+              <div className="prod-detalle-actions">
+                <button className="prod-btn-primary" style={{ width: '100%' }} onClick={() => setEditando({ ...producto })}>Editar producto</button>
+                <button className="prod-btn-danger" onClick={() => setConfirmarEliminar(producto.id)}>Eliminar</button>
+              </div>
+            </div>
+          )}
+        </div>
+
       </div>
 
-      {tab === 'Productos' && (
-        <div className="prod-body">
+      {/* Modal editar producto */}
+      {editando && (
+        <div className="prod-modal-overlay" onClick={() => setEditando(null)}>
+          <div className="prod-modal prod-modal--edit" onClick={e => e.stopPropagation()}>
+            <h3 className="prod-modal-title">Editar producto</h3>
 
-          {/* Sidebar categorías */}
-          <aside className="prod-sidebar">
-            <p className="prod-sidebar-title">Categorías</p>
-            <button
-              className={`prod-cat-item ${catActiva === null ? 'prod-cat-item--active' : ''}`}
-              onClick={() => { setCatActiva(null); setSelected(null) }}
-            >
-              Todas
-              <span className="prod-cat-count">{productos.length}</span>
-            </button>
-            {categorias.map(c => (
-              <button
-                key={c.id}
-                className={`prod-cat-item ${catActiva === c.id ? 'prod-cat-item--active' : ''}`}
-                onClick={() => { setCatActiva(c.id); setSelected(null) }}
-              >
-                {c.nombre}
-                <span className="prod-cat-count">{productos.filter(p => p.categoriaId === c.id).length}</span>
-              </button>
-            ))}
-          </aside>
-
-          {/* Tabla */}
-          <div className="prod-main">
-            <div className="prod-toolbar">
-              <input
-                className="prod-search"
-                type="text"
-                placeholder="Buscar producto..."
-                value={busqueda}
-                onChange={e => setBusqueda(e.target.value)}
-              />
-              <button className="prod-btn-primary">+ Nuevo producto</button>
-            </div>
-
-            <div className="prod-table-wrap">
-              <table className="prod-table">
-                <thead>
-                  <tr>
-                    <th>Producto</th>
-                    <th>Categoría</th>
-                    <th>Costo</th>
-                    <th>Margen $</th>
-                    <th>Margen %</th>
-                    <th>Markup %</th>
-                    <th>Precio</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {productosFiltrados.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="prod-table-empty">No hay productos en esta categoría</td>
-                    </tr>
-                  ) : (
-                    productosFiltrados.map(p => (
-                      <tr
-                        key={p.id}
-                        className={selected === p.id ? 'prod-row--active' : ''}
-                        onClick={() => setSelected(selected === p.id ? null : p.id)}
-                      >
-                        <td className="prod-nombre">{p.nombre}</td>
-                        <td>{catNombre(p.categoriaId)}</td>
-                        <td>${fmt(p.costo)}</td>
-                        <td className="prod-margen-pos">${fmt(p.precio - p.costo)}</td>
-                        <td>{pct(margenPct(p.precio, p.costo))}</td>
-                        <td>{pct(markupPct(p.precio, p.costo))}</td>
-                        <td className="prod-precio"><strong>${fmt(p.precio)}</strong></td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Panel detalle */}
-          <div className="prod-detalle">
-            {!producto ? (
-              <div className="prod-detalle-empty">
-                <span>🍽️</span>
-                <p>Seleccioná un producto</p>
-                <span>para ver sus detalles</span>
+            <div className="prod-form">
+              <div className="prod-field">
+                <label>Nombre</label>
+                <input
+                  type="text"
+                  value={editando.nombre}
+                  onChange={e => setEditando({ ...editando, nombre: e.target.value })}
+                />
               </div>
-            ) : (
-              <div className="prod-detalle-content">
-                <div className="prod-detalle-header">
-                  <h3 className="prod-detalle-nombre">{producto.nombre}</h3>
-                  <span className="prod-detalle-cat">{catNombre(producto.categoriaId)}</span>
+              <div className="prod-field">
+                <label>Categoría</label>
+                <select
+                  value={editando.categoriaId}
+                  onChange={e => setEditando({ ...editando, categoriaId: Number(e.target.value) })}
+                >
+                  {categorias.map(c => (
+                    <option key={c.id} value={c.id}>{c.nombre}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="prod-form-row">
+                <div className="prod-field">
+                  <label>Precio</label>
+                  <input
+                    type="number"
+                    value={editando.precio}
+                    onChange={e => setEditando({ ...editando, precio: e.target.value })}
+                  />
                 </div>
-
-                <div className="prod-detalle-metrics">
-                  <div className="prod-metric">
-                    <span>Precio</span>
-                    <strong>${fmt(producto.precio)}</strong>
-                  </div>
-                  <div className="prod-metric">
-                    <span>Costo</span>
-                    <strong>${fmt(producto.costo)}</strong>
-                  </div>
-                  <div className="prod-metric">
-                    <span>Margen $</span>
-                    <strong className="prod-margen-pos">${fmt(producto.precio - producto.costo)}</strong>
-                  </div>
-                  <div className="prod-metric">
-                    <span>Margen %</span>
-                    <strong className="prod-margen-pos">{pct(margenPct(producto.precio, producto.costo))}</strong>
-                  </div>
-                  <div className="prod-metric">
-                    <span>Markup %</span>
-                    <strong>{pct(markupPct(producto.precio, producto.costo))}</strong>
-                  </div>
-                </div>
-
-                <div className="prod-detalle-actions">
-                  <button className="prod-btn-primary" style={{ width: '100%' }}>Editar producto</button>
-                  <button className="prod-btn-danger" onClick={() => setConfirmarEliminar(producto.id)}>Eliminar</button>
+                <div className="prod-field">
+                  <label>Costo</label>
+                  <input
+                    type="number"
+                    value={editando.costo}
+                    onChange={e => setEditando({ ...editando, costo: e.target.value })}
+                  />
                 </div>
               </div>
-            )}
+              {editando.precio && editando.costo && (
+                <div className="prod-form-preview">
+                  <span>Margen: <strong className="prod-margen-pos">{pct(margenPct(Number(editando.precio), Number(editando.costo)))}</strong></span>
+                  <span>Markup: <strong>{pct(markupPct(Number(editando.precio), Number(editando.costo)))}</strong></span>
+                </div>
+              )}
+            </div>
+
+            <div className="prod-modal-actions">
+              <button className="prod-btn-secondary" onClick={() => setEditando(null)}>Cancelar</button>
+              <button className="prod-btn-primary" onClick={guardarEdicion}>Guardar</button>
+            </div>
           </div>
-
-        </div>
-      )}
-
-      {tab === 'Ingredientes' && (
-        <div className="prod-placeholder">
-          <span>🧂</span>
-          <p>Ingredientes</p>
-          <span>Próximamente</span>
-        </div>
-      )}
-
-      {tab === 'Categorías' && (
-        <div className="prod-placeholder">
-          <span>🗂️</span>
-          <p>Categorías</p>
-          <span>Próximamente</span>
         </div>
       )}
 
