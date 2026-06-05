@@ -39,6 +39,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
   const [cantidadMesas, setCantidadMesas]         = useState(1)
   const [showSelector, setShowSelector]           = useState(false)
   const [catSelector, setCatSelector]             = useState(null)
+  const [confirmarCerrar, setConfirmarCerrar]     = useState(null)
 
   const zona = zonas.find(z => z.id === zonaActiva)
   const mesa = zona?.mesas.find(m => m.id === selected)
@@ -280,6 +281,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
                 <p>No hay pedidos</p>
                 <span>¿Querés agregar uno?</span>
                 <button className="mesa-btn mesa-btn--primary" style={{ marginTop: 8 }} onClick={() => setShowSelector(true)}>+ Agregar producto</button>
+                <button className="mesa-btn mesa-btn--secondary" style={{ marginTop: 6 }} onClick={() => setConfirmarCerrar(mesa.id)}>Cerrar mesa</button>
               </div>
             ) : (
               <>
@@ -298,6 +300,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
                 </div>
                 <div className="mesa-detalle-actions">
                   <button className="mesa-btn mesa-btn--primary" onClick={() => setShowSelector(true)}>+ Agregar producto</button>
+                  <button className="mesa-btn mesa-btn--secondary" onClick={() => setConfirmarCerrar(mesa.id)}>Cerrar mesa</button>
                 </div>
               </>
             )}
@@ -337,7 +340,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
               ) : (
                 <>
                   <button className="mesa-btn mesa-btn--primary" onClick={() => setViendoPedido(true)}>Ver pedido</button>
-                  <button className="mesa-btn mesa-btn--secondary" onClick={() => cerrarMesa(mesa.id)}>Cerrar mesa</button>
+                  <button className="mesa-btn mesa-btn--secondary" onClick={() => setConfirmarCerrar(mesa.id)}>Cerrar mesa</button>
                 </>
               )}
               <button className="mesa-btn mesa-btn--danger" onClick={() => setConfirmarEliminar(mesa.id)}>Eliminar mesa</button>
@@ -367,6 +370,20 @@ export default function Mesas({ productos = [], categorias = [] }) {
             <div className="mesas-modal-actions">
               <button className="mesa-btn mesa-btn--secondary" onClick={() => { setShowAgregarMesas(false); setCantidadMesas(1) }}>Cancelar</button>
               <button className="mesa-btn mesa-btn--primary" onClick={confirmarAgregarMesas}>Agregar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal confirmar cerrar mesa */}
+      {confirmarCerrar !== null && (
+        <div className="mesas-modal-overlay" onClick={() => setConfirmarCerrar(null)}>
+          <div className="mesas-modal" onClick={e => e.stopPropagation()}>
+            <h3 className="mesas-modal-title">¿Cerrar mesa {confirmarCerrar}?</h3>
+            <p className="mesas-modal-sub">Se perderá el pedido actual. Esta acción no se puede deshacer.</p>
+            <div className="mesas-modal-actions">
+              <button className="mesa-btn mesa-btn--secondary" onClick={() => setConfirmarCerrar(null)}>Cancelar</button>
+              <button className="mesa-btn mesa-btn--confirm-danger" onClick={() => { cerrarMesa(confirmarCerrar); setViendoPedido(false) }}>Sí, cerrar</button>
             </div>
           </div>
         </div>
