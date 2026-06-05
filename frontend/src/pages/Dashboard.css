@@ -170,11 +170,24 @@
 /* Content */
 .dash-content {
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;
   padding: 24px 28px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+}
+
+/* Wrapper de módulos — uno visible a la vez */
+.dash-modulo {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.dash-modulo > * {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
 }
 
 /* Panel */

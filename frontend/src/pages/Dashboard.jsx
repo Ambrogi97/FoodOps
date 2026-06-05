@@ -118,12 +118,12 @@ export default function Dashboard() {
 
           {/* Módulos que se montan una sola vez y se ocultan con CSS al cambiar de tab */}
           {montados.has('mesas') && (
-            <div style={{ display: active === 'mesas' ? 'contents' : 'none' }}>
+            <div className="dash-modulo" style={active !== 'mesas' ? { display: 'none' } : {}}>
               <Mesas productos={productos} categorias={categorias} />
             </div>
           )}
           {montados.has('productos') && (
-            <div style={{ display: active === 'productos' ? 'contents' : 'none' }}>
+            <div className="dash-modulo" style={active !== 'productos' ? { display: 'none' } : {}}>
               <Productos
                 productos={productos} setProductos={setProductos}
                 categorias={categorias} setCategorias={setCategorias}
@@ -131,22 +131,22 @@ export default function Dashboard() {
             </div>
           )}
           {montados.has('ingredientes') && (
-            <div style={{ display: active === 'ingredientes' ? 'contents' : 'none' }}>
+            <div className="dash-modulo" style={active !== 'ingredientes' ? { display: 'none' } : {}}>
               <Ingredientes />
             </div>
           )}
           {montados.has('stock') && (
-            <div style={{ display: active === 'stock' ? 'contents' : 'none' }}>
+            <div className="dash-modulo" style={active !== 'stock' ? { display: 'none' } : {}}>
               <Stock />
             </div>
           )}
           {montados.has('ventas') && (
-            <div style={{ display: active === 'ventas' ? 'contents' : 'none' }}>
+            <div className="dash-modulo" style={active !== 'ventas' ? { display: 'none' } : {}}>
               <Ventas />
             </div>
           )}
           {montados.has('gastos') && (
-            <div style={{ display: active === 'gastos' ? 'contents' : 'none' }}>
+            <div className="dash-modulo" style={active !== 'gastos' ? { display: 'none' } : {}}>
               <Gastos />
             </div>
           )}
