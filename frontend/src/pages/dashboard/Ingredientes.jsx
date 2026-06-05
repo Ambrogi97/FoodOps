@@ -29,10 +29,9 @@ export default function Ingredientes() {
     if (!editando.nombre.trim()) return
     try {
       const actualizado = await ingredientesService.actualizar(editando.id, {
-        nombre:      editando.nombre.trim(),
-        unidad:      editando.unidad,
-        costo:       Number(editando.costo)       || 0,
-        stockActual: Number(editando.stockActual) || 0,
+        nombre: editando.nombre.trim(),
+        unidad: editando.unidad,
+        costo:  Number(editando.costo) || 0,
       })
       setIngredientes(ingredientes.map(i => i.id === editando.id ? actualizado : i))
       setEditando(null)
@@ -199,10 +198,6 @@ export default function Ingredientes() {
                 <select value={editando.unidad} onChange={e => setEditando({ ...editando, unidad: e.target.value })}>
                   {UNIDADES.map(u => <option key={u} value={u}>{u}</option>)}
                 </select>
-              </div>
-              <div className="ing-field">
-                <label>Stock actual</label>
-                <input type="number" value={editando.stockActual} onChange={e => setEditando({ ...editando, stockActual: e.target.value })} />
               </div>
               <div className="ing-field">
                 <label>Costo por unidad</label>
