@@ -514,8 +514,8 @@ export default function Mesas({ productos = [], categorias = [] }) {
 
       {/* Modal agregar zona */}
       {showModal && (
-        <div className="mesas-modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="mesas-modal" onClick={e => e.stopPropagation()}>
+        <div className="mesas-modal-overlay">
+          <div className="mesas-modal">
             <h3 className="mesas-modal-title">Nueva zona</h3>
             <p className="mesas-modal-sub">Podés agregar sectores como Terraza, VIP, Jardín, etc.</p>
             <input
