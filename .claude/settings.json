@@ -15,7 +15,16 @@
       "Bash(node -e ' *)",
       "PowerShell($response = Invoke-WebRequest -Uri \"http://localhost:3000/api/categorias/6a2234da6117f5358eb19f3c\" -Method PUT -ContentType \"application/json\" -Body '{\"nombre\":\"test\"}' -UseBasicParsing; Write-Output \"Status: $\\($response.StatusCode\\)\"; Write-Output \"Body: $\\($response.Content\\)\")",
       "PowerShell($pid = \\(Get-NetTCPConnection -LocalPort 3000 -State Listen | Select-Object -First 1\\).OwningProcess; Write-Output \"PID: $pid\"; Stop-Process -Id $pid -Force; Write-Output \"Proceso terminado\")",
-      "PowerShell($procId = \\(Get-NetTCPConnection -LocalPort 3000 -State Listen | Select-Object -First 1\\).OwningProcess; Stop-Process -Id $procId -Force; Write-Output \"Proceso $procId terminado\")"
+      "PowerShell($procId = \\(Get-NetTCPConnection -LocalPort 3000 -State Listen | Select-Object -First 1\\).OwningProcess; Stop-Process -Id $procId -Force; Write-Output \"Proceso $procId terminado\")",
+      "Skill(run)",
+      "Skill(run:*)",
+      "Bash(Get-NetTCPConnection -LocalPort 3000,5173 -State Listen -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object LocalPort, OwningProcess)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 3000,5173 -State Listen -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; Start-Sleep -Seconds 1; Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue)",
+      "PowerShell($proc = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty OwningProcess; if \\($proc\\) { Stop-Process -Id $proc -Force; Write-Host \"Proceso $proc terminado\" } else { Write-Host \"No habia proceso en 3000\" })",
+      "PowerShell(Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c cd /d C:\\\\Users\\\\juan\\\\Desktop\\\\FoodOps\\\\backend && npm run dev\" -WindowStyle Normal)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue)"
     ]
   }
 }

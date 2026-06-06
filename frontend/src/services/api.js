@@ -144,15 +144,15 @@ export const gastosService = {
   eliminar: async (id) => { _invalidar('/api/gastos'); return request(`/api/gastos/${id}`, { method: 'DELETE' }) },
 }
 
-// ── Clientes ─────────────────────────────────────────────────────────────────
+// ── Proveedores ───────────────────────────────────────────────────────────────
 
-const mapCliente = c => ({ id: c._id, nombre: c.nombre, telefono: c.telefono || '', email: c.email || '', notas: c.notas || '' })
+const mapProveedor = p => ({ id: p._id, nombre: p.nombre, rubro: p.rubro || '', telefono: p.telefono || '', email: p.email || '', notas: p.notas || '' })
 
-export const clientesService = {
-  listar:     async () => (await requestCacheado('/api/clientes')).map(mapCliente),
-  crear:      async (data) => { _invalidar('/api/clientes'); return mapCliente(await request('/api/clientes', { method: 'POST', body: JSON.stringify(data) })) },
-  actualizar: async (id, data) => { _invalidar('/api/clientes'); return mapCliente(await request(`/api/clientes/${id}`, { method: 'PUT', body: JSON.stringify(data) })) },
-  eliminar:   async (id) => { _invalidar('/api/clientes'); return request(`/api/clientes/${id}`, { method: 'DELETE' }) },
+export const proveedoresService = {
+  listar:     async () => (await requestCacheado('/api/proveedores')).map(mapProveedor),
+  crear:      async (data) => { _invalidar('/api/proveedores'); return mapProveedor(await request('/api/proveedores', { method: 'POST', body: JSON.stringify(data) })) },
+  actualizar: async (id, data) => { _invalidar('/api/proveedores'); return mapProveedor(await request(`/api/proveedores/${id}`, { method: 'PUT', body: JSON.stringify(data) })) },
+  eliminar:   async (id) => { _invalidar('/api/proveedores'); return request(`/api/proveedores/${id}`, { method: 'DELETE' }) },
 }
 
 // ── Stock ────────────────────────────────────────────────────────────────────
