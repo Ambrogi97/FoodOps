@@ -155,6 +155,25 @@ export const proveedoresService = {
   eliminar:   async (id) => { _invalidar('/api/proveedores'); return request(`/api/proveedores/${id}`, { method: 'DELETE' }) },
 }
 
+// ── Pedidos Online ────────────────────────────────────────────────────────────
+
+const mapPedidoOnline = p => ({
+  _id:           p._id,
+  items:         p.items,
+  tipo:          p.tipo,
+  mesaNumero:    p.mesaNumero,
+  clienteNombre: p.clienteNombre,
+  notas:         p.notas,
+  total:         p.total,
+  estado:        p.estado,
+  createdAt:     p.createdAt,
+})
+
+export const pedidosOnlineService = {
+  listar:          async () => (await request('/api/pedidos-online')).map(mapPedidoOnline),
+  actualizarEstado: async (id, estado) => mapPedidoOnline(await request(`/api/pedidos-online/${id}/estado`, { method: 'PUT', body: JSON.stringify({ estado }) })),
+}
+
 // ── Stock ────────────────────────────────────────────────────────────────────
 
 export const stockService = {

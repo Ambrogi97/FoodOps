@@ -9,6 +9,7 @@ import Footer from './components/Footer'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
+import Carta from './pages/Carta'
 
 function Landing() {
   return (
@@ -34,6 +35,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/carta/:userId" element={<Carta />} />
       </Routes>
     </BrowserRouter>
   )

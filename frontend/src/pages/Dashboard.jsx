@@ -10,6 +10,7 @@ import Stock from './dashboard/Stock'
 import Pedidos from './dashboard/Pedidos'
 import Proveedores from './dashboard/Proveedores'
 import Reportes from './dashboard/Reportes'
+import CartaOnline from './dashboard/CartaOnline'
 import './Dashboard.css'
 
 const NAV_ITEMS = [
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { id: 'ventas',       label: 'Ventas',        icon: '💰' },
   { id: 'reportes',     label: 'Reportes',      icon: '📊' },
   { id: 'gastos',       label: 'Gastos',        icon: '🧮' },
+  { id: 'carta',        label: 'Carta Online',  icon: '📱' },
 ]
 
 export default function Dashboard() {
@@ -126,8 +128,9 @@ export default function Dashboard() {
           {active === 'ventas'       && <Ventas />}
           {active === 'gastos'       && <Gastos />}
           {active === 'reportes'     && <Reportes />}
+          {active === 'carta'        && <CartaOnline />}
 
-          {!['mesas','productos','ingredientes','stock','pedidos','proveedores','ventas','gastos','reportes'].includes(active) && (
+          {!['mesas','productos','ingredientes','stock','pedidos','proveedores','ventas','gastos','reportes','carta'].includes(active) && (
             <div className="dash-panel">
               <div className="dash-panel-header">
                 <h2 className="dash-panel-title">{NAV_ITEMS.find(i => i.id === active)?.label}</h2>

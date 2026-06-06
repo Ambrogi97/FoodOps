@@ -1,0 +1,259 @@
+/* Carta pública — mobile-first, sin variables del dashboard */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body { background: #f4f4f5; font-family: 'Inter', system-ui, sans-serif; }
+
+/* Loading / Error */
+.carta-loading {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh;
+}
+.carta-spinner {
+  width: 40px; height: 40px;
+  border: 3px solid #e4e4e7;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.carta-error {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh; gap: 12px; color: #71717a;
+}
+.carta-error span { font-size: 48px; }
+
+/* Layout */
+.carta-layout {
+  max-width: 480px; margin: 0 auto;
+  padding-bottom: 100px;
+  min-height: 100vh;
+  background: #f4f4f5;
+}
+
+/* Header */
+.carta-header {
+  background: #18181b;
+  color: #fff;
+  padding: 28px 20px 24px;
+  display: flex; align-items: center; gap: 12px;
+}
+.carta-header-icon { font-size: 28px; }
+.carta-header-nombre { font-size: 22px; font-weight: 700; letter-spacing: -.3px; }
+
+/* Categorías */
+.carta-cats-wrap {
+  background: #fff;
+  border-bottom: 1px solid #e4e4e7;
+  position: sticky; top: 0; z-index: 10;
+}
+.carta-cats {
+  display: flex; gap: 8px;
+  overflow-x: auto; padding: 12px 16px;
+  scrollbar-width: none;
+}
+.carta-cats::-webkit-scrollbar { display: none; }
+
+.carta-cat-btn {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.5px solid #e4e4e7;
+  background: transparent;
+  font-size: 13px; font-weight: 500; color: #52525b;
+  cursor: pointer; transition: all .15s;
+}
+.carta-cat-btn:hover { border-color: #6366f1; color: #6366f1; }
+.carta-cat-btn--active {
+  background: #6366f1; border-color: #6366f1; color: #fff;
+}
+
+/* Productos */
+.carta-productos {
+  padding: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.carta-empty {
+  text-align: center; padding: 40px; color: #a1a1aa; font-size: 14px;
+}
+
+.carta-prod {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+.carta-prod-info { flex: 1; min-width: 0; }
+.carta-prod-nombre {
+  display: block; font-size: 15px; font-weight: 600; color: #18181b;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+.carta-prod-precio { font-size: 14px; color: #6366f1; font-weight: 600; }
+
+.carta-prod-ctrl { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+.carta-add-btn {
+  padding: 7px 14px;
+  background: #6366f1; color: #fff;
+  border: none; border-radius: 8px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: background .15s;
+}
+.carta-add-btn:hover { background: #4f46e5; }
+
+.carta-ctrl-btn {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  border: 1.5px solid #e4e4e7;
+  background: #f4f4f5; color: #18181b;
+  font-size: 18px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  line-height: 1; transition: all .15s;
+}
+.carta-ctrl-btn:hover { border-color: #6366f1; color: #6366f1; }
+.carta-ctrl-btn--add { background: #6366f1; border-color: #6366f1; color: #fff; }
+.carta-ctrl-btn--add:hover { background: #4f46e5; border-color: #4f46e5; }
+.carta-ctrl-cant { font-size: 15px; font-weight: 700; min-width: 20px; text-align: center; }
+
+/* Botón flotante */
+.carta-float-btn {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  width: calc(100% - 32px); max-width: 440px;
+  background: #18181b; color: #fff;
+  border: none; border-radius: 14px;
+  padding: 16px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  z-index: 100;
+}
+.carta-float-cant {
+  background: #6366f1; color: #fff;
+  border-radius: 20px; padding: 2px 9px;
+  font-size: 13px; font-weight: 700;
+}
+.carta-float-total { font-size: 14px; color: #a1a1aa; }
+
+/* Carrito panel */
+.carta-carrito-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 200;
+  display: flex; align-items: flex-end;
+}
+.carta-carrito {
+  background: #fff; border-radius: 20px 20px 0 0;
+  width: 100%; max-height: 80vh;
+  display: flex; flex-direction: column;
+  padding: 0 0 24px;
+}
+.carta-carrito-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid #f4f4f5;
+}
+.carta-carrito-header h3 { font-size: 17px; font-weight: 700; }
+.carta-carrito-close {
+  background: #f4f4f5; border: none; border-radius: 50%;
+  width: 30px; height: 30px; font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; color: #71717a;
+}
+.carta-carrito-items { overflow-y: auto; padding: 12px 20px; flex: 1; }
+.carta-carrito-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid #f4f4f5;
+}
+.carta-carrito-item:last-child { border-bottom: none; }
+.carta-carrito-item-info { flex: 1; }
+.carta-carrito-item-nombre { font-size: 14px; font-weight: 500; color: #18181b; }
+.carta-carrito-item-precio { font-size: 13px; color: #6366f1; font-weight: 600; }
+.carta-ctrl-row { display: flex; align-items: center; gap: 8px; }
+
+.carta-carrito-total {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 20px; border-top: 1px solid #f4f4f5;
+  font-size: 15px; color: #52525b;
+}
+.carta-carrito-total strong { font-size: 18px; color: #18181b; }
+
+.carta-confirmar-btn {
+  margin: 0 20px;
+  padding: 15px;
+  background: #6366f1; color: #fff;
+  border: none; border-radius: 12px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  width: calc(100% - 40px);
+  transition: background .15s;
+}
+.carta-confirmar-btn:hover:not(:disabled) { background: #4f46e5; }
+.carta-confirmar-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Checkout */
+.carta-checkout-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 300;
+  display: flex; align-items: flex-end;
+}
+.carta-checkout {
+  background: #fff; border-radius: 20px 20px 0 0;
+  width: 100%; max-height: 90vh;
+  overflow-y: auto;
+  padding-bottom: 24px;
+}
+.carta-checkout-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid #f4f4f5;
+  position: sticky; top: 0; background: #fff; z-index: 1;
+}
+.carta-checkout-header h3 { font-size: 17px; font-weight: 700; }
+
+.carta-checkout-form { padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
+.carta-checkout-field { display: flex; flex-direction: column; gap: 6px; }
+.carta-checkout-field label { font-size: 13px; font-weight: 600; color: #52525b; }
+.carta-checkout-field input,
+.carta-checkout-field textarea {
+  padding: 11px 14px;
+  border: 1.5px solid #e4e4e7; border-radius: 10px;
+  font-size: 14px; color: #18181b; background: #fafafa;
+  font-family: inherit;
+  transition: border-color .15s;
+}
+.carta-checkout-field input:focus,
+.carta-checkout-field textarea:focus { outline: none; border-color: #6366f1; background: #fff; }
+.carta-checkout-field textarea { resize: vertical; min-height: 72px; }
+
+.carta-tipo-row { display: flex; gap: 10px; }
+.carta-tipo-btn {
+  flex: 1; padding: 12px;
+  border: 1.5px solid #e4e4e7; border-radius: 10px;
+  background: transparent; font-size: 14px; font-weight: 500; cursor: pointer;
+  color: #52525b; transition: all .15s;
+}
+.carta-tipo-btn:hover { border-color: #6366f1; color: #6366f1; }
+.carta-tipo-btn--active { background: #ede9fe; border-color: #6366f1; color: #6366f1; font-weight: 700; }
+
+.carta-checkout-resumen {
+  display: flex; justify-content: space-between; align-items: center;
+  margin: 0 20px 12px;
+  padding: 12px 16px; background: #f4f4f5; border-radius: 10px;
+  font-size: 14px; color: #52525b;
+}
+.carta-checkout-resumen strong { font-size: 16px; color: #18181b; }
+
+/* Pedido OK */
+.carta-ok {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 32px; gap: 16px; text-align: center;
+  background: #f4f4f5;
+}
+.carta-ok-icon { font-size: 64px; }
+.carta-ok h2 { font-size: 24px; font-weight: 700; color: #18181b; }
+.carta-ok p { font-size: 15px; color: #71717a; max-width: 280px; }
+.carta-ok-btn {
+  margin-top: 8px;
+  padding: 13px 28px;
+  background: #6366f1; color: #fff;
+  border: none; border-radius: 12px;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+}
