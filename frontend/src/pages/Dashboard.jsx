@@ -7,6 +7,7 @@ import Ingredientes from './dashboard/Ingredientes'
 import Ventas from './dashboard/Ventas'
 import Gastos from './dashboard/Gastos'
 import Stock from './dashboard/Stock'
+import Pedidos from './dashboard/Pedidos'
 import Reportes from './dashboard/Reportes'
 import './Dashboard.css'
 
@@ -120,11 +121,12 @@ export default function Dashboard() {
           )}
           {active === 'ingredientes' && <Ingredientes />}
           {active === 'stock'        && <Stock />}
+          {active === 'pedidos'      && <Pedidos />}
           {active === 'ventas'       && <Ventas />}
           {active === 'gastos'       && <Gastos />}
           {active === 'reportes'     && <Reportes />}
 
-          {!['mesas','productos','ingredientes','stock','ventas','gastos','reportes'].includes(active) && (
+          {!['mesas','productos','ingredientes','stock','pedidos','ventas','gastos','reportes'].includes(active) && (
             <div className="dash-panel">
               <div className="dash-panel-header">
                 <h2 className="dash-panel-title">{NAV_ITEMS.find(i => i.id === active)?.label}</h2>

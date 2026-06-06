@@ -121,6 +121,7 @@ export const zonasService = {
 
 export const mesasService = {
   listar:      async () => (await requestCacheado('/api/mesas')).map(mapMesa),
+  listarFresh: async () => { const data = await request('/api/mesas'); _guardar('/api/mesas', data); return data.map(mapMesa) },
   crearVarias: async (mesas) => { _invalidar('/api/mesas'); return (await request('/api/mesas/bulk', { method: 'POST', body: JSON.stringify({ mesas }) })).map(mapMesa) },
   actualizar:  async (id, data) => { _invalidar('/api/mesas'); return mapMesa(await request(`/api/mesas/${id}`, { method: 'PUT', body: JSON.stringify(data) })) },
   eliminar:    async (id) => { _invalidar('/api/mesas'); return request(`/api/mesas/${id}`, { method: 'DELETE' }) },
