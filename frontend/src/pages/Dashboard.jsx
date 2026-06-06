@@ -18,7 +18,6 @@ const NAV_ITEMS = [
   { id: 'productos',    label: 'Productos',     icon: '🍽️' },
   { id: 'ingredientes', label: 'Ingredientes',  icon: '🧂' },
   { id: 'stock',        label: 'Stock',         icon: '📦' },
-  { id: 'clientes',     label: 'Clientes',      icon: '👥' },
   { id: 'proveedores',  label: 'Proveedores',   icon: '🚚' },
   { id: 'ventas',       label: 'Ventas',        icon: '💰' },
   { id: 'reportes',     label: 'Reportes',      icon: '📊' },
