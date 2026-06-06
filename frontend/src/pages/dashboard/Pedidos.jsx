@@ -71,8 +71,11 @@ export default function Pedidos() {
     : filtro === 'listo'   ? mesasOcupadas.filter(m => m.items.every(i => i.listo))
     : mesasOcupadas
 
-  const totalPendiente = mesasOcupadas.reduce((acc, m) => acc + m.items.filter(i => !i.listo).length, 0)
-  const totalListo     = mesasOcupadas.reduce((acc, m) => acc + m.items.filter(i =>  i.listo).length, 0)
+  const cantPend  = (items) => items.filter(i => !i.listo).reduce((a, i) => a + i.cantidad, 0)
+  const cantListo = (items) => items.filter(i =>  i.listo).reduce((a, i) => a + i.cantidad, 0)
+
+  const totalPendiente = mesasOcupadas.reduce((acc, m) => acc + cantPend(m.items),  0)
+  const totalListo     = mesasOcupadas.reduce((acc, m) => acc + cantListo(m.items), 0)
 
   if (cargando) return (
     <div className="ped-layout ped-layout--center">Cargando...</div>
@@ -125,7 +128,7 @@ export default function Pedidos() {
           {mesasFiltradas.map(mesa => {
             const todosListos      = mesa.items.every(i => i.listo)
             const hayPendientes    = mesa.items.some(i => !i.listo)
-            const cantPendientes   = mesa.items.filter(i => !i.listo).length
+            const cantPendientes   = cantPend(mesa.items)
             return (
               <div key={mesa.id} className={`ped-comanda ${todosListos ? 'ped-comanda--lista' : ''}`}>
 
