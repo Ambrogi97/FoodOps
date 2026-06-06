@@ -4,6 +4,7 @@ const itemSchema = new mongoose.Schema({
   nombre:   String,
   cantidad: Number,
   precio:   Number,
+  listo:    { type: Boolean, default: false },
 }, { _id: false })
 
 const mesaSchema = new mongoose.Schema({
