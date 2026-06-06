@@ -477,8 +477,8 @@ export default function Mesas({ productos = [], categorias = [] }) {
 
       {/* Modal selector de productos */}
       {showSelector && (
-        <div className="mesas-modal-overlay" onClick={() => setShowSelector(false)}>
-          <div className="mesas-modal mesas-modal--selector" onClick={e => e.stopPropagation()}>
+        <div className="mesas-modal-overlay">
+          <div className="mesas-modal mesas-modal--selector">
             <h3 className="mesas-modal-title">Agregar producto — Mesa {mesa?.numero}</h3>
 
             <div className="selector-cats">
