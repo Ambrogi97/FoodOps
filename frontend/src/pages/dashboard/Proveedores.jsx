@@ -182,8 +182,8 @@ export default function Proveedores() {
 
       {/* Modal crear */}
       {creando && (
-        <div className="prov-modal-overlay" onClick={() => setCreando(false)}>
-          <div className="prov-modal" onClick={e => e.stopPropagation()}>
+        <div className="prov-modal-overlay">
+          <div className="prov-modal">
             <h3 className="prov-modal-title">Nuevo proveedor</h3>
             <FormProveedor form={form} setForm={setForm} autoFocus />
             <div className="prov-modal-actions">
@@ -196,8 +196,8 @@ export default function Proveedores() {
 
       {/* Modal editar */}
       {editando && (
-        <div className="prov-modal-overlay" onClick={() => setEditando(null)}>
-          <div className="prov-modal" onClick={e => e.stopPropagation()}>
+        <div className="prov-modal-overlay">
+          <div className="prov-modal">
             <h3 className="prov-modal-title">Editar proveedor</h3>
             <FormProveedor form={form} setForm={setForm} autoFocus />
             <div className="prov-modal-actions">
