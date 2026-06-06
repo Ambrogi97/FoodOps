@@ -144,6 +144,17 @@ export const gastosService = {
   eliminar: async (id) => { _invalidar('/api/gastos'); return request(`/api/gastos/${id}`, { method: 'DELETE' }) },
 }
 
+// ── Clientes ─────────────────────────────────────────────────────────────────
+
+const mapCliente = c => ({ id: c._id, nombre: c.nombre, telefono: c.telefono || '', email: c.email || '', notas: c.notas || '' })
+
+export const clientesService = {
+  listar:     async () => (await requestCacheado('/api/clientes')).map(mapCliente),
+  crear:      async (data) => { _invalidar('/api/clientes'); return mapCliente(await request('/api/clientes', { method: 'POST', body: JSON.stringify(data) })) },
+  actualizar: async (id, data) => { _invalidar('/api/clientes'); return mapCliente(await request(`/api/clientes/${id}`, { method: 'PUT', body: JSON.stringify(data) })) },
+  eliminar:   async (id) => { _invalidar('/api/clientes'); return request(`/api/clientes/${id}`, { method: 'DELETE' }) },
+}
+
 // ── Stock ────────────────────────────────────────────────────────────────────
 
 export const stockService = {
