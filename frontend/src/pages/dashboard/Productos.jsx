@@ -256,8 +256,8 @@ export default function Productos({ productos, setProductos, categorias, setCate
 
       {/* Modal editar categoría */}
       {editandoCat && (
-        <div className="prod-modal-overlay" onClick={() => setEditandoCat(null)}>
-          <div className="prod-modal" onClick={e => e.stopPropagation()}>
+        <div className="prod-modal-overlay">
+          <div className="prod-modal">
             <h3 className="prod-modal-title">Renombrar categoría</h3>
             <div className="prod-form">
               <div className="prod-field">
@@ -281,8 +281,8 @@ export default function Productos({ productos, setProductos, categorias, setCate
 
       {/* Modal nueva categoría */}
       {creandoCat && (
-        <div className="prod-modal-overlay" onClick={() => { setCreandoCat(false); setNombreCat('') }}>
-          <div className="prod-modal" onClick={e => e.stopPropagation()}>
+        <div className="prod-modal-overlay">
+          <div className="prod-modal">
             <h3 className="prod-modal-title">Nueva categoría</h3>
             <div className="prod-form">
               <div className="prod-field">
@@ -307,8 +307,8 @@ export default function Productos({ productos, setProductos, categorias, setCate
 
       {/* Modal nuevo producto */}
       {creando && (
-        <div className="prod-modal-overlay" onClick={() => { setCreando(false); setNuevoProducto({ nombre: '', categoriaId: '', precio: '' }) }}>
-          <div className="prod-modal prod-modal--edit" onClick={e => e.stopPropagation()}>
+        <div className="prod-modal-overlay">
+          <div className="prod-modal prod-modal--edit">
             <h3 className="prod-modal-title">Nuevo producto</h3>
             <div className="prod-form">
               <div className="prod-field">
@@ -358,8 +358,8 @@ export default function Productos({ productos, setProductos, categorias, setCate
 
       {/* Modal editar producto */}
       {editando && (
-        <div className="prod-modal-overlay" onClick={() => setEditando(null)}>
-          <div className="prod-modal prod-modal--edit" onClick={e => e.stopPropagation()}>
+        <div className="prod-modal-overlay">
+          <div className="prod-modal prod-modal--edit">
             <h3 className="prod-modal-title">Editar producto</h3>
 
             <div className="prod-form">
