@@ -88,7 +88,7 @@ export default function Planes() {
                 ))}
               </ul>
               <Link
-                to={p.id === 'premium' ? '#contacto' : `/register?plan=${p.id}`}
+                to={`/register?plan=${p.id}`}
                 className={`btn btn--lg${p.destacado ? ' btn--primary' : ' btn--outline'}`}
                 style={{ width: '100%', marginTop: 'auto' }}
               >
