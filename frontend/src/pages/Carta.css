@@ -27,6 +27,7 @@ body { background: #f4f4f5; font-family: 'Inter', system-ui, sans-serif; }
 /* Layout */
 .carta-layout {
   max-width: 480px; margin: 0 auto;
+  padding-top: 24px;
   padding-bottom: 100px;
   min-height: 100vh;
   background: #f4f4f5;
@@ -36,17 +37,23 @@ body { background: #f4f4f5; font-family: 'Inter', system-ui, sans-serif; }
 .carta-header {
   background: #18181b;
   color: #fff;
-  padding: 28px 20px 24px;
-  display: flex; align-items: center; gap: 12px;
+  padding: 52px 24px 32px;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 10px; text-align: center;
+  border-radius: 20px;
+  margin: 0 12px;
 }
-.carta-header-icon { font-size: 28px; }
-.carta-header-nombre { font-size: 22px; font-weight: 700; letter-spacing: -.3px; }
+.carta-header-icon { font-size: 40px; }
+.carta-header-nombre { font-size: 26px; font-weight: 700; letter-spacing: -.4px; }
 
 /* Categorías */
 .carta-cats-wrap {
   background: #fff;
-  border-bottom: 1px solid #e4e4e7;
-  position: sticky; top: 0; z-index: 10;
+  border: 1px solid #e4e4e7;
+  border-radius: 16px;
+  margin: 12px 12px 0;
+  position: sticky; top: 12px; z-index: 10;
+  overflow: hidden;
 }
 .carta-cats {
   display: flex; gap: 8px;
