@@ -14,7 +14,7 @@ router.get('/', auth, async (req, res) => {
 
 router.post('/', auth, async (req, res) => {
   try {
-    const { nombre, categoria, precio, costo } = req.body
+    const { nombre, categoria, precio, costo, imagen } = req.body
     if (!nombre?.trim() || !categoria || precio == null) {
       return res.status(400).json({ message: 'Faltan campos requeridos' })
     }
@@ -23,6 +23,7 @@ router.post('/', auth, async (req, res) => {
       categoria,
       precio: Number(precio),
       costo: Number(costo) || 0,
+      imagen: imagen || '',
       usuario: req.usuario.id,
     })
     res.status(201).json(producto)
@@ -33,10 +34,10 @@ router.post('/', auth, async (req, res) => {
 
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { nombre, categoria, precio } = req.body
+    const { nombre, categoria, precio, imagen } = req.body
     const producto = await Producto.findOneAndUpdate(
       { _id: req.params.id, usuario: req.usuario.id },
-      { nombre: nombre?.trim(), categoria, precio: Number(precio) },
+      { nombre: nombre?.trim(), categoria, precio: Number(precio), imagen: imagen ?? '' },
       { returnDocument: 'after' }
     )
     if (!producto) return res.status(404).json({ message: 'Producto no encontrado' })
