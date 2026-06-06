@@ -4,6 +4,10 @@ import './Clientes.css'
 
 const VACIO = { nombre: '', telefono: '', email: '', notas: '' }
 
+const AVATAR_COLORS = ['#6366f1','#f97316','#22c55e','#3b82f6','#ec4899','#14b8a6','#f59e0b','#8b5cf6']
+const avatarColor = (nombre) => AVATAR_COLORS[nombre.charCodeAt(0) % AVATAR_COLORS.length]
+const inicial     = (nombre) => nombre[0].toUpperCase()
+
 export default function Clientes() {
   const [clientes, setClientes]   = useState([])
   const [selected, setSelected]   = useState(null)
@@ -39,7 +43,10 @@ export default function Clientes() {
     } catch (e) { console.error(e) }
   }
 
-  const abrirEditar = () => { setForm({ nombre: cliente.nombre, telefono: cliente.telefono, email: cliente.email, notas: cliente.notas }); setEditando(cliente.id) }
+  const abrirEditar = () => {
+    setForm({ nombre: cliente.nombre, telefono: cliente.telefono, email: cliente.email, notas: cliente.notas })
+    setEditando(cliente.id)
+  }
 
   const guardarEditar = async () => {
     if (!form.nombre.trim()) return
@@ -60,9 +67,7 @@ export default function Clientes() {
   }
 
   if (cargando) return (
-    <div className="cli-layout" style={{ alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
-      Cargando...
-    </div>
+    <div className="cli-layout cli-layout--center">Cargando...</div>
   )
 
   return (
@@ -72,10 +77,14 @@ export default function Clientes() {
         {/* Sidebar */}
         <aside className="cli-sidebar">
           <div className="cli-sidebar-top">
+            <div className="cli-sidebar-header">
+              <span className="cli-sidebar-title">Todos los clientes</span>
+              <span className="cli-sidebar-count">{clientes.length}</span>
+            </div>
             <input
               className="cli-search"
               type="text"
-              placeholder="Buscar cliente..."
+              placeholder="Buscar por nombre, teléfono..."
               value={busqueda}
               onChange={e => setBusqueda(e.target.value)}
             />
@@ -84,9 +93,10 @@ export default function Clientes() {
 
           <div className="cli-list">
             {filtrados.length === 0 ? (
-              <p className="cli-list-empty">
-                {busqueda ? 'Sin resultados' : 'No hay clientes todavía'}
-              </p>
+              <div className="cli-list-empty">
+                <span>{busqueda ? '🔍' : '👥'}</span>
+                <p>{busqueda ? 'Sin resultados' : 'No hay clientes todavía'}</p>
+              </div>
             ) : (
               filtrados.map(c => (
                 <button
@@ -94,10 +104,15 @@ export default function Clientes() {
                   className={`cli-card ${selected === c.id ? 'cli-card--active' : ''}`}
                   onClick={() => setSelected(selected === c.id ? null : c.id)}
                 >
-                  <span className="cli-card-nombre">{c.nombre}</span>
-                  <span className="cli-card-sub">
-                    {c.telefono || c.email || 'Sin contacto'}
-                  </span>
+                  <div className="cli-card-avatar" style={{ background: avatarColor(c.nombre) }}>
+                    {inicial(c.nombre)}
+                  </div>
+                  <div className="cli-card-info">
+                    <span className="cli-card-nombre">{c.nombre}</span>
+                    <span className="cli-card-sub">
+                      {c.telefono ? `📞 ${c.telefono}` : c.email ? `✉ ${c.email}` : 'Sin contacto'}
+                    </span>
+                  </div>
                 </button>
               ))
             )}
@@ -108,46 +123,64 @@ export default function Clientes() {
         <div className="cli-panel">
           {!cliente ? (
             <div className="cli-panel-empty">
-              <span>👥</span>
+              <div className="cli-panel-empty-icon">👥</div>
               <p>Seleccioná un cliente</p>
-              <span>para ver sus datos</span>
+              <span>para ver su información de contacto y notas</span>
             </div>
           ) : (
-            <>
-              <div className="cli-detalle-header">
-                <h2 className="cli-detalle-nombre">{cliente.nombre}</h2>
-                <div className="cli-detalle-actions">
+            <div className="cli-detalle">
+
+              {/* Hero */}
+              <div className="cli-detalle-hero">
+                <div className="cli-detalle-avatar" style={{ background: avatarColor(cliente.nombre) }}>
+                  {inicial(cliente.nombre)}
+                </div>
+                <div className="cli-detalle-hero-info">
+                  <h2 className="cli-detalle-nombre">{cliente.nombre}</h2>
+                  {(cliente.telefono || cliente.email) && (
+                    <span className="cli-detalle-contacto-rapido">
+                      {cliente.telefono || cliente.email}
+                    </span>
+                  )}
+                </div>
+                <div className="cli-detalle-btns">
                   <button className="cli-btn-primary" onClick={abrirEditar}>Editar</button>
                   <button className="cli-btn-danger" onClick={() => setConfirmarEliminar(cliente.id)}>Eliminar</button>
                 </div>
               </div>
 
-              <div className="cli-fields">
-                <div className="cli-field">
-                  <span className="cli-field-label">Teléfono</span>
-                  {cliente.telefono
-                    ? <span className="cli-field-value">{cliente.telefono}</span>
-                    : <span className="cli-field-value cli-field-value--muted">No registrado</span>
-                  }
+              {/* Info cards */}
+              <div className="cli-info-grid">
+                <div className="cli-info-card">
+                  <span className="cli-info-icon">📞</span>
+                  <div className="cli-info-content">
+                    <span className="cli-info-label">Teléfono</span>
+                    <span className={`cli-info-value ${!cliente.telefono ? 'cli-info-value--muted' : ''}`}>
+                      {cliente.telefono || 'No registrado'}
+                    </span>
+                  </div>
                 </div>
-
-                <div className="cli-field">
-                  <span className="cli-field-label">Email</span>
-                  {cliente.email
-                    ? <span className="cli-field-value">{cliente.email}</span>
-                    : <span className="cli-field-value cli-field-value--muted">No registrado</span>
-                  }
-                </div>
-
-                <div className="cli-field">
-                  <span className="cli-field-label">Notas</span>
-                  {cliente.notas
-                    ? <div className="cli-notas">{cliente.notas}</div>
-                    : <span className="cli-field-value cli-field-value--muted">Sin notas</span>
-                  }
+                <div className="cli-info-card">
+                  <span className="cli-info-icon">✉️</span>
+                  <div className="cli-info-content">
+                    <span className="cli-info-label">Email</span>
+                    <span className={`cli-info-value ${!cliente.email ? 'cli-info-value--muted' : ''}`}>
+                      {cliente.email || 'No registrado'}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </>
+
+              {/* Notas */}
+              <div className="cli-notas-section">
+                <span className="cli-notas-label">📝 Notas</span>
+                {cliente.notas
+                  ? <div className="cli-notas">{cliente.notas}</div>
+                  : <div className="cli-notas cli-notas--empty">Sin notas</div>
+                }
+              </div>
+
+            </div>
           )}
         </div>
 
@@ -187,6 +220,9 @@ export default function Clientes() {
         return (
           <div className="cli-modal-overlay" onClick={() => setConfirmarEliminar(null)}>
             <div className="cli-modal" onClick={e => e.stopPropagation()}>
+              <div className="cli-modal-avatar" style={{ background: avatarColor(c?.nombre || '') }}>
+                {c ? inicial(c.nombre) : '?'}
+              </div>
               <h3 className="cli-modal-title">¿Eliminar cliente?</h3>
               <p className="cli-modal-sub">Vas a eliminar a <strong>{c?.nombre}</strong>. Esta acción no se puede deshacer.</p>
               <div className="cli-modal-actions">
@@ -210,17 +246,19 @@ function FormCliente({ form, setForm, autoFocus }) {
         <label>Nombre *</label>
         <input type="text" value={form.nombre} onChange={set('nombre')} placeholder="Ej: María García" autoFocus={autoFocus} />
       </div>
-      <div className="cli-form-field">
-        <label>Teléfono</label>
-        <input type="text" value={form.telefono} onChange={set('telefono')} placeholder="Ej: 11 1234-5678" />
-      </div>
-      <div className="cli-form-field">
-        <label>Email</label>
-        <input type="email" value={form.email} onChange={set('email')} placeholder="Ej: maria@mail.com" />
+      <div className="cli-form-row">
+        <div className="cli-form-field">
+          <label>Teléfono</label>
+          <input type="text" value={form.telefono} onChange={set('telefono')} placeholder="11 1234-5678" />
+        </div>
+        <div className="cli-form-field">
+          <label>Email</label>
+          <input type="email" value={form.email} onChange={set('email')} placeholder="mail@ejemplo.com" />
+        </div>
       </div>
       <div className="cli-form-field">
         <label>Notas</label>
-        <textarea value={form.notas} onChange={set('notas')} placeholder="Ej: Alérgica al maní, prefiere mesa en terraza..." />
+        <textarea value={form.notas} onChange={set('notas')} placeholder="Alergias, preferencias de mesa, ocasiones especiales..." />
       </div>
     </div>
   )
