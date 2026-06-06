@@ -1,0 +1,50 @@
+const express        = require('express')
+const router         = express.Router()
+const User           = require('../models/User')
+const Categoria      = require('../models/Categoria')
+const Producto       = require('../models/Producto')
+const PedidoOnline   = require('../models/PedidoOnline')
+
+// Menú público del restaurante
+router.get('/:userId', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId).select('restaurante')
+    if (!user) return res.status(404).json({ message: 'Restaurante no encontrado' })
+
+    const [categorias, productos] = await Promise.all([
+      Categoria.find({ usuario: req.params.userId }).sort('nombre'),
+      Producto.find({ usuario: req.params.userId }).sort('nombre'),
+    ])
+
+    res.json({ restaurante: user.restaurante, categorias, productos })
+  } catch (e) {
+    res.status(500).json({ message: e.message })
+  }
+})
+
+// Enviar pedido desde la carta
+router.post('/:userId/pedido', async (req, res) => {
+  try {
+    const { items, tipo, mesaNumero, clienteNombre, notas } = req.body
+    if (!items?.length)  return res.status(400).json({ message: 'El pedido está vacío' })
+    if (!tipo)           return res.status(400).json({ message: 'Indicá si es para mesa o para llevar' })
+    if (tipo === 'mesa' && !mesaNumero?.trim()) return res.status(400).json({ message: 'Indicá el número de mesa' })
+
+    const total  = items.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
+    const pedido = await PedidoOnline.create({
+      usuario: req.params.userId,
+      items,
+      tipo,
+      mesaNumero:    mesaNumero?.trim()    || '',
+      clienteNombre: clienteNombre?.trim() || '',
+      notas:         notas?.trim()         || '',
+      total,
+    })
+
+    res.status(201).json({ id: pedido._id, message: '¡Pedido enviado con éxito!' })
+  } catch (e) {
+    res.status(500).json({ message: e.message })
+  }
+})
+
+module.exports = router

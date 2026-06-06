@@ -1,0 +1,12 @@
+services:
+  s3ninja:
+    image: scireum/s3ninja:latest
+    container_name: foodops-s3
+    ports:
+      - "9444:9444"
+    volumes:
+      - s3ninja-data:/home/sirius/data
+    restart: unless-stopped
+
+volumes:
+  s3ninja-data:

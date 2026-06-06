@@ -35,7 +35,6 @@ app.use('/api/gastos',       gastosRoutes)
 app.use('/api/stock',        stockRoutes)
 app.use('/api/proveedores',    proveedoresRoutes)
 app.use('/api/uploads',       uploadsRoutes)
-app.use('/uploads',           express.static(require('path').join(__dirname, '../uploads')))
 app.use('/api/carta',          cartaRoutes)
 app.use('/api/pedidos-online', pedidosOnlineRoutes)
 
