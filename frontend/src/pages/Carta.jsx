@@ -135,20 +135,25 @@ export default function Carta() {
             const cant = cantEnCarrito(p._id)
             return (
               <div key={p._id} className="carta-prod">
-                <div className="carta-prod-info">
-                  <span className="carta-prod-nombre">{p.nombre}</span>
-                  <span className="carta-prod-precio">{fmt(p.precio)}</span>
-                </div>
-                <div className="carta-prod-ctrl">
-                  {cant > 0 ? (
-                    <>
-                      <button className="carta-ctrl-btn" onClick={() => quitar(p._id)}>−</button>
-                      <span className="carta-ctrl-cant">{cant}</span>
-                      <button className="carta-ctrl-btn carta-ctrl-btn--add" onClick={() => agregar(p)}>+</button>
-                    </>
-                  ) : (
-                    <button className="carta-add-btn" onClick={() => agregar(p)}>Agregar</button>
-                  )}
+                {p.imagen && (
+                  <img src={p.imagen} alt={p.nombre} className="carta-prod-img" />
+                )}
+                <div className="carta-prod-body">
+                  <div className="carta-prod-info">
+                    <span className="carta-prod-nombre">{p.nombre}</span>
+                    <span className="carta-prod-precio">{fmt(p.precio)}</span>
+                  </div>
+                  <div className="carta-prod-ctrl">
+                    {cant > 0 ? (
+                      <>
+                        <button className="carta-ctrl-btn" onClick={() => quitar(p._id)}>−</button>
+                        <span className="carta-ctrl-cant">{cant}</span>
+                        <button className="carta-ctrl-btn carta-ctrl-btn--add" onClick={() => agregar(p)}>+</button>
+                      </>
+                    ) : (
+                      <button className="carta-add-btn" onClick={() => agregar(p)}>Agregar</button>
+                    )}
+                  </div>
                 </div>
               </div>
             )

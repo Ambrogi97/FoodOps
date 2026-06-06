@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { categoriasService, productosService } from '../../services/api'
 import './Productos.css'
 
@@ -14,7 +14,10 @@ export default function Productos({ productos, setProductos, categorias, setCate
   const [confirmarEliminar, setConfirmarEliminar]       = useState(null)
   const [editando, setEditando]                         = useState(null)
   const [creando, setCreando]                           = useState(false)
-  const [nuevoProducto, setNuevoProducto]               = useState({ nombre: '', categoriaId: '', precio: '' })
+  const [nuevoProducto, setNuevoProducto]               = useState({ nombre: '', categoriaId: '', precio: '', imagen: '' })
+  const [subiendoImagen, setSubiendoImagen]             = useState(false)
+  const fileInputCrear  = useRef(null)
+  const fileInputEditar = useRef(null)
   const [creandoCat, setCreandoCat]                     = useState(false)
   const [nombreCat, setNombreCat]                       = useState('')
   const [confirmarEliminarCat, setConfirmarEliminarCat] = useState(null)
@@ -68,6 +71,19 @@ export default function Productos({ productos, setProductos, categorias, setCate
     }
   }
 
+  const subirImagen = async (file, setter) => {
+    if (!file) return
+    setSubiendoImagen(true)
+    try {
+      const url = await productosService.uploadImagen(file)
+      setter(url)
+    } catch (e) {
+      console.error('Error al subir imagen:', e)
+    } finally {
+      setSubiendoImagen(false)
+    }
+  }
+
   const confirmarNuevoProducto = async () => {
     if (!nuevoProducto.nombre.trim() || !nuevoProducto.precio) return
     try {
@@ -76,10 +92,11 @@ export default function Productos({ productos, setProductos, categorias, setCate
         categoria: nuevoProducto.categoriaId,
         precio:    Number(nuevoProducto.precio),
         costo:     0,
+        imagen:    nuevoProducto.imagen,
       })
       setProductos([...productos, nuevo])
       setCreando(false)
-      setNuevoProducto({ nombre: '', categoriaId: '', precio: '' })
+      setNuevoProducto({ nombre: '', categoriaId: '', precio: '', imagen: '' })
     } catch (e) {
       console.error(e)
     }
@@ -92,6 +109,7 @@ export default function Productos({ productos, setProductos, categorias, setCate
         nombre:    editando.nombre.trim(),
         categoria: editando.categoriaId,
         precio:    Number(editando.precio),
+        imagen:    editando.imagen || '',
       })
       setProductos(productos.map(p => p.id === editando.id ? actualizado : p))
       setEditando(null)
@@ -112,7 +130,7 @@ export default function Productos({ productos, setProductos, categorias, setCate
   }
 
   const abrirNuevoProducto = () => {
-    setNuevoProducto({ nombre: '', categoriaId: categorias[0]?.id || '', precio: '' })
+    setNuevoProducto({ nombre: '', categoriaId: categorias[0]?.id || '', precio: '', imagen: '' })
     setCreando(true)
   }
 
@@ -211,6 +229,9 @@ export default function Productos({ productos, setProductos, categorias, setCate
             </div>
           ) : (
             <div className="prod-detalle-content">
+              {producto.imagen && (
+                <img src={producto.imagen} alt={producto.nombre} className="prod-detalle-img" />
+              )}
               <div className="prod-detalle-header">
                 <h3 className="prod-detalle-nombre">{producto.nombre}</h3>
                 <span className="prod-detalle-cat">{catNombre(producto.categoriaId)}</span>
@@ -341,13 +362,37 @@ export default function Productos({ productos, setProductos, categorias, setCate
                   onChange={e => setNuevoProducto({ ...nuevoProducto, precio: e.target.value })}
                 />
               </div>
+              <div className="prod-field">
+                <label>Foto del plato (opcional)</label>
+                <input
+                  ref={fileInputCrear}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={e => subirImagen(e.target.files[0], url => setNuevoProducto(p => ({ ...p, imagen: url })))}
+                />
+                {nuevoProducto.imagen ? (
+                  <div className="prod-img-preview">
+                    <img src={nuevoProducto.imagen} alt="preview" />
+                    <button className="prod-img-remove" onClick={() => setNuevoProducto(p => ({ ...p, imagen: '' }))}>× Quitar</button>
+                  </div>
+                ) : (
+                  <button
+                    className="prod-img-upload-btn"
+                    onClick={() => fileInputCrear.current.click()}
+                    disabled={subiendoImagen}
+                  >
+                    {subiendoImagen ? 'Subiendo...' : '📷 Subir foto'}
+                  </button>
+                )}
+              </div>
             </div>
             <div className="prod-modal-actions">
-              <button className="prod-btn-secondary" onClick={() => { setCreando(false); setNuevoProducto({ nombre: '', categoriaId: '', precio: '' }) }}>Cancelar</button>
+              <button className="prod-btn-secondary" onClick={() => { setCreando(false); setNuevoProducto({ nombre: '', categoriaId: '', precio: '', imagen: '' }) }}>Cancelar</button>
               <button
                 className="prod-btn-primary"
                 onClick={confirmarNuevoProducto}
-                disabled={!nuevoProducto.nombre.trim() || !nuevoProducto.precio}
+                disabled={!nuevoProducto.nombre.trim() || !nuevoProducto.precio || subiendoImagen}
               >
                 Crear
               </button>
@@ -390,11 +435,35 @@ export default function Productos({ productos, setProductos, categorias, setCate
                   onChange={e => setEditando({ ...editando, precio: e.target.value })}
                 />
               </div>
+              <div className="prod-field">
+                <label>Foto del plato (opcional)</label>
+                <input
+                  ref={fileInputEditar}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={e => subirImagen(e.target.files[0], url => setEditando(p => ({ ...p, imagen: url })))}
+                />
+                {editando.imagen ? (
+                  <div className="prod-img-preview">
+                    <img src={editando.imagen} alt="preview" />
+                    <button className="prod-img-remove" onClick={() => setEditando(p => ({ ...p, imagen: '' }))}>× Quitar</button>
+                  </div>
+                ) : (
+                  <button
+                    className="prod-img-upload-btn"
+                    onClick={() => fileInputEditar.current.click()}
+                    disabled={subiendoImagen}
+                  >
+                    {subiendoImagen ? 'Subiendo...' : '📷 Subir foto'}
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="prod-modal-actions">
               <button className="prod-btn-secondary" onClick={() => setEditando(null)}>Cancelar</button>
-              <button className="prod-btn-primary" onClick={guardarEdicion}>Guardar</button>
+              <button className="prod-btn-primary" onClick={guardarEdicion} disabled={subiendoImagen}>Guardar</button>
             </div>
           </div>
         </div>
