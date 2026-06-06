@@ -152,8 +152,8 @@ export default function Ingredientes() {
 
       {/* Modal nuevo ingrediente */}
       {creando && (
-        <div className="ing-modal-overlay" onClick={() => { setCreando(false); setNuevo({ nombre: '', unidad: 'kg', costo: '' }) }}>
-          <div className="ing-modal" onClick={e => e.stopPropagation()}>
+        <div className="ing-modal-overlay">
+          <div className="ing-modal">
             <h3 className="ing-modal-title">Nuevo ingrediente</h3>
             <div className="ing-form">
               <div className="ing-field">
@@ -185,8 +185,8 @@ export default function Ingredientes() {
 
       {/* Modal editar */}
       {editando && (
-        <div className="ing-modal-overlay" onClick={() => setEditando(null)}>
-          <div className="ing-modal" onClick={e => e.stopPropagation()}>
+        <div className="ing-modal-overlay">
+          <div className="ing-modal">
             <h3 className="ing-modal-title">Editar ingrediente</h3>
             <div className="ing-form">
               <div className="ing-field">
