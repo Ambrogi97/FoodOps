@@ -14,7 +14,7 @@ export default function Productos({ productos, setProductos, categorias, setCate
   const [confirmarEliminar, setConfirmarEliminar]       = useState(null)
   const [editando, setEditando]                         = useState(null)
   const [creando, setCreando]                           = useState(false)
-  const [nuevoProducto, setNuevoProducto]               = useState({ nombre: '', categoriaId: '', precio: '', imagen: '' })
+  const [nuevoProducto, setNuevoProducto]               = useState({ nombre: '', categoriaId: '', precio: '', imagen: '', descripcion: '' })
   const [subiendoImagen, setSubiendoImagen]             = useState(false)
   const fileInputCrear  = useRef(null)
   const fileInputEditar = useRef(null)
@@ -88,15 +88,16 @@ export default function Productos({ productos, setProductos, categorias, setCate
     if (!nuevoProducto.nombre.trim() || !nuevoProducto.precio) return
     try {
       const nuevo = await productosService.crear({
-        nombre:    nuevoProducto.nombre.trim(),
-        categoria: nuevoProducto.categoriaId,
-        precio:    Number(nuevoProducto.precio),
-        costo:     0,
-        imagen:    nuevoProducto.imagen,
+        nombre:      nuevoProducto.nombre.trim(),
+        categoria:   nuevoProducto.categoriaId,
+        precio:      Number(nuevoProducto.precio),
+        costo:       0,
+        imagen:      nuevoProducto.imagen,
+        descripcion: nuevoProducto.descripcion,
       })
       setProductos([...productos, nuevo])
       setCreando(false)
-      setNuevoProducto({ nombre: '', categoriaId: '', precio: '', imagen: '' })
+      setNuevoProducto({ nombre: '', categoriaId: '', precio: '', imagen: '', descripcion: '' })
     } catch (e) {
       console.error(e)
     }
@@ -106,10 +107,11 @@ export default function Productos({ productos, setProductos, categorias, setCate
     if (!editando.nombre.trim() || editando.precio === '' || editando.precio === null) return
     try {
       const actualizado = await productosService.actualizar(editando.id, {
-        nombre:    editando.nombre.trim(),
-        categoria: editando.categoriaId,
-        precio:    Number(editando.precio),
-        imagen:    editando.imagen || '',
+        nombre:      editando.nombre.trim(),
+        categoria:   editando.categoriaId,
+        precio:      Number(editando.precio),
+        imagen:      editando.imagen      || '',
+        descripcion: editando.descripcion || '',
       })
       setProductos(productos.map(p => p.id === editando.id ? actualizado : p))
       setEditando(null)
@@ -363,6 +365,15 @@ export default function Productos({ productos, setProductos, categorias, setCate
                 />
               </div>
               <div className="prod-field">
+                <label>Descripción (opcional)</label>
+                <textarea
+                  placeholder="Ej: Con papas fritas y ensalada"
+                  value={nuevoProducto.descripcion}
+                  onChange={e => setNuevoProducto({ ...nuevoProducto, descripcion: e.target.value })}
+                  rows={2}
+                />
+              </div>
+              <div className="prod-field">
                 <label>Foto del plato (opcional)</label>
                 <input
                   ref={fileInputCrear}
@@ -433,6 +444,15 @@ export default function Productos({ productos, setProductos, categorias, setCate
                   type="number"
                   value={editando.precio}
                   onChange={e => setEditando({ ...editando, precio: e.target.value })}
+                />
+              </div>
+              <div className="prod-field">
+                <label>Descripción (opcional)</label>
+                <textarea
+                  placeholder="Ej: Con papas fritas y ensalada"
+                  value={editando.descripcion || ''}
+                  onChange={e => setEditando({ ...editando, descripcion: e.target.value })}
+                  rows={2}
                 />
               </div>
               <div className="prod-field">

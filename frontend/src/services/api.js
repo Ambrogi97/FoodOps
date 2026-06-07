@@ -76,7 +76,7 @@ export const clearSession = () => {
 // ── Mappers ─────────────────────────────────────────────────────────────────
 
 const mapCat  = c => ({ id: c._id, nombre: c.nombre })
-const mapProd = p => ({ id: p._id, nombre: p.nombre, categoriaId: p.categoria, precio: p.precio, costo: p.costo, activo: p.activo, imagen: p.imagen || '' })
+const mapProd = p => ({ id: p._id, nombre: p.nombre, categoriaId: p.categoria, precio: p.precio, costo: p.costo, activo: p.activo, imagen: p.imagen || '', descripcion: p.descripcion || '' })
 const mapIng  = i => ({ id: i._id, nombre: i.nombre, unidad: i.unidad, costo: i.costo, stockActual: i.stockActual ?? 0, stockMinimo: i.stockMinimo ?? 0 })
 const mapZona = z => ({ id: z._id, label: z.label, removible: z.removible })
 const mapMesa = m => ({ id: m._id, numero: m.numero, zona: m.zona, estado: m.estado, col: m.col, row: m.row, hora: m.hora || null, items: m.items || [] })
