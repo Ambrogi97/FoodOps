@@ -1,24 +1,21 @@
-const express  = require('express')
-const multer   = require('multer')
-const path     = require('path')
-const router   = express.Router()
-const auth     = require('../middleware/auth')
-const { S3Client, PutObjectCommand, CreateBucketCommand } = require('@aws-sdk/client-s3')
+const express = require('express')
+const multer  = require('multer')
+const path    = require('path')
+const router  = express.Router()
+const auth    = require('../middleware/auth')
+const AWS     = require('aws-sdk')
 
-const s3 = new S3Client({
-  endpoint:   process.env.S3_ENDPOINT,
-  region:     'us-east-1',
-  credentials: {
-    accessKeyId:     process.env.S3_ACCESS_KEY,
-    secretAccessKey: process.env.S3_SECRET_KEY,
-  },
-  forcePathStyle: true,
+const s3 = new AWS.S3({
+  endpoint:         new AWS.Endpoint(process.env.S3_ENDPOINT),
+  accessKeyId:      process.env.S3_ACCESS_KEY,
+  secretAccessKey:  process.env.S3_SECRET_KEY,
+  s3ForcePathStyle: true,
+  signatureVersion: 'v4',
 })
 
 const BUCKET = process.env.S3_BUCKET || 'foodops'
 
-s3.send(new CreateBucketCommand({ Bucket: BUCKET }))
-  .catch(() => {})
+s3.createBucket({ Bucket: BUCKET }, () => {})
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -29,25 +26,25 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 })
 
-router.post('/producto', auth, upload.single('imagen'), async (req, res) => {
+router.post('/producto', auth, upload.single('imagen'), (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'No se recibió imagen' })
-  try {
-    const ext = path.extname(req.file.originalname).toLowerCase()
-    const key = `productos/${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`
 
-    await s3.send(new PutObjectCommand({
-      Bucket:      BUCKET,
-      Key:         key,
-      Body:        req.file.buffer,
-      ContentType: req.file.mimetype,
-    }))
+  const ext = path.extname(req.file.originalname).toLowerCase()
+  const key = `productos/${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`
 
+  s3.upload({
+    Bucket:      BUCKET,
+    Key:         key,
+    Body:        req.file.buffer,
+    ContentType: req.file.mimetype,
+  }, (err) => {
+    if (err) {
+      console.error('S3 upload error:', err.message)
+      return res.status(500).json({ message: 'Error al subir imagen' })
+    }
     const url = `${process.env.S3_ENDPOINT}/${BUCKET}/${key}`
     res.json({ url })
-  } catch (e) {
-    console.error('Error subiendo a S3:', e.message)
-    res.status(500).json({ message: 'Error al subir imagen' })
-  }
+  })
 })
 
 module.exports = router
