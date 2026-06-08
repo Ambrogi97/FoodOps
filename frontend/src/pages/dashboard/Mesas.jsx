@@ -33,6 +33,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
   const [nombreZona, setNombreZona] = useState('')
   const [draggingId, setDraggingId]               = useState(null)
   const draggingRef                               = useRef(null)
+  const dragOverCellRef                           = useRef(null)
   const [confirmarEliminar, setConfirmarEliminar] = useState(null) // { id, numero }
   const [showAgregarMesas, setShowAgregarMesas]   = useState(false)
   const [cantidadMesas, setCantidadMesas]         = useState(1)
@@ -96,7 +97,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
     e.dataTransfer.effectAllowed = 'move'
     e.dataTransfer.setData('text/plain', mesaId)
     draggingRef.current = mesaId
-    // Centrar el hotspot en la tarjeta para que el cursor quede sobre la celda correcta
+    dragOverCellRef.current = null
     const card = e.currentTarget
     const rect = card.getBoundingClientRect()
     e.dataTransfer.setDragImage(card, rect.width / 2, rect.height / 2)
@@ -106,19 +107,20 @@ export default function Mesas({ productos = [], categorias = [] }) {
 
   const handleDragEnd = () => {
     draggingRef.current = null
+    dragOverCellRef.current = null
     setDraggingId(null)
   }
 
   const handleGridDrop = (e) => {
     e.preventDefault()
-    const mesaId = draggingRef.current
+    const mesaId = draggingRef.current || e.dataTransfer.getData('text/plain')
     draggingRef.current = null
     if (!mesaId) return
-    // Buscar la celda más cercana usando data attributes (evita problemas de closures)
-    const cellEl = e.target.closest('[data-col][data-row]')
-    if (!cellEl) return
-    const col = parseInt(cellEl.dataset.col)
-    const row = parseInt(cellEl.dataset.row)
+    // Usar la celda trackeada por dragover (más confiable que e.target en el drop)
+    const target = dragOverCellRef.current
+    dragOverCellRef.current = null
+    if (!target) return
+    const { col, row } = target
     setDraggingId(null)
     if (zona.mesas.some(m => m.col === col && m.row === row && m.id !== mesaId)) return
     actualizarMesaEnState(mesaId, { col, row })
@@ -128,6 +130,11 @@ export default function Mesas({ productos = [], categorias = [] }) {
   const handleDragOver = (e) => {
     e.preventDefault()
     e.dataTransfer.dropEffect = 'move'
+    // Trackear la celda activa continuamente para usarla en el drop
+    const cellEl = e.target.closest('[data-col][data-row]')
+    if (cellEl) {
+      dragOverCellRef.current = { col: parseInt(cellEl.dataset.col), row: parseInt(cellEl.dataset.row) }
+    }
   }
 
   /* ── Acciones de mesa ── */
@@ -341,10 +348,9 @@ export default function Mesas({ productos = [], categorias = [] }) {
         </div>
 
         {/* Grilla */}
-        <div className="mesas-grid-wrap" onDragOver={handleDragOver}>
+        <div className="mesas-grid-wrap" onDragOver={handleDragOver} onDrop={handleGridDrop}>
           <div
             className={`mesas-grid${draggingId ? ' mesas-grid--dragging' : ''}`}
-            onDrop={handleGridDrop}
             onDragOver={handleDragOver}
           >
             {celdas.map(({ col, row, mesa: m }) => (
