@@ -32,8 +32,9 @@ export default function Mesas({ productos = [], categorias = [] }) {
   const [showModal, setShowModal]   = useState(false)
   const [nombreZona, setNombreZona] = useState('')
   const [draggingId, setDraggingId]               = useState(null)
-  const pointerDragRef = useRef(null) // { mesaId, startX, startY, active }
+  const pointerDragRef = useRef(null) // { mesaId, startX, startY, active, cardEl, offsetX, offsetY, cardW, cardH }
   const dragCellRef    = useRef(null) // celda target actualizada en pointermove
+  const ghostRef       = useRef(null) // elemento DOM clonado que sigue el dedo
   const [confirmarEliminar, setConfirmarEliminar] = useState(null) // { id, numero }
   const [showAgregarMesas, setShowAgregarMesas]   = useState(false)
   const [cantidadMesas, setCantidadMesas]         = useState(1)
@@ -141,8 +142,17 @@ export default function Mesas({ productos = [], categorias = [] }) {
   /* ── Drag táctil (Pointer Events — responsive/touch) ── */
   const handlePointerDown = (e, mesaId) => {
     if (e.pointerType === 'mouse') return
+    const rect = e.currentTarget.getBoundingClientRect()
     e.currentTarget.setPointerCapture(e.pointerId)
-    pointerDragRef.current = { mesaId, startX: e.clientX, startY: e.clientY, active: false }
+    pointerDragRef.current = {
+      mesaId,
+      startX: e.clientX, startY: e.clientY,
+      active: false,
+      cardEl: e.currentTarget,
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top,
+      cardW: rect.width, cardH: rect.height,
+    }
     dragCellRef.current = null
   }
 
@@ -156,6 +166,28 @@ export default function Mesas({ productos = [], categorias = [] }) {
       pointerDragRef.current = { ...pd, active: true }
       setDraggingId(pd.mesaId)
       setSelected(null)
+      // Crear elemento ghost que sigue el dedo
+      const ghost = pd.cardEl.cloneNode(true)
+      Object.assign(ghost.style, {
+        position: 'fixed',
+        width: `${pd.cardW}px`,
+        height: `${pd.cardH}px`,
+        left: `${e.clientX - pd.offsetX}px`,
+        top: `${e.clientY - pd.offsetY}px`,
+        pointerEvents: 'none',
+        opacity: '0.85',
+        zIndex: '9999',
+        transform: 'scale(1.08)',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+        transition: 'none',
+        borderRadius: '',
+      })
+      document.body.appendChild(ghost)
+      ghostRef.current = ghost
+    }
+    if (ghostRef.current) {
+      ghostRef.current.style.left = `${e.clientX - pd.offsetX}px`
+      ghostRef.current.style.top  = `${e.clientY - pd.offsetY}px`
     }
     // La card tiene pointer-events:none mientras se arrastra → elementFromPoint encuentra la celda debajo
     const el = document.elementFromPoint(e.clientX, e.clientY)
@@ -169,6 +201,8 @@ export default function Mesas({ productos = [], categorias = [] }) {
     const pd = pointerDragRef.current
     if (!pd) return
     pointerDragRef.current = null
+    ghostRef.current?.remove()
+    ghostRef.current = null
     if (!pd.active) { setDraggingId(null); return }
     setDraggingId(null)
     const cell = dragCellRef.current
@@ -184,6 +218,8 @@ export default function Mesas({ productos = [], categorias = [] }) {
   const handlePointerCancel = () => {
     pointerDragRef.current = null
     dragCellRef.current = null
+    ghostRef.current?.remove()
+    ghostRef.current = null
     setDraggingId(null)
   }
 
