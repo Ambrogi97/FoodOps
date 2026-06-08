@@ -714,14 +714,9 @@
   .mesas-layout { flex-direction: column; height: auto; gap: 12px; }
   .mesas-tabs-row { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .mesas-tabs { flex-wrap: nowrap; width: max-content; }
-  /* En mobile mostrar solo mesas como tarjetas sin celdas vacías */
-  .mesas-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .celda--vacia { display: none; }
-  .celda { width: calc(25% - 8px); min-width: 72px; aspect-ratio: 1; }
+  /* Grilla con scroll horizontal: mantiene 12 cols para que drag & drop funcione igual */
+  .mesas-grid-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .mesas-grid { min-width: 580px; gap: 8px; }
   .mesas-leyenda-hint { display: none; }
   .mesas-leyenda { flex-wrap: wrap; gap: 8px; }
   .mesas-resumen { width: 100%; justify-content: center; }
