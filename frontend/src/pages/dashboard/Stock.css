@@ -374,8 +374,11 @@
 }
 .stock-btn-secondary:hover { background: var(--bg); }
 
+@media (max-width: 1100px) {
+  .stock-panel { display: none; }
+}
+
 @media (max-width: 768px) {
   .stock-layout { flex-direction: column; height: auto; }
-  .stock-panel { display: none; }
   .stock-table-wrap { overflow-x: auto; }
 }

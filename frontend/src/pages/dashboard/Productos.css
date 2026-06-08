@@ -507,10 +507,15 @@
 }
 
 /* ── Responsive ─────────────────────────────────────────────────────────── */
+/* Tablet/medium: ocultar panel detalle y dar más espacio a la tabla */
+@media (max-width: 1100px) {
+  .prod-detalle { display: none; }
+}
+
+/* Mobile: categorías como chips horizontales, tabla scrolleable */
 @media (max-width: 768px) {
   .prod-body { flex-direction: column; gap: 12px; height: auto; }
 
-  /* Sidebar de categorías: scroll horizontal */
   .prod-sidebar {
     width: 100%;
     min-width: unset;
@@ -536,14 +541,8 @@
   .prod-cat-item { white-space: nowrap; padding: 6px 14px; font-size: 0.82rem; }
   .prod-cat-count { display: none; }
 
-  /* Panel detalle: oculto en mobile */
-  .prod-detalle { display: none; }
-
-  /* Tabla: scroll horizontal */
   .prod-table-wrap { overflow-x: auto; }
   .prod-table { min-width: 480px; }
-
-  /* Modal full-width */
   .prod-modal { max-width: calc(100vw - 32px); }
 }
 
