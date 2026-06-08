@@ -516,3 +516,9 @@
   resize: vertical;
   min-height: 80px;
 }
+
+@media (max-width: 768px) {
+  .prov-panel { overflow-x: auto; }
+  .prov-form-row { grid-template-columns: 1fr; }
+  .prov-modal { max-width: calc(100vw - 32px); padding: 20px; }
+}

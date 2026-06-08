@@ -178,6 +178,12 @@
 .co-avanzar-btn:disabled { opacity: .5; cursor: not-allowed; }
 
 /* Responsive */
+@media (max-width: 768px) {
+  .co-filtros { flex-wrap: wrap; }
+  .co-url-row { flex-wrap: wrap; }
+  .co-url-text { font-size: 12px; }
+}
+
 @media (max-width: 560px) {
   .co-link-card { flex-direction: column; }
   .co-qr-wrap { flex-direction: row; align-items: center; gap: 16px; }

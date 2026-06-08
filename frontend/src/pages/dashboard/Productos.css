@@ -505,3 +505,49 @@
   font-size: 12px;
   cursor: pointer;
 }
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .prod-body { flex-direction: column; gap: 12px; height: auto; }
+
+  /* Sidebar de categorías: scroll horizontal */
+  .prod-sidebar {
+    width: 100%;
+    min-width: unset;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 6px;
+    padding-bottom: 4px;
+  }
+  .prod-sidebar::-webkit-scrollbar { display: none; }
+  .prod-sidebar-title { display: none; }
+  .prod-sidebar-header { display: none; }
+  .prod-cat-row {
+    flex-shrink: 0;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+  }
+  .prod-cat-row--active { background: var(--secondary); }
+  .prod-cat-row--active .prod-cat-item--fill { color: #fff; }
+  .prod-cat-edit, .prod-cat-remove { display: none; }
+  .prod-cat-item { white-space: nowrap; padding: 6px 14px; font-size: 0.82rem; }
+  .prod-cat-count { display: none; }
+
+  /* Panel detalle: oculto en mobile */
+  .prod-detalle { display: none; }
+
+  /* Tabla: scroll horizontal */
+  .prod-table-wrap { overflow-x: auto; }
+  .prod-table { min-width: 480px; }
+
+  /* Modal full-width */
+  .prod-modal { max-width: calc(100vw - 32px); }
+}
+
+@media (max-width: 480px) {
+  .prod-toolbar { flex-wrap: wrap; }
+  .prod-search { min-width: 0; }
+}

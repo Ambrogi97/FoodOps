@@ -31,6 +31,7 @@ export default function Dashboard() {
   const { user } = getSession()
   const [active, setActive]                   = useState('mesas')
   const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const [menuOpen, setMenuOpen]               = useState(false)
   const [productos, setProductos]             = useState([])
   const [categorias, setCategorias]           = useState([])
 
@@ -63,8 +64,11 @@ export default function Dashboard() {
   return (
     <div className="dash-layout">
 
+      {/* Overlay mobile */}
+      {menuOpen && <div className="dash-overlay" onClick={() => setMenuOpen(false)} />}
+
       {/* Sidebar */}
-      <aside className="dash-sidebar">
+      <aside className={`dash-sidebar${menuOpen ? ' dash-sidebar--open' : ''}`}>
         <div className="dash-logo">
           <span className="dash-logo-icon">🍽️</span>
           <span className="dash-logo-text">Food<strong>Ops</strong></span>
@@ -75,7 +79,7 @@ export default function Dashboard() {
             <button
               key={item.id}
               className={`dash-nav-item ${active === item.id ? 'dash-nav-item--active' : ''}`}
-              onClick={() => setActive(item.id)}
+              onClick={() => { setActive(item.id); setMenuOpen(false) }}
             >
               <span className="dash-nav-icon">{item.icon}</span>
               <span className="dash-nav-label">{item.label}</span>
@@ -102,9 +106,14 @@ export default function Dashboard() {
 
         {/* Header */}
         <header className="dash-header">
-          <div>
-            <h1 className="dash-header-title">{NAV_ITEMS.find(i => i.id === active)?.label}</h1>
-            <p className="dash-header-sub">{user.restaurante}</p>
+          <div className="dash-header-left">
+            <button className="dash-hamburger" onClick={() => setMenuOpen(true)}>
+              <span /><span /><span />
+            </button>
+            <div>
+              <h1 className="dash-header-title">{NAV_ITEMS.find(i => i.id === active)?.label}</h1>
+              <p className="dash-header-sub">{user.restaurante}</p>
+            </div>
           </div>
           <div className="dash-header-actions">
             <span className="dash-badge">{user.plan}</span>

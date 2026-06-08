@@ -6,6 +6,15 @@
   background: var(--bg);
 }
 
+/* Overlay (mobile) */
+.dash-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 199;
+}
+
 /* Sidebar */
 .dash-sidebar {
   width: 220px;
@@ -15,6 +24,7 @@
   flex-direction: column;
   padding: 0;
   overflow: hidden;
+  transition: left .28s ease;
 }
 
 .dash-logo {
@@ -310,3 +320,62 @@
   color: #fff;
 }
 .dash-modal-btn--confirm:hover { background: #dc2626; }
+
+/* Hamburger button */
+.dash-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.dash-hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+}
+
+.dash-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Sidebar como slide-over */
+  .dash-sidebar {
+    position: fixed;
+    top: 0;
+    left: -260px;
+    width: 260px;
+    min-width: 260px;
+    height: 100%;
+    z-index: 200;
+  }
+  .dash-sidebar--open { left: 0; }
+  .dash-overlay { display: block; }
+
+  /* Hamburger visible */
+  .dash-hamburger { display: flex; }
+
+  /* Header compacto */
+  .dash-header { padding: 14px 16px; }
+
+  /* Content con menos padding */
+  .dash-content { padding: 16px; }
+
+  /* Modal a ancho completo */
+  .dash-modal { max-width: calc(100vw - 32px); padding: 28px 20px 22px; }
+}
+
+@media (max-width: 480px) {
+  .dash-header-title { font-size: 1.1rem; }
+  .dash-content { padding: 12px; gap: 12px; }
+}

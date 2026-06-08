@@ -301,3 +301,11 @@
 }
 .gastos-field input:focus,
 .gastos-field select:focus { border-color: var(--primary); }
+
+@media (max-width: 768px) {
+  .gastos-layout { flex-direction: column; height: auto; }
+  .gastos-panel { display: none; }
+  .gastos-table-wrap { overflow-x: auto; }
+  .gastos-toolbar { flex-wrap: wrap; }
+  .gastos-form-row { flex-direction: column; gap: 10px; }
+}

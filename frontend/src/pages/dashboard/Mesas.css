@@ -663,3 +663,11 @@
   from { transform: translateY(12px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
+
+@media (max-width: 768px) {
+  .mesas-layout { flex-direction: column; height: auto; gap: 12px; }
+  .mesas-right { display: none; }
+  .mesas-tabs-row { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .mesas-tabs { flex-wrap: nowrap; width: max-content; }
+  .mesas-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; }
+}
