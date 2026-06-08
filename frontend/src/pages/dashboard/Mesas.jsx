@@ -96,6 +96,10 @@ export default function Mesas({ productos = [], categorias = [] }) {
     e.dataTransfer.effectAllowed = 'move'
     e.dataTransfer.setData('text/plain', mesaId)
     draggingRef.current = mesaId
+    // Centrar el hotspot en la tarjeta para que el cursor quede sobre la celda correcta
+    const card = e.currentTarget
+    const rect = card.getBoundingClientRect()
+    e.dataTransfer.setDragImage(card, rect.width / 2, rect.height / 2)
     setDraggingId(mesaId)
     setSelected(null)
   }
@@ -105,21 +109,20 @@ export default function Mesas({ productos = [], categorias = [] }) {
     setDraggingId(null)
   }
 
-  const handleDrop = async (e, col, row) => {
+  const handleGridDrop = (e) => {
     e.preventDefault()
-    e.stopPropagation()
     const mesaId = draggingRef.current
     draggingRef.current = null
     if (!mesaId) return
+    // Buscar la celda más cercana usando data attributes (evita problemas de closures)
+    const cellEl = e.target.closest('[data-col][data-row]')
+    if (!cellEl) return
+    const col = parseInt(cellEl.dataset.col)
+    const row = parseInt(cellEl.dataset.row)
     setDraggingId(null)
-    const ocupada = zona.mesas.some(m => m.col === col && m.row === row && m.id !== mesaId)
-    if (ocupada) return
+    if (zona.mesas.some(m => m.col === col && m.row === row && m.id !== mesaId)) return
     actualizarMesaEnState(mesaId, { col, row })
-    try {
-      await mesasService.actualizar(mesaId, { col, row })
-    } catch (err) {
-      console.error(err)
-    }
+    mesasService.actualizar(mesaId, { col, row }).catch(console.error)
   }
 
   const handleDragOver = (e) => {
@@ -339,13 +342,17 @@ export default function Mesas({ productos = [], categorias = [] }) {
 
         {/* Grilla */}
         <div className="mesas-grid-wrap" onDragOver={handleDragOver}>
-          <div className={`mesas-grid${draggingId ? ' mesas-grid--dragging' : ''}`}>
+          <div
+            className={`mesas-grid${draggingId ? ' mesas-grid--dragging' : ''}`}
+            onDrop={handleGridDrop}
+            onDragOver={handleDragOver}
+          >
             {celdas.map(({ col, row, mesa: m }) => (
               <div
                 key={`${col}-${row}`}
+                data-col={col}
+                data-row={row}
                 className={`celda ${m ? '' : 'celda--vacia'} ${draggingId && !m ? 'celda--drop-target' : ''}`}
-                onDrop={e => handleDrop(e, col, row)}
-                onDragOver={handleDragOver}
               >
                 {m && (
                   <div
