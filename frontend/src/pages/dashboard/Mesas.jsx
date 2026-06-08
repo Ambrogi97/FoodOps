@@ -326,7 +326,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
         </div>
 
         {/* Grilla */}
-        <div className="mesas-grid-wrap">
+        <div className="mesas-grid-wrap" onDragOver={handleDragOver}>
           <div className={`mesas-grid${draggingId ? ' mesas-grid--dragging' : ''}`}>
             {celdas.map(({ col, row, mesa: m }) => (
               <div

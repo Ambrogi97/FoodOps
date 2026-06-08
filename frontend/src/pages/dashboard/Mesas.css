@@ -217,12 +217,21 @@
   transition: border-color 0.15s, background 0.15s;
 }
 
+/* Durante drag: gap=0 + padding en celdas evita zonas muertas donde dragover no llama preventDefault */
+.mesas-grid--dragging {
+  gap: 0;
+}
+.mesas-grid--dragging .celda {
+  padding: 5px;
+}
+
 .mesas-grid--dragging .celda--vacia {
   border: 2px dashed var(--border);
+  border-radius: var(--radius-sm);
 }
 
 .celda--drop-target {
-  border: 2px dashed #9CA3AF;
+  border-color: #9CA3AF !important;
   background: #F3F4F6;
 }
 
