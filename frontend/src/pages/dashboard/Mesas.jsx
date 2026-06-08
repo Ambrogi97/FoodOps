@@ -34,8 +34,6 @@ export default function Mesas({ productos = [], categorias = [] }) {
   const [draggingId, setDraggingId]               = useState(null)
   const draggingRef                               = useRef(null)
   const dragOverCellRef                           = useRef(null)
-  const zonaRef                                   = useRef(null)
-  const gridWrapRef                               = useRef(null)
   const [confirmarEliminar, setConfirmarEliminar] = useState(null) // { id, numero }
   const [showAgregarMesas, setShowAgregarMesas]   = useState(false)
   const [cantidadMesas, setCantidadMesas]         = useState(1)
@@ -77,7 +75,6 @@ export default function Mesas({ productos = [], categorias = [] }) {
   }, [])
 
   const zona = zonas.find(z => z.id === zonaActiva)
-  zonaRef.current = zona  // Mantener ref sincronizada para los listeners nativos
   const mesa = zona?.mesas.find(m => m.id === selected)
 
   const getMesaEnCelda = (col, row) =>
@@ -96,52 +93,6 @@ export default function Mesas({ productos = [], categorias = [] }) {
   }
 
   /* ── Drag & Drop ── */
-  // Listeners nativos para dragover/drop — evitan que React los delegue al root,
-  // lo que haría que preventDefault() llegue tarde y el browser ignore el drop.
-  useEffect(() => {
-    const el = gridWrapRef.current
-    if (!el) return
-
-    const onDragOver = (e) => {
-      e.preventDefault()
-      e.dataTransfer.dropEffect = 'move'
-      const cellEl = e.target.closest('[data-col][data-row]')
-      if (cellEl) {
-        dragOverCellRef.current = {
-          col: parseInt(cellEl.dataset.col),
-          row: parseInt(cellEl.dataset.row),
-        }
-      }
-    }
-
-    const onDrop = (e) => {
-      e.preventDefault()
-      const mesaId = draggingRef.current || e.dataTransfer.getData('text/plain')
-      draggingRef.current = null
-      if (!mesaId) return
-      const target = dragOverCellRef.current
-      dragOverCellRef.current = null
-      if (!target) return
-      const { col, row } = target
-      const z = zonaRef.current
-      if (!z) return
-      if (z.mesas.some(m => m.col === col && m.row === row && m.id !== mesaId)) return
-      setZonas(prev => prev.map(zn => ({
-        ...zn,
-        mesas: zn.mesas.map(m => m.id === mesaId ? { ...m, col, row } : m),
-      })))
-      setDraggingId(null)
-      mesasService.actualizar(mesaId, { col, row }).catch(console.error)
-    }
-
-    el.addEventListener('dragover', onDragOver)
-    el.addEventListener('drop', onDrop)
-    return () => {
-      el.removeEventListener('dragover', onDragOver)
-      el.removeEventListener('drop', onDrop)
-    }
-  }, [cargando])
-
   const handleDragStart = (e, mesaId) => {
     e.dataTransfer.effectAllowed = 'move'
     e.dataTransfer.setData('text/plain', mesaId)
@@ -155,10 +106,42 @@ export default function Mesas({ productos = [], categorias = [] }) {
   }
 
   const handleDragEnd = () => {
-    // No resetear los refs aquí — el handler nativo onDrop los resetea.
-    // Si dragend se dispara antes que drop (race condition en algunos browsers),
-    // los refs deben seguir válidos cuando llegue el drop.
+    // NO resetear refs aquí: en Chrome, dragend se dispara ANTES que drop.
+    // Si los refs se resetean acá, el drop handler los encuentra null y no mueve nada.
+    // Los refs se resetean en handleDragStart (próximo drag) y en handleGridDrop.
     setDraggingId(null)
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    const cellEl = e.target.closest('[data-col][data-row]')
+    if (cellEl) {
+      dragOverCellRef.current = { col: parseInt(cellEl.dataset.col), row: parseInt(cellEl.dataset.row) }
+    }
+  }
+
+  const handleGridDrop = (e) => {
+    e.preventDefault()
+    const mesaId = draggingRef.current || e.dataTransfer.getData('text/plain')
+    draggingRef.current = null
+    if (!mesaId) return
+    // Usar celda trackeada por dragover; si es null, intentar e.target como fallback
+    let col, row
+    if (dragOverCellRef.current) {
+      col = dragOverCellRef.current.col
+      row = dragOverCellRef.current.row
+    } else {
+      const cellEl = e.target.closest('[data-col][data-row]')
+      if (!cellEl) return
+      col = parseInt(cellEl.dataset.col)
+      row = parseInt(cellEl.dataset.row)
+    }
+    dragOverCellRef.current = null
+    setDraggingId(null)
+    if (zona.mesas.some(m => m.col === col && m.row === row && m.id !== mesaId)) return
+    actualizarMesaEnState(mesaId, { col, row })
+    mesasService.actualizar(mesaId, { col, row }).catch(console.error)
   }
 
   /* ── Acciones de mesa ── */
@@ -372,7 +355,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
         </div>
 
         {/* Grilla */}
-        <div ref={gridWrapRef} className="mesas-grid-wrap">
+        <div className="mesas-grid-wrap" onDragOver={handleDragOver} onDrop={handleGridDrop}>
           <div className={`mesas-grid${draggingId ? ' mesas-grid--dragging' : ''}`}>
             {celdas.map(({ col, row, mesa: m }) => (
               <div
