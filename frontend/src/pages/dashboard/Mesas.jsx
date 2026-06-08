@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { zonasService, mesasService, ventasService } from '../../services/api'
 import './Mesas.css'
 
@@ -32,6 +32,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
   const [showModal, setShowModal]   = useState(false)
   const [nombreZona, setNombreZona] = useState('')
   const [draggingId, setDraggingId]               = useState(null)
+  const draggingRef                               = useRef(null)
   const [confirmarEliminar, setConfirmarEliminar] = useState(null) // { id, numero }
   const [showAgregarMesas, setShowAgregarMesas]   = useState(false)
   const [cantidadMesas, setCantidadMesas]         = useState(1)
@@ -92,28 +93,39 @@ export default function Mesas({ productos = [], categorias = [] }) {
 
   /* ── Drag & Drop ── */
   const handleDragStart = (e, mesaId) => {
-    e.dataTransfer.setData('mesaId', mesaId)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', mesaId)
+    draggingRef.current = mesaId
     setDraggingId(mesaId)
     setSelected(null)
   }
 
-  const handleDragEnd = () => setDraggingId(null)
+  const handleDragEnd = () => {
+    draggingRef.current = null
+    setDraggingId(null)
+  }
 
   const handleDrop = async (e, col, row) => {
     e.preventDefault()
-    const mesaId  = e.dataTransfer.getData('mesaId')
+    e.stopPropagation()
+    const mesaId = draggingRef.current
+    draggingRef.current = null
+    if (!mesaId) return
+    setDraggingId(null)
     const ocupada = zona.mesas.some(m => m.col === col && m.row === row && m.id !== mesaId)
     if (ocupada) return
     actualizarMesaEnState(mesaId, { col, row })
-    setDraggingId(null)
     try {
       await mesasService.actualizar(mesaId, { col, row })
-    } catch (e) {
-      console.error(e)
+    } catch (err) {
+      console.error(err)
     }
   }
 
-  const handleDragOver = (e) => e.preventDefault()
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
 
   /* ── Acciones de mesa ── */
   const cerrarMesa = async (mesaId) => {

@@ -202,37 +202,29 @@
 .mesas-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  gap: 10px;
+  gap: 0; /* Sin gap — las celdas usan padding para el espaciado visual */
   width: 100%;
 }
 
-/* Celda vacía */
+/* Celda: padding permanente para espaciado visual sin cambiar layout durante drag */
 .celda {
   aspect-ratio: 1;
-  border-radius: var(--radius-sm);
-}
-
-/* Invisible by default — only show dashed border when dragging */
-.celda--vacia {
-  transition: border-color 0.15s, background 0.15s;
-}
-
-/* Durante drag: gap=0 + padding en celdas evita zonas muertas donde dragover no llama preventDefault */
-.mesas-grid--dragging {
-  gap: 0;
-}
-.mesas-grid--dragging .celda {
   padding: 5px;
 }
 
+/* Celda vacía: invisible por defecto */
+.celda--vacia { }
+
+/* Durante drag: indicador de drop via box-shadow (no afecta layout) */
 .mesas-grid--dragging .celda--vacia {
-  border: 2px dashed var(--border);
+  box-shadow: inset 0 0 0 2px var(--border);
   border-radius: var(--radius-sm);
 }
 
 .celda--drop-target {
-  border-color: #9CA3AF !important;
-  background: #F3F4F6;
+  box-shadow: inset 0 0 0 2px #9CA3AF !important;
+  background: rgba(156, 163, 175, 0.12);
+  border-radius: var(--radius-sm);
 }
 
 /* Mesa card */
@@ -725,7 +717,7 @@
   .mesas-tabs { flex-wrap: nowrap; width: max-content; }
   /* Grilla con scroll horizontal: mantiene 12 cols para que drag & drop funcione igual */
   .mesas-grid-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .mesas-grid { min-width: 580px; gap: 8px; }
+  .mesas-grid { min-width: 580px; }
   .mesas-leyenda-hint { display: none; }
   .mesas-leyenda { flex-wrap: wrap; gap: 8px; }
   .mesas-resumen { width: 100%; justify-content: center; }
