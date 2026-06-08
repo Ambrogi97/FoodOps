@@ -348,8 +348,11 @@ export default function Mesas({ productos = [], categorias = [] }) {
         </div>
       </div>
 
+      {/* Backdrop para bottom-sheet en mobile */}
+      {mesa && <div className="mesas-backdrop" onClick={() => setSelected(null)} />}
+
       {/* Derecha */}
-      <div className="mesas-right">
+      <div className={`mesas-right${mesa ? ' mesas-right--open' : ''}`}>
         {!mesa ? (
           <div className="mesas-empty">
             <span className="mesas-empty-icon">🪑</span>
