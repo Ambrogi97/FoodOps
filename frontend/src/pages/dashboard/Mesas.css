@@ -681,24 +681,25 @@
   .mesas-right--open {
     display: flex !important;
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    max-height: 75vh;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 380px;
+    max-height: 85vh;
     overflow-y: auto;
-    border-radius: 20px 20px 0 0;
+    border-radius: var(--radius-lg);
     z-index: 150;
-    box-shadow: 0 -4px 32px rgba(0,0,0,.18);
+    box-shadow: 0 8px 40px rgba(0,0,0,.28);
     background: var(--surface);
     border: 1px solid var(--border);
-    border-bottom: none;
     flex-direction: column;
-    animation: slideUpMesa .22s ease;
+    animation: popIn .18s ease;
   }
 
-  @keyframes slideUpMesa {
-    from { transform: translateY(40px); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
+  @keyframes popIn {
+    from { transform: translate(-50%, -50%) scale(0.95); opacity: 0; }
+    to   { transform: translate(-50%, -50%) scale(1);    opacity: 1; }
   }
 
   /* Backdrop semitransparente detrás del bottom-sheet */
