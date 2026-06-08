@@ -32,8 +32,8 @@ export default function Mesas({ productos = [], categorias = [] }) {
   const [showModal, setShowModal]   = useState(false)
   const [nombreZona, setNombreZona] = useState('')
   const [draggingId, setDraggingId]               = useState(null)
-  const draggingRef                               = useRef(null)
-  const dragOverCellRef                           = useRef(null)
+  const pointerDragRef = useRef(null) // { mesaId, startX, startY, active }
+  const dragCellRef    = useRef(null) // celda target actualizada en pointermove
   const [confirmarEliminar, setConfirmarEliminar] = useState(null) // { id, numero }
   const [showAgregarMesas, setShowAgregarMesas]   = useState(false)
   const [cantidadMesas, setCantidadMesas]         = useState(1)
@@ -92,12 +92,11 @@ export default function Mesas({ productos = [], categorias = [] }) {
     })))
   }
 
-  /* ── Drag & Drop ── */
+  /* ── Drag & Drop HTML5 (desktop/mouse) ── */
   const handleDragStart = (e, mesaId) => {
     e.dataTransfer.effectAllowed = 'move'
     e.dataTransfer.setData('text/plain', mesaId)
-    draggingRef.current = mesaId
-    dragOverCellRef.current = null
+    dragCellRef.current = null
     const card = e.currentTarget
     const rect = card.getBoundingClientRect()
     e.dataTransfer.setDragImage(card, rect.width / 2, rect.height / 2)
@@ -106,9 +105,6 @@ export default function Mesas({ productos = [], categorias = [] }) {
   }
 
   const handleDragEnd = () => {
-    // NO resetear refs aquí: en Chrome, dragend se dispara ANTES que drop.
-    // Si los refs se resetean acá, el drop handler los encuentra null y no mueve nada.
-    // Los refs se resetean en handleDragStart (próximo drag) y en handleGridDrop.
     setDraggingId(null)
   }
 
@@ -117,31 +113,78 @@ export default function Mesas({ productos = [], categorias = [] }) {
     e.dataTransfer.dropEffect = 'move'
     const cellEl = e.target.closest('[data-col][data-row]')
     if (cellEl) {
-      dragOverCellRef.current = { col: parseInt(cellEl.dataset.col), row: parseInt(cellEl.dataset.row) }
+      dragCellRef.current = { col: parseInt(cellEl.dataset.col), row: parseInt(cellEl.dataset.row) }
     }
   }
 
   const handleGridDrop = (e) => {
     e.preventDefault()
-    const mesaId = draggingRef.current || e.dataTransfer.getData('text/plain')
-    draggingRef.current = null
+    const mesaId = e.dataTransfer.getData('text/plain')
     if (!mesaId) return
-    // Usar celda trackeada por dragover; si es null, intentar e.target como fallback
     let col, row
-    if (dragOverCellRef.current) {
-      col = dragOverCellRef.current.col
-      row = dragOverCellRef.current.row
+    if (dragCellRef.current) {
+      col = dragCellRef.current.col
+      row = dragCellRef.current.row
     } else {
       const cellEl = e.target.closest('[data-col][data-row]')
       if (!cellEl) return
       col = parseInt(cellEl.dataset.col)
       row = parseInt(cellEl.dataset.row)
     }
-    dragOverCellRef.current = null
+    dragCellRef.current = null
     setDraggingId(null)
     if (zona.mesas.some(m => m.col === col && m.row === row && m.id !== mesaId)) return
     actualizarMesaEnState(mesaId, { col, row })
     mesasService.actualizar(mesaId, { col, row }).catch(console.error)
+  }
+
+  /* ── Drag táctil (Pointer Events — responsive/touch) ── */
+  const handlePointerDown = (e, mesaId) => {
+    if (e.pointerType === 'mouse') return
+    e.currentTarget.setPointerCapture(e.pointerId)
+    pointerDragRef.current = { mesaId, startX: e.clientX, startY: e.clientY, active: false }
+    dragCellRef.current = null
+  }
+
+  const handlePointerMove = (e) => {
+    const pd = pointerDragRef.current
+    if (!pd) return
+    const dx = e.clientX - pd.startX
+    const dy = e.clientY - pd.startY
+    if (!pd.active && Math.sqrt(dx * dx + dy * dy) < 8) return
+    if (!pd.active) {
+      pointerDragRef.current = { ...pd, active: true }
+      setDraggingId(pd.mesaId)
+      setSelected(null)
+    }
+    // La card tiene pointer-events:none mientras se arrastra → elementFromPoint encuentra la celda debajo
+    const el = document.elementFromPoint(e.clientX, e.clientY)
+    const cellEl = el?.closest('[data-col][data-row]')
+    if (cellEl) {
+      dragCellRef.current = { col: parseInt(cellEl.dataset.col), row: parseInt(cellEl.dataset.row) }
+    }
+  }
+
+  const handlePointerUp = (e) => {
+    const pd = pointerDragRef.current
+    if (!pd) return
+    pointerDragRef.current = null
+    if (!pd.active) { setDraggingId(null); return }
+    setDraggingId(null)
+    const cell = dragCellRef.current
+    dragCellRef.current = null
+    if (!cell) return
+    const { col, row } = cell
+    const { mesaId } = pd
+    if (zona.mesas.some(m => m.col === col && m.row === row && m.id !== mesaId)) return
+    actualizarMesaEnState(mesaId, { col, row })
+    mesasService.actualizar(mesaId, { col, row }).catch(console.error)
+  }
+
+  const handlePointerCancel = () => {
+    pointerDragRef.current = null
+    dragCellRef.current = null
+    setDraggingId(null)
   }
 
   /* ── Acciones de mesa ── */
@@ -368,8 +411,13 @@ export default function Mesas({ productos = [], categorias = [] }) {
                   <div
                     className={`mesa-card mesa-card--${m.estado} ${selected === m.id ? 'mesa-card--selected' : ''} ${draggingId === m.id ? 'mesa-card--dragging' : ''}`}
                     draggable
+                    style={{ touchAction: 'none', pointerEvents: draggingId === m.id ? 'none' : 'auto' }}
                     onDragStart={e => handleDragStart(e, m.id)}
                     onDragEnd={handleDragEnd}
+                    onPointerDown={e => handlePointerDown(e, m.id)}
+                    onPointerMove={handlePointerMove}
+                    onPointerUp={handlePointerUp}
+                    onPointerCancel={handlePointerCancel}
                     onClick={() => setSelected(selected === m.id ? null : m.id)}
                   >
                     <span className="mesa-numero">{m.numero}</span>
