@@ -252,9 +252,14 @@ export default function Mesas({ productos = [], categorias = [] }) {
     }
   }
 
-  /* ── Render celdas ── */
+  /* ── Render celdas (solo hasta la última fila usada + 2 buffer) ── */
+  const maxRow = zona?.mesas.length > 0
+    ? Math.max(...zona.mesas.map(m => m.row))
+    : 0
+  const displayRows = Math.max(3, maxRow + 2)
+
   const celdas = []
-  for (let row = 0; row < ROWS; row++) {
+  for (let row = 0; row < displayRows; row++) {
     for (let col = 0; col < COLS; col++) {
       const m = getMesaEnCelda(col, row)
       celdas.push({ col, row, mesa: m })
@@ -322,7 +327,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
 
         {/* Grilla */}
         <div className="mesas-grid-wrap">
-          <div className="mesas-grid">
+          <div className={`mesas-grid${draggingId ? ' mesas-grid--dragging' : ''}`}>
             {celdas.map(({ col, row, mesa: m }) => (
               <div
                 key={`${col}-${row}`}

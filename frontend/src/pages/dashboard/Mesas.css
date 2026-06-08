@@ -212,13 +212,17 @@
   border-radius: var(--radius-sm);
 }
 
+/* Invisible by default — only show dashed border when dragging */
 .celda--vacia {
-  border: 2px dashed var(--border);
   transition: border-color 0.15s, background 0.15s;
 }
 
+.mesas-grid--dragging .celda--vacia {
+  border: 2px dashed var(--border);
+}
+
 .celda--drop-target {
-  border-color: #9CA3AF;
+  border: 2px dashed #9CA3AF;
   background: #F3F4F6;
 }
 
@@ -710,5 +714,15 @@
   .mesas-layout { flex-direction: column; height: auto; gap: 12px; }
   .mesas-tabs-row { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .mesas-tabs { flex-wrap: nowrap; width: max-content; }
-  .mesas-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; }
+  /* En mobile mostrar solo mesas como tarjetas sin celdas vacías */
+  .mesas-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .celda--vacia { display: none; }
+  .celda { width: calc(25% - 8px); min-width: 72px; aspect-ratio: 1; }
+  .mesas-leyenda-hint { display: none; }
+  .mesas-leyenda { flex-wrap: wrap; gap: 8px; }
+  .mesas-resumen { width: 100%; justify-content: center; }
 }
