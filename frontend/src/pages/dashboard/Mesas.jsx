@@ -140,7 +140,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
       el.removeEventListener('dragover', onDragOver)
       el.removeEventListener('drop', onDrop)
     }
-  }, [])
+  }, [cargando])
 
   const handleDragStart = (e, mesaId) => {
     e.dataTransfer.effectAllowed = 'move'
