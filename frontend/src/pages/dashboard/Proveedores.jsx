@@ -96,7 +96,7 @@ export default function Proveedores() {
           <div className="prov-list">
             {filtrados.length === 0 ? (
               <div className="prov-list-empty">
-                <span>{busqueda ? <Search size={32} /> : <Truck size={32} />}</span>
+                <span>{busqueda ? <Search size={32} color="#94a3b8" /> : <Truck size={32} color="#94a3b8" />}</span>
                 <p>{busqueda ? 'Sin resultados' : 'No hay proveedores todavía'}</p>
               </div>
             ) : (
@@ -125,7 +125,7 @@ export default function Proveedores() {
         <div className="prov-panel">
           {!proveedor ? (
             <div className="prov-panel-empty">
-              <div className="prov-panel-empty-icon"><Truck size={40} /></div>
+              <div className="prov-panel-empty-icon"><Truck size={40} color="#94a3b8" /></div>
               <p>Seleccioná un proveedor</p>
               <span>para ver su información de contacto y notas</span>
             </div>
@@ -148,7 +148,7 @@ export default function Proveedores() {
 
               <div className="prov-info-grid">
                 <div className="prov-info-card">
-                  <span className="prov-info-icon"><Phone size={16} /></span>
+                  <span className="prov-info-icon"><Phone size={16} color="#22c55e" /></span>
                   <div className="prov-info-content">
                     <span className="prov-info-label">Teléfono</span>
                     <span className={`prov-info-value ${!proveedor.telefono ? 'prov-info-value--muted' : ''}`}>
@@ -157,7 +157,7 @@ export default function Proveedores() {
                   </div>
                 </div>
                 <div className="prov-info-card">
-                  <span className="prov-info-icon"><Mail size={16} /></span>
+                  <span className="prov-info-icon"><Mail size={16} color="#3b82f6" /></span>
                   <div className="prov-info-content">
                     <span className="prov-info-label">Email</span>
                     <span className={`prov-info-value ${!proveedor.email ? 'prov-info-value--muted' : ''}`}>
@@ -168,7 +168,7 @@ export default function Proveedores() {
               </div>
 
               <div className="prov-notas-section">
-                <span className="prov-notas-label"><FileText size={14} /> Notas</span>
+                <span className="prov-notas-label"><FileText size={14} color="#94a3b8" /> Notas</span>
                 {proveedor.notas
                   ? <div className="prov-notas">{proveedor.notas}</div>
                   : <div className="prov-notas prov-notas--empty">Sin notas</div>

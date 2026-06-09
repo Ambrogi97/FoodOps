@@ -49,7 +49,7 @@ export default function Carta() {
   }, [userId])
 
   if (error) return (
-    <div className="carta-error"><span><Frown size={40} /></span><p>{error}</p></div>
+    <div className="carta-error"><span><Frown size={40} color="#ef4444" /></span><p>{error}</p></div>
   )
   if (!datos) return (
     <div className="carta-loading"><div className="carta-spinner" /></div>
@@ -117,7 +117,7 @@ export default function Carta() {
   // ── Pedido OK ───────────────────────────────────────────────────────────────
   if (pedidoOk) return (
     <div className="carta-ok">
-      <span className="carta-ok-icon"><CheckCircle size={56} /></span>
+      <span className="carta-ok-icon"><CheckCircle size={56} color="#22c55e" /></span>
       <h2>¡Pedido enviado!</h2>
       <p>Tu pedido fue recibido. En breve lo estamos preparando.</p>
       <button className="carta-ok-btn" onClick={() => setPedidoOk(false)}>Volver al menú</button>

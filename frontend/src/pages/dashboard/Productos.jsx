@@ -167,7 +167,7 @@ export default function Productos({ productos, setProductos, categorias, setCate
                 className="prod-cat-edit"
                 onClick={() => { setEditandoCat(c); setNombreCatEdit(c.nombre) }}
                 title="Renombrar categoría"
-              ><Pencil size={12} /></button>
+              ><Pencil size={12} color="#94a3b8" /></button>
               <button
                 className="prod-cat-remove"
                 onClick={() => setConfirmarEliminarCat(c.id)}
@@ -394,7 +394,7 @@ export default function Productos({ productos, setProductos, categorias, setCate
                     onClick={() => fileInputCrear.current.click()}
                     disabled={subiendoImagen}
                   >
-                    {subiendoImagen ? 'Subiendo...' : <><Camera size={14} style={{ marginRight: 4 }} /> Subir foto</>}
+                    {subiendoImagen ? 'Subiendo...' : <><Camera size={14} color="#FF6B35" style={{ marginRight: 4 }} /> Subir foto</>}
                   </button>
                 )}
               </div>
@@ -476,7 +476,7 @@ export default function Productos({ productos, setProductos, categorias, setCate
                     onClick={() => fileInputEditar.current.click()}
                     disabled={subiendoImagen}
                   >
-                    {subiendoImagen ? 'Subiendo...' : <><Camera size={14} style={{ marginRight: 4 }} /> Subir foto</>}
+                    {subiendoImagen ? 'Subiendo...' : <><Camera size={14} color="#FF6B35" style={{ marginRight: 4 }} /> Subir foto</>}
                   </button>
                 )}
               </div>

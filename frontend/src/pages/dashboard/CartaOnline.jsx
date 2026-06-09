@@ -144,10 +144,10 @@ export default function CartaOnline() {
                       {ESTADO_LABEL[p.estado]}
                     </span>
                     <span className="co-tipo-chip">
-                      {p.tipo === 'mesa' ? <><Armchair size={13} /> Mesa {p.mesaNumero}</> : <><ShoppingBag size={13} /> Para llevar</>}
+                      {p.tipo === 'mesa' ? <><Armchair size={13} color="#f97316" /> Mesa {p.mesaNumero}</> : <><ShoppingBag size={13} color="#6366f1" /> Para llevar</>}
                     </span>
                     {p.clienteNombre && (
-                      <span className="co-cliente-chip"><User size={12} /> {p.clienteNombre}</span>
+                      <span className="co-cliente-chip"><User size={12} color="#6b7280" /> {p.clienteNombre}</span>
                     )}
                   </div>
                   <span className="co-card-time">{relTime(p.createdAt)}</span>
@@ -164,7 +164,7 @@ export default function CartaOnline() {
                 </div>
 
                 {p.notas && (
-                  <div className="co-notas"><FileText size={13} /> {p.notas}</div>
+                  <div className="co-notas"><FileText size={13} color="#94a3b8" /> {p.notas}</div>
                 )}
 
                 <div className="co-card-footer">

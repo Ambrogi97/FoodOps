@@ -120,7 +120,7 @@ export default function Pedidos() {
 
       {mesasFiltradas.length === 0 ? (
         <div className="ped-empty">
-          <span className="ped-empty-icon"><ChefHat size={40} /></span>
+          <span className="ped-empty-icon"><ChefHat size={40} color="#f97316" /></span>
           <p>Sin pedidos activos</p>
           <span>Las mesas con pedido aparecen acá en tiempo real</span>
         </div>
@@ -155,7 +155,7 @@ export default function Pedidos() {
                       className={`ped-item ${item.listo ? 'ped-item--listo' : 'ped-item--pendiente'}`}
                       onClick={() => toggleItem(mesa.id, item.nombre)}
                     >
-                      <span className="ped-item-check">{item.listo ? <Check size={14} strokeWidth={3} /> : <Circle size={14} />}</span>
+                      <span className="ped-item-check">{item.listo ? <Check size={14} strokeWidth={3} color="#22c55e" /> : <Circle size={14} color="#f97316" />}</span>
                       <span className="ped-item-cant">{item.cantidad}×</span>
                       <span className="ped-item-nombre">{item.nombre}</span>
                     </button>
