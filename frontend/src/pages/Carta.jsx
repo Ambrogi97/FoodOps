@@ -16,9 +16,10 @@ function ProductoCard({ p, cant, onClick }) {
       </div>
       <div className="carta-prod-thumb">
         {p.imagen
-          ? <img src={p.imagen} alt={p.nombre} />
-          : <div className="carta-prod-placeholder"><UtensilsCrossed size={28} /></div>
+          ? <img src={p.imagen} alt={p.nombre} onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex' }} />
+          : null
         }
+        <div className="carta-prod-placeholder" style={{ display: p.imagen ? 'none' : 'flex' }}><UtensilsCrossed size={28} /></div>
         {cant > 0 && <span className="carta-prod-badge">{cant}</span>}
       </div>
     </div>
@@ -286,9 +287,10 @@ export default function Carta() {
           <div className="carta-prod-modal" onClick={e => e.stopPropagation()}>
             <button className="carta-prod-modal-close" onClick={() => setProductoOpen(null)}>×</button>
             {productoOpen.imagen
-              ? <img src={productoOpen.imagen} alt={productoOpen.nombre} className="carta-prod-modal-img" />
-              : <div className="carta-prod-modal-img-placeholder">🍽️</div>
+              ? <img src={productoOpen.imagen} alt={productoOpen.nombre} className="carta-prod-modal-img" onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex' }} />
+              : null
             }
+            <div className="carta-prod-modal-img-placeholder" style={{ display: productoOpen.imagen ? 'none' : 'flex' }}><UtensilsCrossed size={40} /></div>
             <div className="carta-prod-modal-body">
               <h2 className="carta-prod-modal-nombre">{productoOpen.nombre}</h2>
               {productoOpen.descripcion && (
