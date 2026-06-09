@@ -53,17 +53,21 @@ export default function Mesas({ productos = [], categorias = [] }) {
 
   /* ── Carga inicial ── */
   useEffect(() => {
+    let cancelled = false
     const cargar = async () => {
       try {
         const [zonasData, mesasData] = await Promise.all([
           zonasService.listar(),
           mesasService.listar(),
         ])
+        if (cancelled) return
 
         if (zonasData.length === 0) {
-          const salon    = await zonasService.crear({ label: 'Salón', removible: false })
-          const nuevas   = MESAS_DEFAULT.map(m => ({ ...m, zona: salon.id, estado: 'libre' }))
-          const creadas  = await mesasService.crearVarias(nuevas)
+          const salon = await zonasService.crear({ label: 'Salón', removible: false })
+          if (cancelled) return
+          const nuevas  = MESAS_DEFAULT.map(m => ({ ...m, zona: salon.id, estado: 'libre' }))
+          const creadas = await mesasService.crearVarias(nuevas)
+          if (cancelled) return
           setZonas([{ ...salon, mesas: creadas }])
           setZonaActiva(salon.id)
         } else {
@@ -71,16 +75,19 @@ export default function Mesas({ productos = [], categorias = [] }) {
             ...z,
             mesas: mesasData.filter(m => m.zona === z.id),
           }))
+          // Preferir la primera zona que tenga mesas; si todas están vacías, usar la primera
+          const zonaInicial = zonasMapped.find(z => z.mesas.length > 0) ?? zonasMapped[0]
           setZonas(zonasMapped)
-          setZonaActiva(zonasMapped[0]?.id || null)
+          setZonaActiva(zonaInicial?.id || null)
         }
       } catch (e) {
         console.error(e)
       } finally {
-        setCargando(false)
+        if (!cancelled) setCargando(false)
       }
     }
     cargar()
+    return () => { cancelled = true }
   }, [])
 
   const zona = zonas.find(z => z.id === zonaActiva)
