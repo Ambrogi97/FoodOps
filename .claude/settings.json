@@ -24,7 +24,29 @@
       "PowerShell(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; Start-Sleep -Seconds 1; Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue)",
       "PowerShell($proc = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty OwningProcess; if \\($proc\\) { Stop-Process -Id $proc -Force; Write-Host \"Proceso $proc terminado\" } else { Write-Host \"No habia proceso en 3000\" })",
       "PowerShell(Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c cd /d C:\\\\Users\\\\juan\\\\Desktop\\\\FoodOps\\\\backend && npm run dev\" -WindowStyle Normal)",
-      "PowerShell(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue)"
+      "PowerShell(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue)",
+      "PowerShell(Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c cd /d C:\\\\Users\\\\juan\\\\Desktop\\\\FoodOps\\\\frontend && npm run dev\" -WindowStyle Normal)",
+      "Bash(chromium-cli --session foodops)",
+      "Bash(cd /tmp)",
+      "Bash(npx --yes playwright@latest screenshot http://localhost:5173 /tmp/foodops.png --wait-for-timeout 5000)",
+      "Bash(npx playwright *)",
+      "PowerShell(Start-Process \"http://localhost:5173\")",
+      "Bash(npm install *)",
+      "Bash(docker --version)",
+      "Bash(winget install *)",
+      "Bash(Start-Process \"C:\\\\Program Files\\\\Docker\\\\Docker\\\\Docker Desktop.exe\")",
+      "Bash(\"/c/Program Files/Docker/Docker/Docker Desktop.exe\")",
+      "Bash(docker info *)",
+      "PowerShell(docker info 2>&1)",
+      "PowerShell($env:PATH += \";C:\\\\Program Files\\\\Docker\\\\Docker\\\\resources\\\\bin\"; docker --version 2>&1)",
+      "PowerShell($env:PATH += \";C:\\\\Program Files\\\\Docker\\\\Docker\\\\resources\\\\bin\"; $max = 60; $i = 0; while \\($i -lt $max\\) { $result = docker info 2>&1; if \\($LASTEXITCODE -eq 0\\) { Write-Host \"Docker listo\"; break }; Start-Sleep -Seconds 3; $i += 3; Write-Host \"Esperando... $i s\" })",
+      "PowerShell($env:PATH += \";C:\\\\Program Files\\\\Docker\\\\Docker\\\\resources\\\\bin\"; docker info 2>&1 | Select-Object -First 3)",
+      "PowerShell($env:PATH += \";C:\\\\Program Files\\\\Docker\\\\Docker\\\\resources\\\\bin\"; docker info 2>&1 | Select-Object -First 2)",
+      "Bash(pkill -f \"node src/index.js\")",
+      "Bash(pkill -f \"vite\")",
+      "Bash(curl -s http://localhost:5173/)",
+      "Bash(explorer \"http://localhost:5173\")",
+      "Bash(cmd.exe /c start http://localhost:5173)"
     ]
   }
 }
