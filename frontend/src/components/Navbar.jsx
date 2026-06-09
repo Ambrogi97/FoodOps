@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { UtensilsCrossed } from 'lucide-react'
 import './Navbar.css'
 
 export default function Navbar() {
@@ -16,7 +17,7 @@ export default function Navbar() {
     <nav className={`navbar${scrolled ? ' navbar--scrolled' : ''}`}>
       <div className="navbar__inner">
         <a href="#" className="navbar__logo">
-          <span className="navbar__logo-icon">🍽️</span>
+          <span className="navbar__logo-icon"><UtensilsCrossed size={20} /></span>
           <span className="navbar__logo-text">Food<strong>Ops</strong></span>
         </a>
 

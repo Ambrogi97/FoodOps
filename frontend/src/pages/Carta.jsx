@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
+import { UtensilsCrossed, Frown, CheckCircle, Armchair, ShoppingBag } from 'lucide-react'
 import './Carta.css'
 
 const API = 'http://localhost:3000'
@@ -16,7 +17,7 @@ function ProductoCard({ p, cant, onClick }) {
       <div className="carta-prod-thumb">
         {p.imagen
           ? <img src={p.imagen} alt={p.nombre} />
-          : <div className="carta-prod-placeholder">🍽️</div>
+          : <div className="carta-prod-placeholder"><UtensilsCrossed size={28} /></div>
         }
         {cant > 0 && <span className="carta-prod-badge">{cant}</span>}
       </div>
@@ -46,7 +47,7 @@ export default function Carta() {
   }, [userId])
 
   if (error) return (
-    <div className="carta-error"><span>😕</span><p>{error}</p></div>
+    <div className="carta-error"><span><Frown size={40} /></span><p>{error}</p></div>
   )
   if (!datos) return (
     <div className="carta-loading"><div className="carta-spinner" /></div>
@@ -113,7 +114,7 @@ export default function Carta() {
   // ── Pedido OK ───────────────────────────────────────────────────────────────
   if (pedidoOk) return (
     <div className="carta-ok">
-      <span className="carta-ok-icon">✅</span>
+      <span className="carta-ok-icon"><CheckCircle size={56} /></span>
       <h2>¡Pedido enviado!</h2>
       <p>Tu pedido fue recibido. En breve lo estamos preparando.</p>
       <button className="carta-ok-btn" onClick={() => setPedidoOk(false)}>Volver al menú</button>
@@ -176,8 +177,8 @@ export default function Carta() {
               <div className="carta-checkout-field">
                 <label>¿Cómo es tu pedido?</label>
                 <div className="carta-tipo-row">
-                  <button className={`carta-tipo-btn ${form.tipo === 'mesa' ? 'carta-tipo-btn--active' : ''}`} onClick={() => setForm(f => ({ ...f, tipo: 'mesa' }))}>🪑 En mesa</button>
-                  <button className={`carta-tipo-btn ${form.tipo === 'takeaway' ? 'carta-tipo-btn--active' : ''}`} onClick={() => setForm(f => ({ ...f, tipo: 'takeaway' }))}>🥡 Para llevar</button>
+                  <button className={`carta-tipo-btn ${form.tipo === 'mesa' ? 'carta-tipo-btn--active' : ''}`} onClick={() => setForm(f => ({ ...f, tipo: 'mesa' }))}><Armchair size={15} /> En mesa</button>
+                  <button className={`carta-tipo-btn ${form.tipo === 'takeaway' ? 'carta-tipo-btn--active' : ''}`} onClick={() => setForm(f => ({ ...f, tipo: 'takeaway' }))}><ShoppingBag size={15} /> Para llevar</button>
                 </div>
               </div>
               {form.tipo === 'mesa' && (

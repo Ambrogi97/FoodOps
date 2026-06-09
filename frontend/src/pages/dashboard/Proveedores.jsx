@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { proveedoresService } from '../../services/api'
+import { Truck, Search, Phone, Mail, FileText } from 'lucide-react'
 import './Proveedores.css'
 
 const VACIO = { nombre: '', rubro: '', telefono: '', email: '', notas: '' }
@@ -95,7 +96,7 @@ export default function Proveedores() {
           <div className="prov-list">
             {filtrados.length === 0 ? (
               <div className="prov-list-empty">
-                <span>{busqueda ? '🔍' : '🚚'}</span>
+                <span>{busqueda ? <Search size={32} /> : <Truck size={32} />}</span>
                 <p>{busqueda ? 'Sin resultados' : 'No hay proveedores todavía'}</p>
               </div>
             ) : (
@@ -124,7 +125,7 @@ export default function Proveedores() {
         <div className="prov-panel">
           {!proveedor ? (
             <div className="prov-panel-empty">
-              <div className="prov-panel-empty-icon">🚚</div>
+              <div className="prov-panel-empty-icon"><Truck size={40} /></div>
               <p>Seleccioná un proveedor</p>
               <span>para ver su información de contacto y notas</span>
             </div>
@@ -147,7 +148,7 @@ export default function Proveedores() {
 
               <div className="prov-info-grid">
                 <div className="prov-info-card">
-                  <span className="prov-info-icon">📞</span>
+                  <span className="prov-info-icon"><Phone size={16} /></span>
                   <div className="prov-info-content">
                     <span className="prov-info-label">Teléfono</span>
                     <span className={`prov-info-value ${!proveedor.telefono ? 'prov-info-value--muted' : ''}`}>
@@ -156,7 +157,7 @@ export default function Proveedores() {
                   </div>
                 </div>
                 <div className="prov-info-card">
-                  <span className="prov-info-icon">✉️</span>
+                  <span className="prov-info-icon"><Mail size={16} /></span>
                   <div className="prov-info-content">
                     <span className="prov-info-label">Email</span>
                     <span className={`prov-info-value ${!proveedor.email ? 'prov-info-value--muted' : ''}`}>
@@ -167,7 +168,7 @@ export default function Proveedores() {
               </div>
 
               <div className="prov-notas-section">
-                <span className="prov-notas-label">📝 Notas</span>
+                <span className="prov-notas-label"><FileText size={14} /> Notas</span>
                 {proveedor.notas
                   ? <div className="prov-notas">{proveedor.notas}</div>
                   : <div className="prov-notas prov-notas--empty">Sin notas</div>

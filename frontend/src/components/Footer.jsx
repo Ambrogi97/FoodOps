@@ -1,3 +1,4 @@
+import { UtensilsCrossed } from 'lucide-react'
 import './Footer.css'
 
 export default function Footer() {
@@ -6,7 +7,7 @@ export default function Footer() {
       <div className="container footer__container">
         <div className="footer__brand">
           <a href="#" className="footer__logo">
-            <span>🍽️</span>
+            <span><UtensilsCrossed size={18} /></span>
             <span>Food<strong>Ops</strong></span>
           </a>
           <p className="footer__tagline">

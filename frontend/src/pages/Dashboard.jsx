@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getSession, clearSession, categoriasService, productosService } from '../services/api'
+import {
+  Armchair, Receipt, UtensilsCrossed, FlaskConical, Package,
+  Truck, DollarSign, BarChart2, Calculator, Smartphone, LogOut,
+} from 'lucide-react'
 import Mesas from './dashboard/Mesas'
 import Productos from './dashboard/Productos'
 import Ingredientes from './dashboard/Ingredientes'
@@ -14,16 +18,16 @@ import CartaOnline from './dashboard/CartaOnline'
 import './Dashboard.css'
 
 const NAV_ITEMS = [
-  { id: 'mesas',        label: 'Mesas',        icon: '🪑' },
-  { id: 'pedidos',      label: 'Pedidos',       icon: '🧾' },
-  { id: 'productos',    label: 'Productos',     icon: '🍽️' },
-  { id: 'ingredientes', label: 'Ingredientes',  icon: '🧂' },
-  { id: 'stock',        label: 'Stock',         icon: '📦' },
-  { id: 'proveedores',  label: 'Proveedores',   icon: '🚚' },
-  { id: 'ventas',       label: 'Ventas',        icon: '💰' },
-  { id: 'reportes',     label: 'Reportes',      icon: '📊' },
-  { id: 'gastos',       label: 'Gastos',        icon: '🧮' },
-  { id: 'carta',        label: 'Carta Online',  icon: '📱' },
+  { id: 'mesas',        label: 'Mesas',        Icon: Armchair },
+  { id: 'pedidos',      label: 'Pedidos',       Icon: Receipt },
+  { id: 'productos',    label: 'Productos',     Icon: UtensilsCrossed },
+  { id: 'ingredientes', label: 'Ingredientes',  Icon: FlaskConical },
+  { id: 'stock',        label: 'Stock',         Icon: Package },
+  { id: 'proveedores',  label: 'Proveedores',   Icon: Truck },
+  { id: 'ventas',       label: 'Ventas',        Icon: DollarSign },
+  { id: 'reportes',     label: 'Reportes',      Icon: BarChart2 },
+  { id: 'gastos',       label: 'Gastos',        Icon: Calculator },
+  { id: 'carta',        label: 'Carta Online',  Icon: Smartphone },
 ]
 
 export default function Dashboard() {
@@ -70,7 +74,7 @@ export default function Dashboard() {
       {/* Sidebar */}
       <aside className={`dash-sidebar${menuOpen ? ' dash-sidebar--open' : ''}`}>
         <div className="dash-logo">
-          <span className="dash-logo-icon">🍽️</span>
+          <span className="dash-logo-icon"><UtensilsCrossed size={22} /></span>
           <span className="dash-logo-text">Food<strong>Ops</strong></span>
         </div>
 
@@ -81,7 +85,7 @@ export default function Dashboard() {
               className={`dash-nav-item ${active === item.id ? 'dash-nav-item--active' : ''}`}
               onClick={() => { setActive(item.id); setMenuOpen(false) }}
             >
-              <span className="dash-nav-icon">{item.icon}</span>
+              <span className="dash-nav-icon"><item.Icon size={18} /></span>
               <span className="dash-nav-label">{item.label}</span>
             </button>
           ))}
@@ -96,7 +100,7 @@ export default function Dashboard() {
             </div>
           </div>
           <button className="dash-logout" onClick={() => setShowLogoutModal(true)} title="Cerrar sesión">
-            ↩
+            <LogOut size={16} />
           </button>
         </div>
       </aside>
@@ -145,7 +149,7 @@ export default function Dashboard() {
                 <h2 className="dash-panel-title">{NAV_ITEMS.find(i => i.id === active)?.label}</h2>
               </div>
               <div className="dash-empty">
-                <div className="dash-empty-icon">{NAV_ITEMS.find(i => i.id === active)?.icon}</div>
+                <div className="dash-empty-icon">{(() => { const Item = NAV_ITEMS.find(i => i.id === active); return Item ? <Item.Icon size={36} /> : null })()}</div>
                 <p>Esta sección está en construcción</p>
                 <span>Pronto vas a poder gestionar {NAV_ITEMS.find(i => i.id === active)?.label.toLowerCase()} desde acá</span>
               </div>
@@ -159,7 +163,7 @@ export default function Dashboard() {
       {showLogoutModal && (
         <div className="dash-modal-overlay" onClick={() => setShowLogoutModal(false)}>
           <div className="dash-modal" onClick={e => e.stopPropagation()}>
-            <div className="dash-modal-icon">↩</div>
+            <div className="dash-modal-icon"><LogOut size={28} /></div>
             <h3 className="dash-modal-title">¿Estás seguro?</h3>
             <p className="dash-modal-text">Vas a cerrar la sesión de <strong>{user.restaurante}</strong>.</p>
             <div className="dash-modal-actions">

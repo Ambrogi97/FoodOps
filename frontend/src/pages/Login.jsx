@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { authService, saveSession } from '../services/api'
+import { UtensilsCrossed } from 'lucide-react'
 import './Login.css'
 
 export default function Login() {
@@ -32,7 +33,7 @@ export default function Login() {
     <div className="login-page">
       <div className="login-card">
         <Link to="/" className="login-logo">
-          <span>🍽️</span>
+          <span><UtensilsCrossed size={22} /></span>
           <span>Food<strong>Ops</strong></span>
         </Link>
 

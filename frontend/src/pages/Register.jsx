@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { authService, saveSession } from '../services/api'
+import { UtensilsCrossed } from 'lucide-react'
 import './Register.css'
 
 const PLANES = {
@@ -76,7 +77,7 @@ export default function Register() {
     <div className="register-page">
       <div className="register-card">
         <Link to="/" className="register-logo">
-          <span>🍽️</span>
+          <span><UtensilsCrossed size={22} /></span>
           <span>Food<strong>Ops</strong></span>
         </Link>
 

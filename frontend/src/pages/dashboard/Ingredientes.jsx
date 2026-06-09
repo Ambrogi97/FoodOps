@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { ingredientesService } from '../../services/api'
+import { FlaskConical } from 'lucide-react'
 import './Ingredientes.css'
 
 const UNIDADES = ['kg', 'g', 'l', 'ml', 'unid.']
@@ -120,7 +121,7 @@ export default function Ingredientes() {
       <div className="ing-detalle">
         {!ingrediente ? (
           <div className="ing-detalle-empty">
-            <span>🧂</span>
+            <span><FlaskConical size={36} /></span>
             <p>Seleccioná un ingrediente</p>
             <span>para ver sus detalles</span>
           </div>

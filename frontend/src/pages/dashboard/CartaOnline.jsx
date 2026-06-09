@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { pedidosOnlineService } from '../../services/api'
+import { Armchair, ShoppingBag, User, FileText, RefreshCw } from 'lucide-react'
 import './CartaOnline.css'
 
 const user    = JSON.parse(localStorage.getItem('user') || '{}')
@@ -106,7 +107,7 @@ export default function CartaOnline() {
           Pedidos online
           {cantPend > 0 && <span className="co-badge">{cantPend}</span>}
         </h3>
-        <button className="co-refresh-btn" onClick={() => cargar(true)}>↻ Actualizar</button>
+        <button className="co-refresh-btn" onClick={() => cargar(true)}><RefreshCw size={14} /> Actualizar</button>
       </div>
 
       {/* Filtros */}
@@ -140,10 +141,10 @@ export default function CartaOnline() {
                       {ESTADO_LABEL[p.estado]}
                     </span>
                     <span className="co-tipo-chip">
-                      {p.tipo === 'mesa' ? `🪑 Mesa ${p.mesaNumero}` : '🥡 Para llevar'}
+                      {p.tipo === 'mesa' ? <><Armchair size={13} /> Mesa {p.mesaNumero}</> : <><ShoppingBag size={13} /> Para llevar</>}
                     </span>
                     {p.clienteNombre && (
-                      <span className="co-cliente-chip">👤 {p.clienteNombre}</span>
+                      <span className="co-cliente-chip"><User size={12} /> {p.clienteNombre}</span>
                     )}
                   </div>
                   <span className="co-card-time">{relTime(p.createdAt)}</span>
@@ -160,7 +161,7 @@ export default function CartaOnline() {
                 </div>
 
                 {p.notas && (
-                  <div className="co-notas">📝 {p.notas}</div>
+                  <div className="co-notas"><FileText size={13} /> {p.notas}</div>
                 )}
 
                 <div className="co-card-footer">

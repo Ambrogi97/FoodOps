@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Briefcase, Check } from 'lucide-react'
 import './Planes.css'
 
 const planes = [
@@ -60,7 +61,7 @@ export default function Planes() {
     <section className="planes" id="planes">
       <div className="container">
         <div className="planes__header">
-          <span className="section-tag">💼 Planes</span>
+          <span className="section-tag"><Briefcase size={14} /> Planes</span>
           <h2 className="section-title">Elegí el plan para tu negocio</h2>
           <p className="section-subtitle">
             Comenzá gratis y escalá cuando lo necesites. Sin contratos,
@@ -82,7 +83,7 @@ export default function Planes() {
               <ul className="plan-card__items">
                 {p.items.map((item, j) => (
                   <li key={j}>
-                    <span className="plan-card__check">✓</span>
+                    <span className="plan-card__check"><Check size={13} strokeWidth={3} /></span>
                     {item}
                   </li>
                 ))}

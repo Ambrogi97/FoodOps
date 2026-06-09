@@ -1,3 +1,4 @@
+import { Rocket, UtensilsCrossed, Salad, Zap, QrCode, CheckCircle } from 'lucide-react'
 import './Hero.css'
 
 export default function Hero() {
@@ -5,7 +6,7 @@ export default function Hero() {
     <section className="hero">
       <div className="container hero__container">
         <div className="hero__content">
-          <span className="section-tag">🚀 La revolución gastronómica digital</span>
+          <span className="section-tag"><Rocket size={14} /> La revolución gastronómica digital</span>
           <h1 className="hero__title">
             Tu carta digital,<br />
             tus pedidos,<br />
@@ -27,7 +28,7 @@ export default function Hero() {
               <div className="phone-mockup__notch" />
               <div className="phone-mockup__screen">
                 <div className="mock-header">
-                  <div className="mock-logo">🍽️ La Trattoria</div>
+                  <div className="mock-logo"><UtensilsCrossed size={14} /> La Trattoria</div>
                   <div className="mock-badge">Abierto</div>
                 </div>
                 <div className="mock-categories">
@@ -37,7 +38,7 @@ export default function Hero() {
                 </div>
                 <div className="mock-items">
                   <div className="mock-item">
-                    <div className="mock-item__emoji">🥗</div>
+                    <div className="mock-item__emoji"><Salad size={22} /></div>
                     <div className="mock-item__info">
                       <div className="mock-item__name">Ensalada César</div>
                       <div className="mock-item__price">$1.800</div>
@@ -45,7 +46,7 @@ export default function Hero() {
                     <button className="mock-item__add">+</button>
                   </div>
                   <div className="mock-item">
-                    <div className="mock-item__emoji">🍝</div>
+                    <div className="mock-item__emoji"><UtensilsCrossed size={22} /></div>
                     <div className="mock-item__info">
                       <div className="mock-item__name">Tagliatelle al ragú</div>
                       <div className="mock-item__price">$2.400</div>
@@ -53,7 +54,7 @@ export default function Hero() {
                     <button className="mock-item__add">+</button>
                   </div>
                   <div className="mock-item">
-                    <div className="mock-item__emoji">🍕</div>
+                    <div className="mock-item__emoji"><Zap size={22} /></div>
                     <div className="mock-item__info">
                       <div className="mock-item__name">Pizza Margherita</div>
                       <div className="mock-item__price">$2.100</div>
@@ -69,14 +70,14 @@ export default function Hero() {
             </div>
           </div>
           <div className="hero__visual-badge hero__visual-badge--qr">
-            <span className="badge-icon">📲</span>
+            <span className="badge-icon"><QrCode size={20} /></span>
             <div>
               <div className="badge-title">Escanear QR</div>
               <div className="badge-sub">Sin app necesaria</div>
             </div>
           </div>
           <div className="hero__visual-badge hero__visual-badge--order">
-            <span className="badge-icon">✅</span>
+            <span className="badge-icon"><CheckCircle size={20} /></span>
             <div>
               <div className="badge-title">Pedido recibido</div>
               <div className="badge-sub">Mesa 4 · $4.300</div>

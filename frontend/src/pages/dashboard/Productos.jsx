@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { categoriasService, productosService } from '../../services/api'
+import { UtensilsCrossed, Pencil, Camera } from 'lucide-react'
 import './Productos.css'
 
 const fmt = (n) => n.toLocaleString('es-AR')
@@ -166,7 +167,7 @@ export default function Productos({ productos, setProductos, categorias, setCate
                 className="prod-cat-edit"
                 onClick={() => { setEditandoCat(c); setNombreCatEdit(c.nombre) }}
                 title="Renombrar categoría"
-              >✎</button>
+              ><Pencil size={12} /></button>
               <button
                 className="prod-cat-remove"
                 onClick={() => setConfirmarEliminarCat(c.id)}
@@ -225,7 +226,7 @@ export default function Productos({ productos, setProductos, categorias, setCate
         <div className="prod-detalle">
           {!producto ? (
             <div className="prod-detalle-empty">
-              <span>🍽️</span>
+              <span><UtensilsCrossed size={36} /></span>
               <p>Seleccioná un producto</p>
               <span>para ver sus detalles</span>
             </div>
@@ -393,7 +394,7 @@ export default function Productos({ productos, setProductos, categorias, setCate
                     onClick={() => fileInputCrear.current.click()}
                     disabled={subiendoImagen}
                   >
-                    {subiendoImagen ? 'Subiendo...' : '📷 Subir foto'}
+                    {subiendoImagen ? 'Subiendo...' : <><Camera size={14} style={{ marginRight: 4 }} /> Subir foto</>}
                   </button>
                 )}
               </div>
@@ -475,7 +476,7 @@ export default function Productos({ productos, setProductos, categorias, setCate
                     onClick={() => fileInputEditar.current.click()}
                     disabled={subiendoImagen}
                   >
-                    {subiendoImagen ? 'Subiendo...' : '📷 Subir foto'}
+                    {subiendoImagen ? 'Subiendo...' : <><Camera size={14} style={{ marginRight: 4 }} /> Subir foto</>}
                   </button>
                 )}
               </div>

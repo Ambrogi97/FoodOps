@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { stockService } from '../../services/api'
+import { Package } from 'lucide-react'
 import './Stock.css'
 
 const hoyInput = () => new Date().toISOString().split('T')[0]
@@ -196,7 +197,7 @@ export default function Stock() {
       <div className="stock-panel">
         {!ingrediente ? (
           <div className="stock-panel-empty">
-            <span>📦</span>
+            <span><Package size={36} /></span>
             <p>Seleccioná un ingrediente</p>
             <span>para ver su stock y movimientos</span>
           </div>

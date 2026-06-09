@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { gastosService } from '../../services/api'
+import { Calculator } from 'lucide-react'
 import './Gastos.css'
 
 const PERIODOS = ['Hoy', 'Esta semana', 'Este mes']
@@ -190,7 +191,7 @@ export default function Gastos() {
 
         {gastosFiltrados.length === 0 && !cargando && (
           <div className="gastos-panel-empty">
-            <span>🧮</span>
+            <span><Calculator size={36} /></span>
             <p>Sin gastos</p>
             <span>en este período</span>
           </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { ventasService, gastosService } from '../../services/api'
+import { DollarSign, Calculator, TrendingUp, TrendingDown, Receipt } from 'lucide-react'
 import './Reportes.css'
 
 const fmt    = (n) => `$${n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
@@ -105,28 +106,28 @@ export default function Reportes() {
       {/* KPIs */}
       <div className="rep-kpis">
         <div className="rep-kpi">
-          <span className="rep-kpi-icon">💰</span>
+          <span className="rep-kpi-icon"><DollarSign size={22} /></span>
           <div>
             <p className="rep-kpi-label">Total ventas</p>
             <p className="rep-kpi-value rep-kpi--green">{fmt(totalVentas)}</p>
           </div>
         </div>
         <div className="rep-kpi">
-          <span className="rep-kpi-icon">🧮</span>
+          <span className="rep-kpi-icon"><Calculator size={22} /></span>
           <div>
             <p className="rep-kpi-label">Total gastos</p>
             <p className="rep-kpi-value rep-kpi--red">{fmt(totalGastos)}</p>
           </div>
         </div>
         <div className="rep-kpi">
-          <span className="rep-kpi-icon">{ganancia >= 0 ? '📈' : '📉'}</span>
+          <span className="rep-kpi-icon">{ganancia >= 0 ? <TrendingUp size={22} /> : <TrendingDown size={22} />}</span>
           <div>
             <p className="rep-kpi-label">Ganancia neta</p>
             <p className={`rep-kpi-value ${ganancia >= 0 ? 'rep-kpi--green' : 'rep-kpi--red'}`}>{fmt(ganancia)}</p>
           </div>
         </div>
         <div className="rep-kpi">
-          <span className="rep-kpi-icon">🧾</span>
+          <span className="rep-kpi-icon"><Receipt size={22} /></span>
           <div>
             <p className="rep-kpi-label">Tickets cerrados</p>
             <p className="rep-kpi-value">{fmtNum(nTickets)}</p>

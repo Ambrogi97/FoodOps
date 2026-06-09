@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { ventasService } from '../../services/api'
+import { DollarSign } from 'lucide-react'
 import './Ventas.css'
 
 const PERIODOS = ['Hoy', 'Esta semana', 'Este mes']
@@ -126,7 +127,7 @@ export default function Ventas() {
       <div className="ventas-detalle">
         {!venta ? (
           <div className="ventas-detalle-empty">
-            <span>💰</span>
+            <span><DollarSign size={36} /></span>
             <p>Seleccioná una venta</p>
             <span>para ver el detalle</span>
           </div>

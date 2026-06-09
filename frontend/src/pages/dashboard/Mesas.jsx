@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { zonasService, mesasService, ventasService } from '../../services/api'
+import { Armchair, Receipt } from 'lucide-react'
 import './Mesas.css'
 
 const COLS = 12
@@ -481,7 +482,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
       <div className={`mesas-right${mesa ? ' mesas-right--open' : ''}`}>
         {!mesa ? (
           <div className="mesas-empty">
-            <span className="mesas-empty-icon">🪑</span>
+            <span className="mesas-empty-icon"><Armchair size={40} /></span>
             <p>Seleccioná una mesa</p>
             <span>para ver su estado</span>
           </div>
@@ -525,7 +526,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
                   </>
                 ) : (
                   <div className="mesa-pedido-empty">
-                    <span>🧾</span>
+                    <span><Receipt size={32} /></span>
                     <p>Sin productos</p>
                     <span>Agregá items al pedido</span>
                   </div>
