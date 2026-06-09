@@ -99,6 +99,20 @@
 .co-filtro-btn--active {
   background: var(--accent); border-color: var(--accent); color: #fff;
 }
+.co-filtro-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: 5px;
+}
 
 /* Loading / Empty */
 .co-loading { text-align: center; padding: 40px; color: var(--muted); font-size: 14px; }

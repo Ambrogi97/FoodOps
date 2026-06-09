@@ -111,15 +111,19 @@ export default function CartaOnline() {
 
       {/* Filtros */}
       <div className="co-filtros">
-        {['pendiente', 'preparando', 'listo', 'entregado', 'todos'].map(f => (
-          <button
-            key={f}
-            className={`co-filtro-btn ${filtro === f ? 'co-filtro-btn--active' : ''}`}
-            onClick={() => setFiltro(f)}
-          >
-            {f === 'todos' ? 'Todos' : ESTADO_LABEL[f]}
-          </button>
-        ))}
+        {['pendiente', 'preparando', 'listo', 'entregado', 'todos'].map(f => {
+          const cant = f === 'todos' ? null : pedidos.filter(p => p.estado === f).length
+          return (
+            <button
+              key={f}
+              className={`co-filtro-btn ${filtro === f ? 'co-filtro-btn--active' : ''}`}
+              onClick={() => setFiltro(f)}
+            >
+              {f === 'todos' ? 'Todos' : ESTADO_LABEL[f]}
+              {cant > 0 && <span className="co-filtro-count">{cant}</span>}
+            </button>
+          )
+        })}
       </div>
 
       {cargando ? (

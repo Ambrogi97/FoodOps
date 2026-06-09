@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getSession, clearSession, categoriasService, productosService } from '../services/api'
+import { getSession, clearSession, categoriasService, productosService, pedidosOnlineService } from '../services/api'
 import {
   Armchair, Receipt, UtensilsCrossed, FlaskConical, Package,
   Truck, DollarSign, BarChart2, Calculator, Smartphone, LogOut,
@@ -38,6 +38,7 @@ export default function Dashboard() {
   const [menuOpen, setMenuOpen]               = useState(false)
   const [productos, setProductos]             = useState([])
   const [categorias, setCategorias]           = useState([])
+  const [pedidosCounts, setPedidosCounts]     = useState({ pendiente: 0, preparando: 0, listo: 0 })
 
   useEffect(() => {
     const cargar = async () => {
@@ -54,6 +55,23 @@ export default function Dashboard() {
     }
     cargar()
   }, [])
+
+  const actualizarCounts = useCallback(async () => {
+    try {
+      const pedidos = await pedidosOnlineService.listar()
+      setPedidosCounts({
+        pendiente:  pedidos.filter(p => p.estado === 'pendiente').length,
+        preparando: pedidos.filter(p => p.estado === 'preparando').length,
+        listo:      pedidos.filter(p => p.estado === 'listo').length,
+      })
+    } catch { /* silencioso */ }
+  }, [])
+
+  useEffect(() => {
+    actualizarCounts()
+    const iv = setInterval(actualizarCounts, 15_000)
+    return () => clearInterval(iv)
+  }, [actualizarCounts])
 
   if (!user) {
     navigate('/login')
@@ -79,16 +97,24 @@ export default function Dashboard() {
         </div>
 
         <nav className="dash-nav">
-          {NAV_ITEMS.map(item => (
-            <button
-              key={item.id}
-              className={`dash-nav-item ${active === item.id ? 'dash-nav-item--active' : ''}`}
-              onClick={() => { setActive(item.id); setMenuOpen(false) }}
-            >
-              <span className="dash-nav-icon"><item.Icon size={18} /></span>
-              <span className="dash-nav-label">{item.label}</span>
-            </button>
-          ))}
+          {NAV_ITEMS.map(item => {
+            const totalActivos = item.id === 'carta'
+              ? pedidosCounts.pendiente + pedidosCounts.preparando + pedidosCounts.listo
+              : 0
+            return (
+              <button
+                key={item.id}
+                className={`dash-nav-item ${active === item.id ? 'dash-nav-item--active' : ''}`}
+                onClick={() => { setActive(item.id); setMenuOpen(false) }}
+              >
+                <span className="dash-nav-icon"><item.Icon size={18} /></span>
+                <span className="dash-nav-label">{item.label}</span>
+                {totalActivos > 0 && (
+                  <span className="dash-nav-badge">{totalActivos}</span>
+                )}
+              </button>
+            )
+          })}
         </nav>
 
         <div className="dash-sidebar-footer">
