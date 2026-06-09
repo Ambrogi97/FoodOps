@@ -39,7 +39,7 @@
   font-size: 12px; font-weight: 600; cursor: pointer;
   transition: background .15s;
 }
-.co-copy-btn:hover { background: #4f46e5; }
+.co-copy-btn:hover { background: var(--accent-dark); }
 
 .co-link-actions { display: flex; gap: 10px; }
 .co-open-btn {
@@ -174,7 +174,7 @@
   font-size: 13px; font-weight: 600; cursor: pointer;
   transition: background .15s;
 }
-.co-avanzar-btn:hover:not(:disabled) { background: #4f46e5; }
+.co-avanzar-btn:hover:not(:disabled) { background: var(--accent-dark); }
 .co-avanzar-btn:disabled { opacity: .5; cursor: not-allowed; }
 
 /* Responsive */
