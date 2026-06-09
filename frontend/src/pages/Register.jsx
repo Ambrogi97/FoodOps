@@ -25,7 +25,6 @@ export default function Register() {
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [exitoso, setExitoso] = useState(false)
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -50,27 +49,12 @@ export default function Register() {
         plan: planId,
       })
       saveSession(token, user)
-      setExitoso(true)
+      navigate('/dashboard')
     } catch (err) {
       setError(err.message)
     } finally {
       setLoading(false)
     }
-  }
-
-  if (exitoso) {
-    return (
-      <div className="register-page">
-        <div className="register-modal">
-          <div className="register-modal__icon">✅</div>
-          <h2 className="register-modal__title">¡Cuenta creada!</h2>
-          <p className="register-modal__text">Tu cuenta fue creada exitosamente. Podés iniciar sesión ahora.</p>
-          <button className="btn btn--primary btn--lg" onClick={() => navigate('/login')}>
-            Aceptar
-          </button>
-        </div>
-      </div>
-    )
   }
 
   return (
