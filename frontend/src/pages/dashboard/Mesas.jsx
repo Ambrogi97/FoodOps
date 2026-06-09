@@ -338,7 +338,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
   /* ── Render celdas (columnas/filas dinámicas según mesas existentes) ── */
   const maxRow = zona?.mesas.length > 0 ? Math.max(...zona.mesas.map(m => m.row)) : 0
   const maxCol = zona?.mesas.length > 0 ? Math.max(...zona.mesas.map(m => m.col)) : 0
-  const displayRows = Math.max(3, maxRow + 5)
+  const displayRows = Math.max(3, maxRow + 4)
   // En mobile muestra solo las columnas necesarias; en desktop siempre COLS
   const displayCols = isMobile ? Math.max(6, Math.min(COLS, maxCol + 2)) : COLS
 
