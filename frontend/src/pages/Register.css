@@ -150,3 +150,35 @@
 }
 
 .register-error { color: #dc2626; font-size: 0.875rem; margin-bottom: 0.75rem; }
+
+.register-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  padding: 3rem 2rem;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.register-modal__icon {
+  font-size: 3rem;
+}
+
+.register-modal__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.register-modal__text {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
