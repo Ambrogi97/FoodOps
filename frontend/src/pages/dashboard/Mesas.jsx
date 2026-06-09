@@ -36,6 +36,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
   const pointerDragRef = useRef(null) // { mesaId, startX, startY, active, cardEl, offsetX, offsetY, cardW, cardH }
   const dragCellRef    = useRef(null) // celda target actualizada en pointermove
   const ghostRef       = useRef(null) // elemento DOM clonado que sigue el dedo
+  const wasDraggedRef  = useRef(false) // evita que el click que sigue al pointerup abra el detalle
   const [confirmarEliminar, setConfirmarEliminar] = useState(null) // { id, numero }
   const [showAgregarMesas, setShowAgregarMesas]   = useState(false)
   const [cantidadMesas, setCantidadMesas]         = useState(1)
@@ -108,55 +109,10 @@ export default function Mesas({ productos = [], categorias = [] }) {
     })))
   }
 
-  /* ── Drag & Drop HTML5 (desktop/mouse) ── */
-  const handleDragStart = (e, mesaId) => {
-    e.dataTransfer.effectAllowed = 'move'
-    e.dataTransfer.setData('text/plain', mesaId)
-    dragCellRef.current = null
-    const card = e.currentTarget
-    const rect = card.getBoundingClientRect()
-    e.dataTransfer.setDragImage(card, rect.width / 2, rect.height / 2)
-    setDraggingId(mesaId)
-    setSelected(null)
-  }
-
-  const handleDragEnd = () => {
-    setDraggingId(null)
-  }
-
-  const handleDragOver = (e) => {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = 'move'
-    const cellEl = e.target.closest('[data-col][data-row]')
-    if (cellEl) {
-      dragCellRef.current = { col: parseInt(cellEl.dataset.col), row: parseInt(cellEl.dataset.row) }
-    }
-  }
-
-  const handleGridDrop = (e) => {
-    e.preventDefault()
-    const mesaId = e.dataTransfer.getData('text/plain')
-    if (!mesaId) return
-    let col, row
-    if (dragCellRef.current) {
-      col = dragCellRef.current.col
-      row = dragCellRef.current.row
-    } else {
-      const cellEl = e.target.closest('[data-col][data-row]')
-      if (!cellEl) return
-      col = parseInt(cellEl.dataset.col)
-      row = parseInt(cellEl.dataset.row)
-    }
-    dragCellRef.current = null
-    setDraggingId(null)
-    if (zona.mesas.some(m => m.col === col && m.row === row && m.id !== mesaId)) return
-    actualizarMesaEnState(mesaId, { col, row })
-    mesasService.actualizar(mesaId, { col, row }).catch(console.error)
-  }
-
-  /* ── Drag táctil (Pointer Events — responsive/touch) ── */
+  /* ── Drag unificado (Pointer Events — mouse + touch) ── */
   const handlePointerDown = (e, mesaId) => {
-    if (e.pointerType === 'mouse') return
+    // Ignorar clicks secundarios (botón derecho, etc.)
+    if (e.button !== undefined && e.button !== 0) return
     const rect = e.currentTarget.getBoundingClientRect()
     e.currentTarget.setPointerCapture(e.pointerId)
     pointerDragRef.current = {
@@ -179,9 +135,11 @@ export default function Mesas({ productos = [], categorias = [] }) {
     if (!pd.active && Math.sqrt(dx * dx + dy * dy) < 8) return
     if (!pd.active) {
       pointerDragRef.current = { ...pd, active: true }
+      // Aplicar pointer-events:none de forma inmediata (sin esperar re-render de React)
+      // para que elementFromPoint encuentre la celda debajo en este mismo evento
+      pd.cardEl.style.pointerEvents = 'none'
       setDraggingId(pd.mesaId)
       setSelected(null)
-      // Crear elemento ghost que sigue el dedo
       const ghost = pd.cardEl.cloneNode(true)
       Object.assign(ghost.style, {
         position: 'fixed',
@@ -195,7 +153,6 @@ export default function Mesas({ productos = [], categorias = [] }) {
         transform: 'scale(1.08)',
         boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
         transition: 'none',
-        borderRadius: '',
       })
       document.body.appendChild(ghost)
       ghostRef.current = ghost
@@ -204,7 +161,6 @@ export default function Mesas({ productos = [], categorias = [] }) {
       ghostRef.current.style.left = `${e.clientX - pd.offsetX}px`
       ghostRef.current.style.top  = `${e.clientY - pd.offsetY}px`
     }
-    // La card tiene pointer-events:none mientras se arrastra → elementFromPoint encuentra la celda debajo
     const el = document.elementFromPoint(e.clientX, e.clientY)
     const cellEl = el?.closest('[data-col][data-row]')
     if (cellEl) {
@@ -212,13 +168,15 @@ export default function Mesas({ productos = [], categorias = [] }) {
     }
   }
 
-  const handlePointerUp = (e) => {
+  const handlePointerUp = () => {
     const pd = pointerDragRef.current
     if (!pd) return
+    if (pd.cardEl) pd.cardEl.style.pointerEvents = ''
     pointerDragRef.current = null
     ghostRef.current?.remove()
     ghostRef.current = null
     if (!pd.active) { setDraggingId(null); return }
+    wasDraggedRef.current = true
     setDraggingId(null)
     const cell = dragCellRef.current
     dragCellRef.current = null
@@ -231,6 +189,8 @@ export default function Mesas({ productos = [], categorias = [] }) {
   }
 
   const handlePointerCancel = () => {
+    const pd = pointerDragRef.current
+    if (pd?.cardEl) pd.cardEl.style.pointerEvents = ''
     pointerDragRef.current = null
     dragCellRef.current = null
     ghostRef.current?.remove()
@@ -450,7 +410,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
         </div>
 
         {/* Grilla */}
-        <div className="mesas-grid-wrap" onDragOver={handleDragOver} onDrop={handleGridDrop}>
+        <div className="mesas-grid-wrap" style={{ cursor: draggingId ? 'grabbing' : undefined }}>
           <div className={`mesas-grid${draggingId ? ' mesas-grid--dragging' : ''}`} style={{ gridTemplateColumns: `repeat(${displayCols}, 1fr)` }}>
             {celdas.map(({ col, row, mesa: m }) => (
               <div
@@ -462,15 +422,15 @@ export default function Mesas({ productos = [], categorias = [] }) {
                 {m && (
                   <div
                     className={`mesa-card mesa-card--${m.estado} ${selected === m.id ? 'mesa-card--selected' : ''} ${draggingId === m.id ? 'mesa-card--dragging' : ''}`}
-                    draggable
-                    style={{ touchAction: 'none', pointerEvents: draggingId === m.id ? 'none' : 'auto' }}
-                    onDragStart={e => handleDragStart(e, m.id)}
-                    onDragEnd={handleDragEnd}
+                    style={{ touchAction: 'none', userSelect: 'none', pointerEvents: draggingId === m.id ? 'none' : 'auto' }}
                     onPointerDown={e => handlePointerDown(e, m.id)}
                     onPointerMove={handlePointerMove}
                     onPointerUp={handlePointerUp}
                     onPointerCancel={handlePointerCancel}
-                    onClick={() => setSelected(selected === m.id ? null : m.id)}
+                    onClick={() => {
+                      if (wasDraggedRef.current) { wasDraggedRef.current = false; return }
+                      setSelected(selected === m.id ? null : m.id)
+                    }}
                   >
                     <span className="mesa-numero">{m.numero}</span>
                     <span className="mesa-estado-dot" style={{ background: ESTADO_CONFIG[m.estado].color }} />
