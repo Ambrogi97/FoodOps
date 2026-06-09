@@ -364,7 +364,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
   const maxRow = zona?.mesas.length > 0
     ? Math.max(...zona.mesas.map(m => m.row))
     : 0
-  const displayRows = Math.max(3, maxRow + 2)
+  const displayRows = Math.max(3, maxRow + 1)
 
   const celdas = []
   for (let row = 0; row < displayRows; row++) {

@@ -713,12 +713,13 @@
 }
 
 @media (max-width: 768px) {
-  .mesas-layout { flex-direction: column; height: auto; gap: 12px; }
+  /* Sin height: auto — hereda height: 100% del base para llenar la pantalla */
+  .mesas-layout { flex-direction: column; gap: 8px; }
   .mesas-tabs-row { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .mesas-tabs { flex-wrap: nowrap; width: max-content; }
-  /* Grilla con scroll horizontal: mantiene 12 cols para que drag & drop funcione igual */
+  /* Grilla con scroll horizontal: celdas de 60px (720/12) para mejor usabilidad táctil */
   .mesas-grid-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .mesas-grid { min-width: 580px; }
+  .mesas-grid { min-width: 720px; }
   .mesas-leyenda-hint { display: none; }
   .mesas-leyenda { flex-wrap: wrap; gap: 8px; }
   .mesas-resumen { width: 100%; justify-content: center; }
