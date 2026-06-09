@@ -40,8 +40,9 @@ export default function Carta() {
   const [form, setForm] = useState({ tipo: 'mesa', mesaNumero: '', clienteNombre: '', notas: '' })
 
   useEffect(() => {
+    if (!userId) { setError('Enlace inválido'); return }
     fetch(`${API}/api/carta/${userId}`)
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error(); return r.json() })
       .then(data => setDatos(data))
       .catch(() => setError('No se pudo cargar el menú'))
   }, [userId])
@@ -53,7 +54,8 @@ export default function Carta() {
     <div className="carta-loading"><div className="carta-spinner" /></div>
   )
 
-  const { restaurante, categorias, productos } = datos
+  const { restaurante, categorias = [], productos: todosProductos = [] } = datos
+  const productos = todosProductos.filter(p => p.activo !== false)
 
   const totalCarrito  = carrito.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
   const cantCarrito   = carrito.reduce((acc, i) => acc + i.cantidad, 0)
@@ -248,7 +250,12 @@ export default function Carta() {
 
       {/* Lista de productos */}
       <div className="carta-productos">
-        {catActiva !== null ? (
+        {productos.length === 0 ? (
+          <div className="carta-empty">
+            <UtensilsCrossed size={40} />
+            <p>El menú aún no tiene productos disponibles</p>
+          </div>
+        ) : catActiva !== null ? (
           productos.filter(p => p.categoria === catActiva).map(p => (
             <ProductoCard key={p._id} p={p} cant={cantEnCarrito(p._id)} onClick={() => abrirProducto(p)} />
           ))
