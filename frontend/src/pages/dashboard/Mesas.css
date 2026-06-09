@@ -201,9 +201,9 @@
 
 .mesas-grid {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
   gap: 0; /* Sin gap — las celdas usan padding para el espaciado visual */
   width: 100%;
+  /* grid-template-columns se setea inline dinámicamente según displayCols */
 }
 
 /* Celda: padding permanente para espaciado visual sin cambiar layout durante drag */
@@ -717,9 +717,9 @@
   .mesas-layout { flex-direction: column; gap: 8px; }
   .mesas-tabs-row { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .mesas-tabs { flex-wrap: nowrap; width: max-content; }
-  /* Grilla con scroll horizontal: celdas de 60px (720/12) para mejor usabilidad táctil */
+  /* En mobile displayCols se reduce para que la grilla entre en pantalla sin scroll horizontal */
   .mesas-grid-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .mesas-grid { min-width: 720px; }
+  .mesas-grid { width: 100%; }
   .mesas-leyenda-hint { display: none; }
   .mesas-leyenda { flex-wrap: wrap; gap: 8px; }
   .mesas-resumen { width: 100%; justify-content: center; }

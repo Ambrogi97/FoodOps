@@ -42,6 +42,13 @@ export default function Mesas({ productos = [], categorias = [] }) {
   const [catSelector, setCatSelector]             = useState(null)
   const [confirmarCerrar, setConfirmarCerrar]     = useState(null) // { id, numero }
   const [cargando, setCargando]                   = useState(true)
+  const [isMobile, setIsMobile]                   = useState(() => window.innerWidth <= 768)
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   /* ── Carga inicial ── */
   useEffect(() => {
@@ -360,15 +367,16 @@ export default function Mesas({ productos = [], categorias = [] }) {
     }
   }
 
-  /* ── Render celdas (solo hasta la última fila usada + 2 buffer) ── */
-  const maxRow = zona?.mesas.length > 0
-    ? Math.max(...zona.mesas.map(m => m.row))
-    : 0
+  /* ── Render celdas (columnas/filas dinámicas según mesas existentes) ── */
+  const maxRow = zona?.mesas.length > 0 ? Math.max(...zona.mesas.map(m => m.row)) : 0
+  const maxCol = zona?.mesas.length > 0 ? Math.max(...zona.mesas.map(m => m.col)) : 0
   const displayRows = Math.max(3, maxRow + 1)
+  // En mobile muestra solo las columnas necesarias; en desktop siempre COLS
+  const displayCols = isMobile ? Math.max(6, Math.min(COLS, maxCol + 2)) : COLS
 
   const celdas = []
   for (let row = 0; row < displayRows; row++) {
-    for (let col = 0; col < COLS; col++) {
+    for (let col = 0; col < displayCols; col++) {
       const m = getMesaEnCelda(col, row)
       celdas.push({ col, row, mesa: m })
     }
@@ -435,7 +443,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
 
         {/* Grilla */}
         <div className="mesas-grid-wrap" onDragOver={handleDragOver} onDrop={handleGridDrop}>
-          <div className={`mesas-grid${draggingId ? ' mesas-grid--dragging' : ''}`}>
+          <div className={`mesas-grid${draggingId ? ' mesas-grid--dragging' : ''}`} style={{ gridTemplateColumns: `repeat(${displayCols}, 1fr)` }}>
             {celdas.map(({ col, row, mesa: m }) => (
               <div
                 key={`${col}-${row}`}
