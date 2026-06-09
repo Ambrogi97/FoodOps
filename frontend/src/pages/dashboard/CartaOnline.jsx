@@ -3,11 +3,6 @@ import { pedidosOnlineService } from '../../services/api'
 import { Armchair, ShoppingBag, User, FileText, RefreshCw } from 'lucide-react'
 import './CartaOnline.css'
 
-const user    = JSON.parse(localStorage.getItem('user') || '{}')
-const userId  = user.id || ''
-const baseUrl = window.location.origin
-const cartaUrl = `${baseUrl}/carta/${userId}`
-
 const ESTADOS = ['pendiente', 'preparando', 'listo', 'entregado']
 
 const ESTADO_LABEL = {
@@ -29,6 +24,10 @@ const relTime = (iso) => {
 }
 
 export default function CartaOnline() {
+  const user     = JSON.parse(localStorage.getItem('user') || '{}')
+  const userId   = user.id || ''
+  const cartaUrl = `${window.location.origin}/carta/${userId}`
+
   const [pedidos, setPedidos]     = useState([])
   const [cargando, setCargando]   = useState(true)
   const [filtro, setFiltro]       = useState('pendiente')
