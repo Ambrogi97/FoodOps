@@ -23,11 +23,13 @@ router.get('/:userId', async (req, res) => {
     ])
 
     res.json({
-      habilitado:  true,
-      restaurante: user.restaurante,
-      logo:        config.logo        || null,
-      portada:     config.portada     || null,
-      colorFondo:  config.colorFondo  || null,
+      habilitado:         true,
+      restaurante:        user.restaurante,
+      logo:               config.logo               || null,
+      portada:            config.portada             || null,
+      colorFondo:         config.colorFondo          || null,
+      deliveryHabilitado: config.delivery?.habilitado || false,
+      retiroHabilitado:   config.retiro?.habilitado   || false,
       categorias,
       productos,
     })
@@ -39,10 +41,11 @@ router.get('/:userId', async (req, res) => {
 // Enviar pedido desde la carta
 router.post('/:userId/pedido', async (req, res) => {
   try {
-    const { items, tipo, mesaNumero, clienteNombre, notas } = req.body
+    const { items, tipo, mesaNumero, direccion, clienteNombre, notas } = req.body
     if (!items?.length)  return res.status(400).json({ message: 'El pedido está vacío' })
-    if (!tipo)           return res.status(400).json({ message: 'Indicá si es para mesa o para llevar' })
-    if (tipo === 'mesa' && !mesaNumero?.trim()) return res.status(400).json({ message: 'Indicá el número de mesa' })
+    if (!tipo)           return res.status(400).json({ message: 'Indicá el tipo de pedido' })
+    if (tipo === 'mesa'     && !mesaNumero?.trim()) return res.status(400).json({ message: 'Indicá el número de mesa' })
+    if (tipo === 'delivery' && !direccion?.trim())  return res.status(400).json({ message: 'Indicá la dirección de entrega' })
 
     const total  = items.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
     const pedido = await PedidoOnline.create({
@@ -50,6 +53,7 @@ router.post('/:userId/pedido', async (req, res) => {
       items,
       tipo,
       mesaNumero:    mesaNumero?.trim()    || '',
+      direccion:     direccion?.trim()     || '',
       clienteNombre: clienteNombre?.trim() || '',
       notas:         notas?.trim()         || '',
       total,

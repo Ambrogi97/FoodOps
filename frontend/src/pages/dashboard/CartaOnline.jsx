@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { pedidosOnlineService } from '../../services/api'
-import { Armchair, ShoppingBag, User, FileText, RefreshCw } from 'lucide-react'
+import { Armchair, ShoppingBag, User, FileText, RefreshCw, Bike, MapPin } from 'lucide-react'
 import './CartaOnline.css'
 
 const ESTADOS = ['pendiente', 'preparando', 'listo', 'entregado']
@@ -144,8 +144,16 @@ export default function CartaOnline() {
                       {ESTADO_LABEL[p.estado]}
                     </span>
                     <span className="co-tipo-chip">
-                      {p.tipo === 'mesa' ? <><Armchair size={13} color="#f97316" /> Mesa {p.mesaNumero}</> : <><ShoppingBag size={13} color="#6366f1" /> Para llevar</>}
+                      {p.tipo === 'mesa'
+                        ? <><Armchair size={13} color="#f97316" /> Mesa {p.mesaNumero}</>
+                        : p.tipo === 'delivery'
+                          ? <><Bike size={13} color="#10b981" /> Delivery</>
+                          : <><ShoppingBag size={13} color="#6366f1" /> Retiro</>
+                      }
                     </span>
+                    {p.tipo === 'delivery' && p.direccion && (
+                      <span className="co-cliente-chip"><MapPin size={12} color="#10b981" /> {p.direccion}</span>
+                    )}
                     {p.clienteNombre && (
                       <span className="co-cliente-chip"><User size={12} color="#6b7280" /> {p.clienteNombre}</span>
                     )}

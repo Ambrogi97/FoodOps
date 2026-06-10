@@ -343,7 +343,6 @@ export default function TiendaOnline() {
               onChange={e => setColorFondo(e.target.value)}
               onBlur={e => guardarColorFondo(e.target.value)}
             />
-            <span className="tienda-color-hex">{colorFondo}</span>
             <button
               className="tienda-color-reset"
               onClick={() => { setColorFondo('#f8fafc'); guardarColorFondo('#f8fafc') }}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { UtensilsCrossed, Frown, CheckCircle, Armchair, ShoppingBag, Store } from 'lucide-react'
+import { UtensilsCrossed, Frown, CheckCircle, Armchair, ShoppingBag, Store, Bike } from 'lucide-react'
 import './Carta.css'
 
 const API = 'http://localhost:3000'
@@ -38,7 +38,7 @@ export default function Carta() {
   const [enviando, setEnviando]         = useState(false)
   const [pedidoOk, setPedidoOk]         = useState(false)
   const [error, setError]               = useState('')
-  const [form, setForm] = useState({ tipo: 'mesa', mesaNumero: '', clienteNombre: '', notas: '' })
+  const [form, setForm] = useState({ tipo: 'mesa', mesaNumero: '', direccion: '', clienteNombre: '', notas: '' })
 
   useEffect(() => {
     if (!userId) { setError('Enlace inválido'); return }
@@ -69,11 +69,11 @@ export default function Carta() {
     </div>
   )
 
-  const { restaurante, logo, portada, colorFondo, categorias = [], productos: todosProductos = [] } = datos
+  const { restaurante, logo, portada, colorFondo, deliveryHabilitado, retiroHabilitado, categorias = [], productos: todosProductos = [] } = datos
   const productos = todosProductos.filter(p => p.activo !== false)
-
   const totalCarrito  = carrito.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
   const cantCarrito   = carrito.reduce((acc, i) => acc + i.cantidad, 0)
+
   const cantEnCarrito = (id) => carrito.find(i => i.id === id)?.cantidad || 0
 
   const abrirProducto = (p) => {
@@ -104,7 +104,8 @@ export default function Carta() {
   }
 
   const enviarPedido = async () => {
-    if (form.tipo === 'mesa' && !form.mesaNumero.trim()) return
+    if (form.tipo === 'mesa'     && !form.mesaNumero.trim()) return
+    if (form.tipo === 'delivery' && !form.direccion.trim())  return
     setEnviando(true)
     try {
       const res = await fetch(`${API}/api/carta/${userId}/pedido`, {
@@ -113,6 +114,7 @@ export default function Carta() {
         body: JSON.stringify({
           items: carrito.map(i => ({ nombre: i.nombre, cantidad: i.cantidad, precio: i.precio })),
           tipo: form.tipo, mesaNumero: form.mesaNumero,
+          direccion: form.direccion,
           clienteNombre: form.clienteNombre, notas: form.notas,
         }),
       })
@@ -194,14 +196,21 @@ export default function Carta() {
               <div className="carta-checkout-field">
                 <label>¿Cómo es tu pedido?</label>
                 <div className="carta-tipo-row">
-                  <button className={`carta-tipo-btn ${form.tipo === 'mesa' ? 'carta-tipo-btn--active' : ''}`} onClick={() => setForm(f => ({ ...f, tipo: 'mesa' }))}><Armchair size={15} /> En mesa</button>
-                  <button className={`carta-tipo-btn ${form.tipo === 'takeaway' ? 'carta-tipo-btn--active' : ''}`} onClick={() => setForm(f => ({ ...f, tipo: 'takeaway' }))}><ShoppingBag size={15} /> Para llevar</button>
+                  <button className={`carta-tipo-btn ${form.tipo === 'mesa'     ? 'carta-tipo-btn--active' : ''}`} onClick={() => setForm(f => ({ ...f, tipo: 'mesa' }))}><Armchair size={15} /> En mesa</button>
+                  <button className={`carta-tipo-btn ${form.tipo === 'takeaway' ? 'carta-tipo-btn--active' : ''}`} onClick={() => setForm(f => ({ ...f, tipo: 'takeaway' }))}><ShoppingBag size={15} /> Retiro</button>
+                  <button className={`carta-tipo-btn ${form.tipo === 'delivery' ? 'carta-tipo-btn--active' : ''}`} onClick={() => setForm(f => ({ ...f, tipo: 'delivery' }))}><Bike size={15} /> Delivery</button>
                 </div>
               </div>
               {form.tipo === 'mesa' && (
                 <div className="carta-checkout-field">
                   <label>Número de mesa *</label>
                   <input type="text" placeholder="Ej: 5" value={form.mesaNumero} onChange={e => setForm(f => ({ ...f, mesaNumero: e.target.value }))} />
+                </div>
+              )}
+              {form.tipo === 'delivery' && (
+                <div className="carta-checkout-field">
+                  <label>Dirección de entrega *</label>
+                  <input type="text" placeholder="Ej: Av. Corrientes 1234" value={form.direccion} onChange={e => setForm(f => ({ ...f, direccion: e.target.value }))} />
                 </div>
               )}
               <div className="carta-checkout-field">
@@ -220,7 +229,7 @@ export default function Carta() {
             <button
               className="carta-confirmar-btn"
               onClick={enviarPedido}
-              disabled={enviando || (form.tipo === 'mesa' && !form.mesaNumero.trim())}
+              disabled={enviando || (form.tipo === 'mesa' && !form.mesaNumero.trim()) || (form.tipo === 'delivery' && !form.direccion.trim())}
             >
               {enviando ? 'Enviando...' : 'Enviar pedido'}
             </button>
