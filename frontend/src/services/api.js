@@ -195,3 +195,11 @@ export const stockService = {
   actualizarMinimo:    async (id, stockMinimo) => { _invalidar('/api/stock'); return request(`/api/stock/${id}/minimo`, { method: 'PUT', body: JSON.stringify({ stockMinimo }) }) },
   listarMovimientos:   async (id) => request(`/api/stock/${id}/movimientos`),
 }
+
+// ── Admin ─────────────────────────────────────────────────────────────────────
+
+export const adminService = {
+  listarUsuarios:   async ()            => request('/api/admin/usuarios'),
+  cambiarPlan:      async (id, plan)    => request(`/api/admin/usuarios/${id}/plan`,  { method: 'PUT', body: JSON.stringify({ plan }) }),
+  cambiarRol:       async (id, role)    => request(`/api/admin/usuarios/${id}/role`,  { method: 'PUT', body: JSON.stringify({ role }) }),
+}

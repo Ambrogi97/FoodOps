@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { getSession, clearSession, categoriasService, productosService, pedidosOnlineService } from '../services/api'
 import {
   Armchair, Receipt, UtensilsCrossed, FlaskConical, Package,
-  Truck, DollarSign, BarChart2, Calculator, Smartphone, LogOut,
+  Truck, DollarSign, BarChart2, Calculator, Smartphone, LogOut, ShieldCheck,
 } from 'lucide-react'
 import Mesas from './dashboard/Mesas'
 import Productos from './dashboard/Productos'
@@ -15,6 +15,7 @@ import Pedidos from './dashboard/Pedidos'
 import Proveedores from './dashboard/Proveedores'
 import Reportes from './dashboard/Reportes'
 import CartaOnline from './dashboard/CartaOnline'
+import Admin from './dashboard/Admin'
 import './Dashboard.css'
 
 const NAV_ITEMS = [
@@ -35,6 +36,7 @@ export default function Dashboard() {
   const { user } = getSession()
   const [active, setActive]                   = useState('mesas')
   const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const isAdmin = user?.role === 'admin'
   const [menuOpen, setMenuOpen]               = useState(false)
   const [productos, setProductos]             = useState([])
   const [categorias, setCategorias]           = useState([])
@@ -97,6 +99,15 @@ export default function Dashboard() {
         </div>
 
         <nav className="dash-nav">
+          {isAdmin && (
+            <button
+              className={`dash-nav-item dash-nav-item--admin ${active === 'admin' ? 'dash-nav-item--active' : ''}`}
+              onClick={() => { setActive('admin'); setMenuOpen(false) }}
+            >
+              <span className="dash-nav-icon"><ShieldCheck size={18} color="#6366f1" /></span>
+              <span className="dash-nav-label">Admin</span>
+            </button>
+          )}
           {NAV_ITEMS.map(item => {
             const totalActivos = item.id === 'carta'
               ? pedidosCounts.pendiente + pedidosCounts.preparando + pedidosCounts.listo
@@ -141,7 +152,7 @@ export default function Dashboard() {
               <span /><span /><span />
             </button>
             <div>
-              <h1 className="dash-header-title">{NAV_ITEMS.find(i => i.id === active)?.label}</h1>
+              <h1 className="dash-header-title">{active === 'admin' ? 'Admin' : NAV_ITEMS.find(i => i.id === active)?.label}</h1>
               <p className="dash-header-sub">{user.restaurante}</p>
             </div>
           </div>
@@ -168,6 +179,7 @@ export default function Dashboard() {
           {active === 'gastos'       && <Gastos />}
           {active === 'reportes'     && <Reportes />}
           {active === 'carta'        && <CartaOnline />}
+          {active === 'admin'        && isAdmin && <Admin />}
 
           {!['mesas','productos','ingredientes','stock','pedidos','proveedores','ventas','gastos','reportes','carta'].includes(active) && (
             <div className="dash-panel">

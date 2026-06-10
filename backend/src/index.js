@@ -15,6 +15,7 @@ const proveedoresRoutes    = require('./routes/proveedores')
 const uploadsRoutes        = require('./routes/uploads')
 const cartaRoutes          = require('./routes/carta')
 const pedidosOnlineRoutes  = require('./routes/pedidosOnline')
+const adminRoutes          = require('./routes/admin')
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -38,6 +39,7 @@ app.use('/api/uploads',       uploadsRoutes)
 app.use('/uploads',           express.static(require('path').join(__dirname, '../uploads')))
 app.use('/api/carta',          cartaRoutes)
 app.use('/api/pedidos-online', pedidosOnlineRoutes)
+app.use('/api/admin',          adminRoutes)
 
 app.get('/', (req, res) => {
   res.json({ message: 'FoodOps API running' })

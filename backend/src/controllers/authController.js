@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken')
 const User = require('../models/User')
 
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '7d' })
+const generateToken = (userId, role) => {
+  return jwt.sign({ id: userId, role }, process.env.JWT_SECRET, { expiresIn: '7d' })
 }
 
 const register = async (req, res) => {
@@ -19,11 +19,11 @@ const register = async (req, res) => {
     }
 
     const user = await User.create({ nombre, email, password, restaurante, plan })
-    const token = generateToken(user._id)
+    const token = generateToken(user._id, user.role)
 
     res.status(201).json({
       token,
-      user: { id: user._id, nombre: user.nombre, email: user.email, restaurante: user.restaurante, plan: user.plan }
+      user: { id: user._id, nombre: user.nombre, email: user.email, restaurante: user.restaurante, plan: user.plan, role: user.role }
     })
   } catch (error) {
     console.error('Register error:', error)
@@ -49,11 +49,11 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Credenciales inválidas' })
     }
 
-    const token = generateToken(user._id)
+    const token = generateToken(user._id, user.role)
 
     res.json({
       token,
-      user: { id: user._id, nombre: user.nombre, email: user.email, restaurante: user.restaurante, plan: user.plan }
+      user: { id: user._id, nombre: user.nombre, email: user.email, restaurante: user.restaurante, plan: user.plan, role: user.role }
     })
   } catch (error) {
     res.status(500).json({ message: 'Error al iniciar sesión' })
