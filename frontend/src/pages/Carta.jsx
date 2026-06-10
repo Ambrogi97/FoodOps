@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { UtensilsCrossed, Frown, CheckCircle, Armchair, ShoppingBag } from 'lucide-react'
+import { UtensilsCrossed, Frown, CheckCircle, Armchair, ShoppingBag, Store } from 'lucide-react'
 import './Carta.css'
 
 const API = 'http://localhost:3000'
@@ -44,7 +44,13 @@ export default function Carta() {
     if (!userId) { setError('Enlace inválido'); return }
     fetch(`${API}/api/carta/${userId}`)
       .then(r => { if (!r.ok) throw new Error(); return r.json() })
-      .then(data => setDatos(data))
+      .then(data => {
+        if (data.habilitado === false) {
+          setDatos({ cerrada: true, restaurante: data.restaurante })
+        } else {
+          setDatos(data)
+        }
+      })
       .catch(() => setError('No se pudo cargar el menú'))
   }, [userId])
 
@@ -54,8 +60,16 @@ export default function Carta() {
   if (!datos) return (
     <div className="carta-loading"><div className="carta-spinner" /></div>
   )
+  if (datos.cerrada) return (
+    <div className="carta-cerrada">
+      <Store size={48} color="#94a3b8" />
+      <h2>{datos.restaurante}</h2>
+      <p>En este momento no estamos recibiendo pedidos online.</p>
+      <span>Volvé a intentarlo más tarde.</span>
+    </div>
+  )
 
-  const { restaurante, categorias = [], productos: todosProductos = [] } = datos
+  const { restaurante, logo, portada, colorFondo, categorias = [], productos: todosProductos = [] } = datos
   const productos = todosProductos.filter(p => p.activo !== false)
 
   const totalCarrito  = carrito.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
@@ -222,12 +236,21 @@ export default function Carta() {
   )
 
   return (
-    <div className="carta-layout">
+    <div className="carta-layout" style={colorFondo ? { background: colorFondo } : {}}>
 
       {/* Header */}
-      <header className="carta-header">
-        <div className="carta-header-avatar">{restaurante?.[0]?.toUpperCase()}</div>
-        <h1 className="carta-header-nombre">{restaurante}</h1>
+      <header
+        className={`carta-header ${portada ? 'carta-header--con-portada' : ''}`}
+        style={portada ? { backgroundImage: `url(${portada})` } : {}}
+      >
+        {portada && <div className="carta-header-overlay" />}
+        <div className="carta-header-info">
+          {logo
+            ? <img src={logo} alt={restaurante} className="carta-header-logo" />
+            : <div className="carta-header-avatar">{restaurante?.[0]?.toUpperCase()}</div>
+          }
+          <h1 className="carta-header-nombre">{restaurante}</h1>
+        </div>
       </header>
 
       {/* Categorías */}

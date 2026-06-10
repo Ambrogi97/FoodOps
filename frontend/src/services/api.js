@@ -227,8 +227,9 @@ const uploadFile = async (path, fieldName, file) => {
 }
 
 export const configService = {
-  getTienda:      async ()     => request('/api/config/tienda'),
-  saveTienda:     async (data) => request('/api/config/tienda', { method: 'PUT', body: JSON.stringify(data) }),
+  getTienda:         async ()            => request('/api/config/tienda'),
+  saveTienda:        async (data)        => request('/api/config/tienda', { method: 'PUT', body: JSON.stringify(data) }),
+  saveColorFondo:    async (colorFondo)  => request('/api/config/tienda', { method: 'PUT', body: JSON.stringify({ colorFondo }) }),
   uploadLogo:     async (file) => uploadFile('/api/config/tienda/logo',    'logo',    file),
   deleteLogo:     async ()     => request('/api/config/tienda/logo',    { method: 'DELETE' }),
   uploadPortada:  async (file) => uploadFile('/api/config/tienda/portada', 'portada', file),

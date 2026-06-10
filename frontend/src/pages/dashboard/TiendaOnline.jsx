@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Plus, X, Save, Check, Trash2, ImagePlus } from 'lucide-react'
+import { Plus, X, Save, Check, Trash2, ImagePlus, RotateCcw } from 'lucide-react'
 import { configService } from '../../services/api'
 import './TiendaOnline.css'
 
@@ -214,6 +214,7 @@ export default function TiendaOnline() {
   const [retiro, setRetiro]         = useState(SECCION_DEFAULT)
   const [logo, setLogo]             = useState(null)
   const [portada, setPortada]       = useState(null)
+  const [colorFondo, setColorFondo] = useState('#f8fafc')
   const [guardando, setGuardando]   = useState(false)
   const [guardado, setGuardado]     = useState(false)
   const [subiendo, setSubiendo]     = useState({ logo: false, portada: false })
@@ -225,11 +226,22 @@ export default function TiendaOnline() {
         setHabilitado(data.habilitado ?? false)
         setDelivery(data.delivery ?? SECCION_DEFAULT)
         setRetiro(data.retiro   ?? SECCION_DEFAULT)
-        setLogo(data.logo    || null)
-        setPortada(data.portada || null)
+        setLogo(data.logo         || null)
+        setPortada(data.portada   || null)
+        setColorFondo(data.colorFondo || '#f8fafc')
       })
       .catch(() => setError('No se pudo cargar la configuración'))
   }, [])
+
+  const toggleHabilitado = async (valor) => {
+    setHabilitado(valor)
+    try {
+      await configService.saveTienda({ habilitado: valor, delivery, retiro })
+    } catch {
+      setHabilitado(!valor)
+      setError('Error al guardar')
+    }
+  }
 
   const guardar = async () => {
     setGuardando(true)
@@ -242,6 +254,14 @@ export default function TiendaOnline() {
       setError('Error al guardar la configuración')
     } finally {
       setGuardando(false)
+    }
+  }
+
+  const guardarColorFondo = async (color) => {
+    try {
+      await configService.saveColorFondo(color)
+    } catch {
+      setError('Error al guardar el color de fondo')
     }
   }
 
@@ -272,7 +292,7 @@ export default function TiendaOnline() {
           </p>
           <label className="tienda-check-label">
             <input type="checkbox" className="tienda-check" checked={habilitado}
-              onChange={e => setHabilitado(e.target.checked)} />
+              onChange={e => toggleHabilitado(e.target.checked)} />
             <span>Habilitar</span>
           </label>
         </div>
@@ -303,6 +323,37 @@ export default function TiendaOnline() {
         onDelete={async () => { await configService.deletePortada(); setPortada(null) }}
         uploading={subiendo.portada}
       />
+
+      <div className="tienda-divider" />
+
+      {/* Color de fondo */}
+      <div className="tienda-row">
+        <div className="tienda-row-label"><span>FONDO DE LA CARTA</span></div>
+        <div className="tienda-row-content">
+          <h3 className="tienda-section-title">Color de fondo</h3>
+          <p className="tienda-section-desc">
+            Elegí el color de fondo que verán los clientes al abrir tu carta online.
+          </p>
+          <div className="tienda-color-row">
+            <div className="tienda-color-preview" style={{ background: colorFondo }} />
+            <input
+              type="color"
+              className="tienda-color-input"
+              value={colorFondo}
+              onChange={e => setColorFondo(e.target.value)}
+              onBlur={e => guardarColorFondo(e.target.value)}
+            />
+            <span className="tienda-color-hex">{colorFondo}</span>
+            <button
+              className="tienda-color-reset"
+              onClick={() => { setColorFondo('#f8fafc'); guardarColorFondo('#f8fafc') }}
+              title="Restablecer color por defecto"
+            >
+              <RotateCcw size={14} /> Restablecer
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div className="tienda-divider" />
 

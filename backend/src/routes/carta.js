@@ -4,6 +4,7 @@ const User           = require('../models/User')
 const Categoria      = require('../models/Categoria')
 const Producto       = require('../models/Producto')
 const PedidoOnline   = require('../models/PedidoOnline')
+const ConfigTienda   = require('../models/ConfigTienda')
 
 // Menú público del restaurante
 router.get('/:userId', async (req, res) => {
@@ -11,12 +12,25 @@ router.get('/:userId', async (req, res) => {
     const user = await User.findById(req.params.userId).select('restaurante')
     if (!user) return res.status(404).json({ message: 'Restaurante no encontrado' })
 
+    const config = await ConfigTienda.findOne({ usuario: req.params.userId })
+    if (!config?.habilitado) {
+      return res.json({ habilitado: false, restaurante: user.restaurante })
+    }
+
     const [categorias, productos] = await Promise.all([
       Categoria.find({ usuario: req.params.userId }).sort('nombre'),
       Producto.find({ usuario: req.params.userId }).sort('nombre'),
     ])
 
-    res.json({ restaurante: user.restaurante, categorias, productos })
+    res.json({
+      habilitado:  true,
+      restaurante: user.restaurante,
+      logo:        config.logo        || null,
+      portada:     config.portada     || null,
+      colorFondo:  config.colorFondo  || null,
+      categorias,
+      productos,
+    })
   } catch (e) {
     res.status(500).json({ message: e.message })
   }

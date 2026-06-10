@@ -75,6 +75,57 @@
   margin-bottom: 14px;
 }
 
+/* ── Color de fondo ─────────────────────────────────────────────────────── */
+.tienda-color-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tienda-color-preview {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.tienda-color-input {
+  width: 44px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2px;
+  cursor: pointer;
+  background: none;
+}
+
+.tienda-color-hex {
+  font-size: 0.82rem;
+  font-family: monospace;
+  color: var(--text-muted);
+}
+
+.tienda-color-reset {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.tienda-color-reset:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
 /* ── Costo de envío ─────────────────────────────────────────────────────── */
 .tienda-costo-row {
   display: flex;

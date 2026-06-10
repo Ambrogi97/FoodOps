@@ -35,8 +35,9 @@ const configTiendaSchema = new mongoose.Schema(
     habilitado: { type: Boolean, default: false },
     delivery:  { type: seccionSchema, default: () => ({ habilitado: false, horarios: DIAS_DEFAULT }) },
     retiro:    { type: seccionSchema, default: () => ({ habilitado: false, horarios: DIAS_DEFAULT }) },
-    logo:      { type: String, default: null },
-    portada:   { type: String, default: null },
+    logo:        { type: String, default: null },
+    portada:     { type: String, default: null },
+    colorFondo:  { type: String, default: null },
   },
   { timestamps: true }
 )
