@@ -10,7 +10,7 @@ const itemSchema = new mongoose.Schema({
 const mesaSchema = new mongoose.Schema({
   numero:  { type: Number, required: true },
   zona:    { type: mongoose.Schema.Types.ObjectId, ref: 'Zona', required: true },
-  estado:  { type: String, enum: ['libre', 'ocupada'], default: 'libre' },
+  estado:  { type: String, enum: ['libre', 'ocupada', 'cuenta'], default: 'libre' },
   col:     { type: Number, required: true },
   row:     { type: Number, required: true },
   hora:    { type: String, default: null },

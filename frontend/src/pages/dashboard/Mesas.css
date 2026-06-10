@@ -134,6 +134,7 @@
 }
 
 .mesas-resumen-item--ocupada .mesas-resumen-num { color: #EF4444; }
+.mesas-resumen-item--cuenta  .mesas-resumen-num { color: #f59e0b; }
 .mesas-resumen-item--libre   .mesas-resumen-num { color: #22C55E; }
 
 .mesas-resumen-sep {
@@ -249,6 +250,7 @@
 
 .mesa-card--libre   { border-color: #22C55E; }
 .mesa-card--ocupada { border-color: #EF4444; background: #fff5f5; }
+.mesa-card--cuenta  { border-color: #f59e0b; background: #fffbeb; }
 
 .mesa-card--selected {
   box-shadow: var(--shadow-md);
@@ -405,6 +407,13 @@
   border: none;
 }
 .mesa-btn--confirm-danger:hover { background: #dc2626; }
+
+.mesa-btn--ticket {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #f59e0b;
+}
+.mesa-btn--ticket:hover { background: #fef3c7; }
 
 /* Panel pedido */
 .mesa-pedido-back {

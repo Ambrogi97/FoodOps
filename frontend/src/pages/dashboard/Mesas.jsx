@@ -9,6 +9,7 @@ const ROWS = 8
 const ESTADO_CONFIG = {
   libre:   { label: 'Libre',   color: '#22C55E' },
   ocupada: { label: 'Ocupada', color: '#EF4444' },
+  cuenta:  { label: 'Cuenta',  color: '#f59e0b' },
 }
 
 const MESAS_DEFAULT = [
@@ -199,6 +200,48 @@ export default function Mesas({ productos = [], categorias = [] }) {
   }
 
   /* ── Acciones de mesa ── */
+  const imprimirTicket = (mesa) => {
+    const fmtP = (n) => `$${Number(n).toLocaleString('es-AR')}`
+    const total = mesa.items.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
+    const filas = mesa.items.map(i =>
+      `<tr><td>${i.cantidad}× ${i.nombre}</td><td style="text-align:right">${fmtP(i.precio * i.cantidad)}</td></tr>`
+    ).join('')
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Mesa ${mesa.numero}</title>
+    <style>
+      body{font-family:monospace;width:300px;margin:0 auto;padding:12px;font-size:13px}
+      h2{text-align:center;margin:4px 0}p.sub{text-align:center;color:#666;font-size:11px;margin:2px 0 10px}
+      table{width:100%;border-collapse:collapse}td{padding:3px 0}
+      .sep{border-top:1px dashed #000;margin:8px 0}
+      .total td{font-size:15px;font-weight:bold;padding-top:6px}
+      .hora{text-align:center;font-size:11px;color:#666;margin-top:10px}
+    </style></head><body>
+    <h2>Mesa ${mesa.numero}</h2>
+    ${mesa.hora ? `<p class="sub">${mesa.hora}</p>` : ''}
+    <div class="sep"></div>
+    <table>${filas}</table>
+    <div class="sep"></div>
+    <table><tr class="total"><td>TOTAL</td><td style="text-align:right">${fmtP(total)}</td></tr></table>
+    <p class="hora">¡Gracias!</p>
+    </body></html>`
+    const win = window.open('', '_blank', 'width=380,height=520')
+    if (!win) return
+    win.document.write(html)
+    win.document.close()
+    win.focus()
+    win.print()
+  }
+
+  const pedirCuenta = async (mesaId) => {
+    actualizarMesaEnState(mesaId, { estado: 'cuenta' })
+    const mesa = zona.mesas.find(x => x.id === mesaId)
+    if (mesa) imprimirTicket({ ...mesa, estado: 'cuenta' })
+    try {
+      await mesasService.actualizar(mesaId, { estado: 'cuenta' })
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   const cerrarMesa = async (mesaId) => {
     const m = zona.mesas.find(x => x.id === mesaId)
     if (m?.items?.length > 0 && m.hora) {
@@ -386,6 +429,11 @@ export default function Mesas({ productos = [], categorias = [] }) {
             <span>Ocupadas</span>
           </div>
           <div className="mesas-resumen-sep" />
+          <div className="mesas-resumen-item mesas-resumen-item--cuenta">
+            <span className="mesas-resumen-num">{zona?.mesas.filter(m => m.estado === 'cuenta').length ?? 0}</span>
+            <span>Cuenta</span>
+          </div>
+          <div className="mesas-resumen-sep" />
           <div className="mesas-resumen-item mesas-resumen-item--libre">
             <span className="mesas-resumen-num">{zona?.mesas.filter(m => m.estado === 'libre').length ?? 0}</span>
             <span>Libres</span>
@@ -503,12 +551,20 @@ export default function Mesas({ productos = [], categorias = [] }) {
 
             {/* Acciones */}
             <div className="mesa-detalle-actions">
-              {mesa.estado === 'libre' ? (
+              {mesa.estado === 'libre' && (
                 <button className="mesa-btn mesa-btn--primary" onClick={() => nuevoPedido(mesa.id)}>Abrir mesa</button>
-              ) : (
+              )}
+              {mesa.estado === 'ocupada' && (
                 <>
                   <button className="mesa-btn mesa-btn--primary" onClick={() => setShowSelector(true)}>+ Agregar producto</button>
-                  <button className="mesa-btn mesa-btn--secondary" onClick={() => setConfirmarCerrar({ id: mesa.id, numero: mesa.numero })}>Cerrar mesa</button>
+                  <button className="mesa-btn mesa-btn--ticket" onClick={() => pedirCuenta(mesa.id)}>Imprimir ticket</button>
+                </>
+              )}
+              {mesa.estado === 'cuenta' && (
+                <>
+                  <button className="mesa-btn mesa-btn--primary" onClick={() => setShowSelector(true)}>+ Agregar producto</button>
+                  <button className="mesa-btn mesa-btn--ticket" onClick={() => imprimirTicket(mesa)}>Reimprimir ticket</button>
+                  <button className="mesa-btn mesa-btn--secondary" onClick={() => setConfirmarCerrar({ id: mesa.id, numero: mesa.numero })}>Cobrado — Cerrar mesa</button>
                 </>
               )}
               <button className="mesa-btn mesa-btn--danger" onClick={() => setConfirmarEliminar({ id: mesa.id, numero: mesa.numero })}>Eliminar mesa</button>
