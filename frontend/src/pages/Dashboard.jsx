@@ -181,18 +181,6 @@ export default function Dashboard() {
           {active === 'carta'        && <CartaOnline />}
           {active === 'admin'        && isAdmin && <Admin />}
 
-          {!['mesas','productos','ingredientes','stock','pedidos','proveedores','ventas','gastos','reportes','carta'].includes(active) && (
-            <div className="dash-panel">
-              <div className="dash-panel-header">
-                <h2 className="dash-panel-title">{NAV_ITEMS.find(i => i.id === active)?.label}</h2>
-              </div>
-              <div className="dash-empty">
-                <div className="dash-empty-icon">{(() => { const Item = NAV_ITEMS.find(i => i.id === active); return Item ? <Item.Icon size={36} /> : null })()}</div>
-                <p>Esta sección está en construcción</p>
-                <span>Pronto vas a poder gestionar {NAV_ITEMS.find(i => i.id === active)?.label.toLowerCase()} desde acá</span>
-              </div>
-            </div>
-          )}
 
         </main>
       </div>
