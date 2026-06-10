@@ -52,6 +52,17 @@
 .adm-plan-dot--profesional  { background: #6366f1; }
 .adm-plan-dot--premium      { background: #f59e0b; }
 
+/* Error */
+.adm-error {
+  background: #fff5f5;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
 /* Search */
 .adm-search {
   width: 100%;

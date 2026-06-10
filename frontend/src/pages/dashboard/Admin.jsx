@@ -14,11 +14,12 @@ const PLAN_COLOR = {
 const fmt = (iso) => new Date(iso).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 
 export default function Admin() {
-  const [usuarios, setUsuarios]         = useState([])
-  const [cargando, setCargando]         = useState(true)
-  const [busqueda, setBusqueda]         = useState('')
-  const [cambiando, setCambiando]       = useState(null)
+  const [usuarios, setUsuarios]           = useState([])
+  const [cargando, setCargando]           = useState(true)
+  const [busqueda, setBusqueda]           = useState('')
+  const [cambiando, setCambiando]         = useState(null)
   const [confirmarElim, setConfirmarElim] = useState(null)
+  const [error, setError]                 = useState('')
 
   useEffect(() => {
     adminService.listarUsuarios()
@@ -54,13 +55,15 @@ export default function Admin() {
 
   const eliminar = async () => {
     if (!confirmarElim) return
-    setCambiando(confirmarElim._id)
+    const target = confirmarElim
+    setCambiando(target._id)
     setConfirmarElim(null)
+    setError('')
     try {
-      await adminService.eliminarUsuario(confirmarElim._id)
-      setUsuarios(prev => prev.filter(u => u._id !== confirmarElim._id))
+      await adminService.eliminarUsuario(target._id)
+      setUsuarios(prev => prev.filter(u => u._id !== target._id))
     } catch (e) {
-      console.error(e)
+      setError(e.message || 'No se pudo eliminar el usuario')
     } finally {
       setCambiando(null)
     }
@@ -111,6 +114,11 @@ export default function Admin() {
           </div>
         </div>
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="adm-error" onClick={() => setError('')}>{error} ✕</div>
+      )}
 
       {/* Búsqueda */}
       <input
