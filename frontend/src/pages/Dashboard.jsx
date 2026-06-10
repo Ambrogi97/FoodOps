@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { getSession, clearSession, categoriasService, productosService, pedidosOnlineService } from '../services/api'
 import {
   Armchair, Receipt, UtensilsCrossed, FlaskConical, Package,
-  Truck, DollarSign, BarChart2, Calculator, Smartphone, LogOut, ShieldCheck,
+  Truck, DollarSign, BarChart2, Calculator, Smartphone, LogOut, ShieldCheck, Settings,
 } from 'lucide-react'
 import Mesas from './dashboard/Mesas'
 import Productos from './dashboard/Productos'
@@ -16,6 +16,7 @@ import Proveedores from './dashboard/Proveedores'
 import Reportes from './dashboard/Reportes'
 import CartaOnline from './dashboard/CartaOnline'
 import Admin from './dashboard/Admin'
+import Configuracion from './dashboard/Configuracion'
 import './Dashboard.css'
 
 const NAV_ITEMS = [
@@ -28,7 +29,8 @@ const NAV_ITEMS = [
   { id: 'ventas',       label: 'Ventas',        Icon: DollarSign },
   { id: 'reportes',     label: 'Reportes',      Icon: BarChart2 },
   { id: 'gastos',       label: 'Gastos',        Icon: Calculator },
-  { id: 'carta',        label: 'Carta Online',  Icon: Smartphone },
+  { id: 'carta',         label: 'Carta Online',   Icon: Smartphone },
+  { id: 'configuracion', label: 'Configuración',  Icon: Settings },
 ]
 
 export default function Dashboard() {
@@ -178,8 +180,9 @@ export default function Dashboard() {
           {active === 'ventas'       && <Ventas />}
           {active === 'gastos'       && <Gastos />}
           {active === 'reportes'     && <Reportes />}
-          {active === 'carta'        && <CartaOnline />}
-          {active === 'admin'        && isAdmin && <Admin />}
+          {active === 'carta'         && <CartaOnline />}
+          {active === 'configuracion' && <Configuracion />}
+          {active === 'admin'         && isAdmin && <Admin />}
 
 
         </main>
