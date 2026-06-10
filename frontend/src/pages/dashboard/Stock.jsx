@@ -33,6 +33,8 @@ export default function Stock() {
   const [nuevoMov, setNuevoMov]               = useState(NUEVO_MOV)
   const [editandoMinimo, setEditandoMinimo]   = useState(false)
   const [valorMinimo, setValorMinimo]         = useState('')
+  const [editandoUnidad, setEditandoUnidad]   = useState(false)
+  const [valorUnidad, setValorUnidad]         = useState('')
   const [filtroEstado, setFiltroEstado]       = useState('todos')
 
   useEffect(() => {
@@ -57,6 +59,7 @@ export default function Stock() {
     if (selected === id) { setSelected(null); setMovimientos([]); return }
     setSelected(id)
     setEditandoMinimo(false)
+    setEditandoUnidad(false)
     cargarMovimientos(id)
   }
 
@@ -76,6 +79,17 @@ export default function Stock() {
       setMovimientos(prev => [res.movimiento, ...prev])
       setShowMovModal(false)
       setNuevoMov(NUEVO_MOV)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const guardarUnidad = async () => {
+    if (!valorUnidad.trim()) return
+    try {
+      const res = await stockService.actualizarUnidad(selected, valorUnidad.trim())
+      setIngredientes(prev => prev.map(i => i.id === selected ? { ...i, unidad: res.unidad } : i))
+      setEditandoUnidad(false)
     } catch (e) {
       console.error(e)
     }
@@ -207,7 +221,26 @@ export default function Stock() {
             {/* Header */}
             <div className="stock-panel-header">
               <h3 className="stock-panel-nombre">{ingrediente.nombre}</h3>
-              <span className="stock-panel-unidad">{ingrediente.unidad}</span>
+              {editandoUnidad ? (
+                <div className="stock-unidad-edit">
+                  <input
+                    className="stock-unidad-input"
+                    value={valorUnidad}
+                    onChange={e => setValorUnidad(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') guardarUnidad(); if (e.key === 'Escape') setEditandoUnidad(false) }}
+                    autoFocus
+                    maxLength={10}
+                  />
+                  <button className="stock-btn-save" onClick={guardarUnidad}>✓</button>
+                  <button className="stock-btn-cancel" onClick={() => setEditandoUnidad(false)}>×</button>
+                </div>
+              ) : (
+                <span
+                  className="stock-panel-unidad stock-panel-unidad--editable"
+                  onClick={() => { setEditandoUnidad(true); setValorUnidad(ingrediente.unidad) }}
+                  title="Clic para editar unidad"
+                >{ingrediente.unidad}</span>
+              )}
             </div>
 
             {/* Métricas */}

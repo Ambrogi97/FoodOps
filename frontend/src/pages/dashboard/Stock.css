@@ -146,6 +146,14 @@
 }
 .stock-panel-nombre { font-size: 1rem; font-weight: 700; color: var(--text); }
 .stock-panel-unidad { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; display: block; }
+.stock-panel-unidad--editable { cursor: pointer; text-decoration: underline dotted; }
+.stock-panel-unidad--editable:hover { color: var(--primary); }
+.stock-unidad-edit { display: flex; align-items: center; gap: 4px; margin-top: 4px; }
+.stock-unidad-input {
+  width: 80px; padding: 3px 6px;
+  border: 1px solid var(--primary); border-radius: 6px;
+  font-size: 0.82rem; outline: none;
+}
 
 .stock-panel-metrics {
   padding: 14px 16px;

@@ -192,7 +192,8 @@ export const pedidosOnlineService = {
 export const stockService = {
   listar:              async () => (await requestCacheado('/api/stock')).map(mapIng),
   registrarMovimiento: async (id, data) => { _invalidar('/api/stock'); return request(`/api/stock/${id}/movimiento`, { method: 'POST', body: JSON.stringify(data) }) },
-  actualizarMinimo:    async (id, stockMinimo) => { _invalidar('/api/stock'); return request(`/api/stock/${id}/minimo`, { method: 'PUT', body: JSON.stringify({ stockMinimo }) }) },
+  actualizarMinimo:    async (id, stockMinimo) => { _invalidar('/api/stock'); return request(`/api/stock/${id}/minimo`,  { method: 'PUT', body: JSON.stringify({ stockMinimo }) }) },
+  actualizarUnidad:    async (id, unidad)      => { _invalidar('/api/stock'); return request(`/api/stock/${id}/unidad`, { method: 'PUT', body: JSON.stringify({ unidad }) }) },
   listarMovimientos:   async (id) => request(`/api/stock/${id}/movimientos`),
 }
 

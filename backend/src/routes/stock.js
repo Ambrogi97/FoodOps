@@ -58,6 +58,23 @@ router.put('/:id/minimo', auth, async (req, res) => {
   }
 })
 
+// Actualizar unidad
+router.put('/:id/unidad', auth, async (req, res) => {
+  try {
+    const { unidad } = req.body
+    if (!unidad?.trim()) return res.status(400).json({ message: 'La unidad no puede estar vacía' })
+    const ingrediente = await Ingrediente.findOneAndUpdate(
+      { _id: req.params.id, usuario: req.usuario.id },
+      { unidad: unidad.trim() },
+      { new: true }
+    )
+    if (!ingrediente) return res.status(404).json({ message: 'Ingrediente no encontrado' })
+    res.json(ingrediente)
+  } catch (e) {
+    res.status(500).json({ message: e.message })
+  }
+})
+
 // Historial de movimientos de un ingrediente
 router.get('/:id/movimientos', auth, async (req, res) => {
   try {
