@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { adminService } from '../../services/api'
-import { Users, ShieldCheck, Crown } from 'lucide-react'
+import { Users, ShieldCheck, Crown, Trash2 } from 'lucide-react'
 import './Admin.css'
 
 const PLANES = ['basico', 'profesional', 'premium']
@@ -14,10 +14,11 @@ const PLAN_COLOR = {
 const fmt = (iso) => new Date(iso).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 
 export default function Admin() {
-  const [usuarios, setUsuarios]   = useState([])
-  const [cargando, setCargando]   = useState(true)
-  const [busqueda, setBusqueda]   = useState('')
-  const [cambiando, setCambiando] = useState(null)
+  const [usuarios, setUsuarios]         = useState([])
+  const [cargando, setCargando]         = useState(true)
+  const [busqueda, setBusqueda]         = useState('')
+  const [cambiando, setCambiando]       = useState(null)
+  const [confirmarElim, setConfirmarElim] = useState(null)
 
   useEffect(() => {
     adminService.listarUsuarios()
@@ -44,6 +45,20 @@ export default function Admin() {
     try {
       const actualizado = await adminService.cambiarRol(u._id, nuevoRol)
       setUsuarios(prev => prev.map(x => x._id === u._id ? { ...x, role: actualizado.role } : x))
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setCambiando(null)
+    }
+  }
+
+  const eliminar = async () => {
+    if (!confirmarElim) return
+    setCambiando(confirmarElim._id)
+    setConfirmarElim(null)
+    try {
+      await adminService.eliminarUsuario(confirmarElim._id)
+      setUsuarios(prev => prev.filter(u => u._id !== confirmarElim._id))
     } catch (e) {
       console.error(e)
     } finally {
@@ -119,6 +134,7 @@ export default function Admin() {
                 <th>Plan</th>
                 <th>Registro</th>
                 <th>Admin</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -150,13 +166,41 @@ export default function Admin() {
                       <ShieldCheck size={15} />
                     </button>
                   </td>
+                  <td>
+                    <button
+                      className="adm-delete-btn"
+                      onClick={() => setConfirmarElim(u)}
+                      disabled={cambiando === u._id}
+                      title="Eliminar cuenta"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </td>
                 </tr>
               ))}
               {filtrados.length === 0 && (
-                <tr><td colSpan={6} className="adm-empty-row">Sin resultados</td></tr>
+                <tr><td colSpan={7} className="adm-empty-row">Sin resultados</td></tr>
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Modal confirmar eliminación */}
+      {confirmarElim && (
+        <div className="adm-modal-overlay" onClick={() => setConfirmarElim(null)}>
+          <div className="adm-modal" onClick={e => e.stopPropagation()}>
+            <div className="adm-modal-icon"><Trash2 size={28} color="#ef4444" /></div>
+            <h3 className="adm-modal-title">¿Eliminar cuenta?</h3>
+            <p className="adm-modal-text">
+              Vas a eliminar a <strong>{confirmarElim.nombre}</strong> ({confirmarElim.restaurante}).<br />
+              Se borrarán todos sus datos permanentemente.
+            </p>
+            <div className="adm-modal-actions">
+              <button className="adm-modal-btn adm-modal-btn--cancel" onClick={() => setConfirmarElim(null)}>Cancelar</button>
+              <button className="adm-modal-btn adm-modal-btn--confirm" onClick={eliminar}>Sí, eliminar</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -202,4 +202,5 @@ export const adminService = {
   listarUsuarios:   async ()            => request('/api/admin/usuarios'),
   cambiarPlan:      async (id, plan)    => request(`/api/admin/usuarios/${id}/plan`,  { method: 'PUT', body: JSON.stringify({ plan }) }),
   cambiarRol:       async (id, role)    => request(`/api/admin/usuarios/${id}/role`,  { method: 'PUT', body: JSON.stringify({ role }) }),
+  eliminarUsuario:  async (id)          => request(`/api/admin/usuarios/${id}`,       { method: 'DELETE' }),
 }
