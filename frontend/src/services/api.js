@@ -205,3 +205,32 @@ export const adminService = {
   cambiarRol:       async (id, role)    => request(`/api/admin/usuarios/${id}/role`,  { method: 'PUT', body: JSON.stringify({ role }) }),
   eliminarUsuario:  async (id)          => request(`/api/admin/usuarios/${id}`,       { method: 'DELETE' }),
 }
+
+// ── Config tienda ──────────────────────────────────────────────────────────────
+
+const uploadFile = async (path, fieldName, file) => {
+  const token = localStorage.getItem('token')
+  const formData = new FormData()
+  formData.append(fieldName, file)
+  const res = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: formData,
+  })
+  if (res.status === 401 || res.status === 403) {
+    localStorage.removeItem('token'); localStorage.removeItem('user')
+    window.location.href = '/login'; return
+  }
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.message || 'Error al subir archivo')
+  return json
+}
+
+export const configService = {
+  getTienda:      async ()     => request('/api/config/tienda'),
+  saveTienda:     async (data) => request('/api/config/tienda', { method: 'PUT', body: JSON.stringify(data) }),
+  uploadLogo:     async (file) => uploadFile('/api/config/tienda/logo',    'logo',    file),
+  deleteLogo:     async ()     => request('/api/config/tienda/logo',    { method: 'DELETE' }),
+  uploadPortada:  async (file) => uploadFile('/api/config/tienda/portada', 'portada', file),
+  deletePortada:  async ()     => request('/api/config/tienda/portada', { method: 'DELETE' }),
+}
