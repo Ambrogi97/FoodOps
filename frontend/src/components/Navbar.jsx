@@ -5,7 +5,6 @@ import './Navbar.css'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -21,24 +20,16 @@ export default function Navbar() {
           <span className="navbar__logo-text">Food<strong>Ops</strong></span>
         </a>
 
-        <ul className={`navbar__links${menuOpen ? ' navbar__links--open' : ''}`}>
-          <li><a href="#caracteristicas" onClick={() => setMenuOpen(false)}>Características</a></li>
-          <li><a href="#como-funciona" onClick={() => setMenuOpen(false)}>Cómo funciona</a></li>
-          <li><a href="#planes" onClick={() => setMenuOpen(false)}>Planes</a></li>
+        <ul className="navbar__links">
+          <li><a href="#caracteristicas">Características</a></li>
+          <li><a href="#como-funciona">Cómo funciona</a></li>
+          <li><a href="#planes">Planes</a></li>
         </ul>
 
         <div className="navbar__actions">
           <Link to="/login" className="btn btn--ghost">Iniciar sesión</Link>
           <Link to="/register" className="btn btn--primary">Registrarse</Link>
         </div>
-
-        <button
-          className={`navbar__burger${menuOpen ? ' navbar__burger--open' : ''}`}
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Menú"
-        >
-          <span /><span /><span />
-        </button>
       </div>
     </nav>
   )
