@@ -92,7 +92,8 @@
   }
   .navbar__links--open { display: flex; }
   .navbar__links a { display: block; padding: 12px 24px; font-size: 1rem; }
-  .navbar__actions { display: none; }
+  .navbar__actions { display: flex; gap: 6px; }
+  .navbar__actions .btn { font-size: 0.78rem; padding: 6px 10px; }
   .navbar__burger { display: flex; }
   .navbar__inner { gap: 0; }
   .navbar__links-auth {
