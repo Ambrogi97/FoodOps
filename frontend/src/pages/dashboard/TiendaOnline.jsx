@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Plus, X, Save, Check, Trash2, ImagePlus, RotateCcw } from 'lucide-react'
+import { Plus, X, Check, Trash2, ImagePlus, RotateCcw } from 'lucide-react'
 import { configService } from '../../services/api'
 import './TiendaOnline.css'
 
@@ -83,12 +83,16 @@ function SeccionHorarios({ titulo, label, seccion, onChange, showCostoEnvio }) {
           <div className="tienda-costo-row">
             <label className="tienda-costo-label">Costo de envío</label>
             <input
-              type="number"
-              min="0"
+              type="text"
+              inputMode="numeric"
               className="tienda-costo-input"
-              value={seccion.costoEnvio ?? 0}
+              value={seccion.costoEnvio || ''}
+              placeholder="0"
               disabled={disabled}
-              onChange={e => onChange({ ...seccion, costoEnvio: Number(e.target.value) })}
+              onChange={e => {
+                const val = e.target.value.replace(/[^0-9]/g, '')
+                onChange({ ...seccion, costoEnvio: val === '' ? 0 : Number(val) })
+              }}
             />
           </div>
         )}
@@ -215,10 +219,10 @@ export default function TiendaOnline() {
   const [logo, setLogo]             = useState(null)
   const [portada, setPortada]       = useState(null)
   const [colorFondo, setColorFondo] = useState('#f8fafc')
-  const [guardando, setGuardando]   = useState(false)
   const [guardado, setGuardado]     = useState(false)
   const [subiendo, setSubiendo]     = useState({ logo: false, portada: false })
   const [error, setError]           = useState(null)
+  const cargado = useRef(false)
 
   useEffect(() => {
     configService.getTienda()
@@ -229,31 +233,33 @@ export default function TiendaOnline() {
         setLogo(data.logo         || null)
         setPortada(data.portada   || null)
         setColorFondo(data.colorFondo || '#f8fafc')
+        cargado.current = true
       })
       .catch(() => setError('No se pudo cargar la configuración'))
   }, [])
 
+  // Auto-guardado: 600ms después de cualquier cambio en delivery o retiro
+  useEffect(() => {
+    if (!cargado.current) return
+    const t = setTimeout(async () => {
+      try {
+        await configService.saveTienda({ delivery, retiro })
+        setGuardado(true)
+        setTimeout(() => setGuardado(false), 1500)
+      } catch {
+        setError('Error al guardar')
+      }
+    }, 600)
+    return () => clearTimeout(t)
+  }, [delivery, retiro])
+
   const toggleHabilitado = async (valor) => {
     setHabilitado(valor)
     try {
-      await configService.saveTienda({ habilitado: valor, delivery, retiro })
+      await configService.saveTienda({ habilitado: valor })
     } catch {
       setHabilitado(!valor)
       setError('Error al guardar')
-    }
-  }
-
-  const guardar = async () => {
-    setGuardando(true)
-    setError(null)
-    try {
-      await configService.saveTienda({ habilitado, delivery, retiro })
-      setGuardado(true)
-      setTimeout(() => setGuardado(false), 2000)
-    } catch {
-      setError('Error al guardar la configuración')
-    } finally {
-      setGuardando(false)
     }
   }
 
@@ -375,15 +381,12 @@ export default function TiendaOnline() {
         onChange={setRetiro}
       />
 
-      {/* Footer */}
+      {/* Indicador de guardado automático */}
       <div className="tienda-footer">
         {error && <span className="tienda-error">{error}</span>}
-        <button className="tienda-btn-save" onClick={guardar} disabled={guardando}>
-          {guardado
-            ? <><Check size={15} /> Guardado</>
-            : <><Save size={15} /> {guardando ? 'Guardando…' : 'Guardar cambios'}</>
-          }
-        </button>
+        {guardado && !error && (
+          <span className="tienda-autosave"><Check size={13} /> Guardado</span>
+        )}
       </div>
 
     </div>

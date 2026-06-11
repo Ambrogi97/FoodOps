@@ -69,10 +69,11 @@ export default function Carta() {
     </div>
   )
 
-  const { restaurante, logo, portada, colorFondo, deliveryHabilitado, retiroHabilitado, categorias = [], productos: todosProductos = [] } = datos
+  const { restaurante, logo, portada, colorFondo, deliveryHabilitado, retiroHabilitado, costoDelivery = 0, categorias = [], productos: todosProductos = [] } = datos
   const productos = todosProductos.filter(p => p.activo !== false)
-  const totalCarrito  = carrito.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
-  const cantCarrito   = carrito.reduce((acc, i) => acc + i.cantidad, 0)
+  const subtotalCarrito = carrito.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
+  const totalCarrito    = subtotalCarrito + (form.tipo === 'delivery' ? costoDelivery : 0)
+  const cantCarrito     = carrito.reduce((acc, i) => acc + i.cantidad, 0)
 
   const cantEnCarrito = (id) => carrito.find(i => i.id === id)?.cantidad || 0
 
@@ -167,11 +168,33 @@ export default function Carta() {
         ))}
       </div>
 
+      {/* Tipo de pedido — selección en el carrito */}
+      <div className="carta-cart-tipo">
+        <span className="carta-cart-tipo-label">¿Cómo es tu pedido?</span>
+        <div className="carta-tipo-row">
+          <button className={`carta-tipo-btn ${form.tipo === 'mesa'     ? 'carta-tipo-btn--active' : ''}`} onClick={() => setForm(f => ({ ...f, tipo: 'mesa' }))}><Armchair size={15} /> En mesa</button>
+          <button className={`carta-tipo-btn ${form.tipo === 'takeaway' ? 'carta-tipo-btn--active' : ''}`} onClick={() => setForm(f => ({ ...f, tipo: 'takeaway' }))}><ShoppingBag size={15} /> Retiro</button>
+          <button
+            className={`carta-tipo-btn ${form.tipo === 'delivery' ? 'carta-tipo-btn--active' : ''} ${!deliveryHabilitado ? 'carta-tipo-btn--disabled' : ''}`}
+            onClick={() => deliveryHabilitado && setForm(f => ({ ...f, tipo: 'delivery' }))}
+          ><Bike size={15} /> Delivery</button>
+        </div>
+        {!deliveryHabilitado && (
+          <p className="carta-delivery-off">Por el momento no estamos haciendo envíos, disculpe las molestias.</p>
+        )}
+      </div>
+
       <div className="carta-cart-resumen">
         <div className="carta-cart-resumen-row">
           <span>Subtotal</span>
-          <span>{fmt(totalCarrito)}</span>
+          <span>{fmt(subtotalCarrito)}</span>
         </div>
+        {form.tipo === 'delivery' && costoDelivery > 0 && (
+          <div className="carta-cart-resumen-row">
+            <span>Costo de envío</span>
+            <span>{fmt(costoDelivery)}</span>
+          </div>
+        )}
         <div className="carta-cart-resumen-row carta-cart-total-row">
           <strong>Total</strong>
           <strong>{fmt(totalCarrito)}</strong>
@@ -193,14 +216,6 @@ export default function Carta() {
               <button className="carta-carrito-close" onClick={() => setShowCheckout(false)}>×</button>
             </div>
             <div className="carta-checkout-form">
-              <div className="carta-checkout-field">
-                <label>¿Cómo es tu pedido?</label>
-                <div className="carta-tipo-row">
-                  <button className={`carta-tipo-btn ${form.tipo === 'mesa'     ? 'carta-tipo-btn--active' : ''}`} onClick={() => setForm(f => ({ ...f, tipo: 'mesa' }))}><Armchair size={15} /> En mesa</button>
-                  <button className={`carta-tipo-btn ${form.tipo === 'takeaway' ? 'carta-tipo-btn--active' : ''}`} onClick={() => setForm(f => ({ ...f, tipo: 'takeaway' }))}><ShoppingBag size={15} /> Retiro</button>
-                  <button className={`carta-tipo-btn ${form.tipo === 'delivery' ? 'carta-tipo-btn--active' : ''}`} onClick={() => setForm(f => ({ ...f, tipo: 'delivery' }))}><Bike size={15} /> Delivery</button>
-                </div>
-              </div>
               {form.tipo === 'mesa' && (
                 <div className="carta-checkout-field">
                   <label>Número de mesa *</label>
@@ -223,7 +238,7 @@ export default function Carta() {
               </div>
             </div>
             <div className="carta-checkout-resumen">
-              <span>{cantCarrito} producto{cantCarrito !== 1 ? 's' : ''}</span>
+              <span>{cantCarrito} producto{cantCarrito !== 1 ? 's' : ''}{form.tipo === 'delivery' && costoDelivery > 0 ? ` + envío ${fmt(costoDelivery)}` : ''}</span>
               <strong>{fmt(totalCarrito)}</strong>
             </div>
             <button

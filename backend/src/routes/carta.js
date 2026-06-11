@@ -28,8 +28,9 @@ router.get('/:userId', async (req, res) => {
       logo:               config.logo               || null,
       portada:            config.portada             || null,
       colorFondo:         config.colorFondo          || null,
-      deliveryHabilitado: config.delivery?.habilitado || false,
-      retiroHabilitado:   config.retiro?.habilitado   || false,
+      deliveryHabilitado: config.delivery?.habilitado  || false,
+      retiroHabilitado:   config.retiro?.habilitado    || false,
+      costoDelivery:      config.delivery?.costoEnvio  || 0,
       categorias,
       productos,
     })

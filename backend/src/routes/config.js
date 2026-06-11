@@ -46,9 +46,14 @@ router.get('/tienda', auth, async (req, res) => {
 router.put('/tienda', auth, async (req, res) => {
   try {
     const { habilitado, delivery, retiro, colorFondo } = req.body
+    const update = {}
+    if (habilitado  !== undefined) update.habilitado  = habilitado
+    if (delivery    !== undefined) update.delivery    = delivery
+    if (retiro      !== undefined) update.retiro      = retiro
+    if (colorFondo  !== undefined) update.colorFondo  = colorFondo
     const config = await ConfigTienda.findOneAndUpdate(
       { usuario: req.usuario.id },
-      { habilitado, delivery, retiro, ...(colorFondo !== undefined && { colorFondo }) },
+      { $set: update },
       { new: true, upsert: true }
     )
     res.json(config)

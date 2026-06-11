@@ -392,6 +392,14 @@
   color: #ef4444;
 }
 
+.tienda-autosave {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.82rem;
+  color: #22c55e;
+}
+
 .tienda-btn-save {
   display: flex;
   align-items: center;

@@ -619,6 +619,20 @@ body { background: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Seg
 
 .carta-checkout-field textarea { min-height: 72px; }
 
+.carta-cart-tipo {
+  padding: 16px 20px 0;
+}
+
+.carta-cart-tipo-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 10px;
+}
+
 .carta-tipo-row {
   display: flex;
   gap: 10px;
@@ -626,6 +640,10 @@ body { background: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Seg
 
 .carta-tipo-btn {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   padding: 10px;
   border-radius: 10px;
   border: 1.5px solid #e0e0e0;
@@ -641,6 +659,18 @@ body { background: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Seg
   border-color: #1a1a2e;
   background: #1a1a2e;
   color: #fff;
+}
+
+.carta-tipo-btn--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.carta-delivery-off {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #ef4444;
+  line-height: 1.4;
 }
 
 .carta-checkout-resumen {
