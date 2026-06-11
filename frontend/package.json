@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "vercel --prod && vercel alias set frontend-virid-sigma-79.vercel.app foodops-app.vercel.app"
   },
   "dependencies": {
     "lucide-react": "^1.17.0",
