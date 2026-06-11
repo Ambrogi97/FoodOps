@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: center;
   background: var(--bg);
-  padding: 2rem 1rem;
+  padding: 64px 1rem 2rem;
 }
 
 .register-card {
