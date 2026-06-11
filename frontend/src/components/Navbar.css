@@ -91,4 +91,7 @@
   .navbar__actions { display: none; }
   .navbar__burger { display: flex; }
   .navbar__inner { gap: 0; }
+  .navbar__links-auth { display: flex; flex-direction: column; gap: 8px; padding: 12px 24px; border-top: 1px solid var(--border); }
 }
+
+.navbar__links-auth { display: none; }
