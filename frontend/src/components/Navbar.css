@@ -44,7 +44,25 @@
   transition: color var(--transition);
 }
 .navbar__links a:hover { color: var(--primary); }
-.navbar__links-auth { display: none; }
+
+.navbar__mobile-auth {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .navbar__mobile-auth {
+    display: flex;
+    position: absolute;
+    top: 100%;
+    left: 0; right: 0;
+    background: #fff;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 24px;
+    box-shadow: var(--shadow-md);
+    border-top: 1px solid var(--border);
+  }
+}
 
 .navbar__actions {
   display: flex;
