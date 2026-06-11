@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { UtensilsCrossed, Frown, CheckCircle, Armchair, ShoppingBag, Store, Bike } from 'lucide-react'
 import './Carta.css'
 
-const API = 'http://localhost:3000'
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 const fmt = (n) => `$${Number(n).toLocaleString('es-AR')}`
 
 function ProductoCard({ p, cant, onClick }) {
