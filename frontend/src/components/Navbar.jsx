@@ -26,7 +26,7 @@ export default function Navbar() {
           <li><a href="#como-funciona" onClick={() => setMenuOpen(false)}>Cómo funciona</a></li>
           <li><a href="#planes" onClick={() => setMenuOpen(false)}>Planes</a></li>
           {menuOpen && (
-            <li className="navbar__links-auth">
+            <li style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px 24px 4px', borderTop: '1px solid #e5e7eb', marginTop: '8px', listStyle: 'none' }}>
               <Link to="/login" className="btn btn--ghost" onClick={() => setMenuOpen(false)}>Iniciar sesión</Link>
               <Link to="/register" className="btn btn--primary" onClick={() => setMenuOpen(false)}>Registrarse</Link>
             </li>
