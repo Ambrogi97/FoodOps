@@ -6,7 +6,8 @@ const TTL    = 20_000  // 20 segundos
 
 const _leer  = (clave)        => { const e = _cache[clave]; return e && Date.now() - e.ts < TTL ? e.data : null }
 const _guardar = (clave, data) => { _cache[clave] = { data, ts: Date.now() }; return data }
-const _invalidar = (...prefijos) => { prefijos.forEach(p => Object.keys(_cache).filter(k => k.startsWith(p)).forEach(k => delete _cache[k])) }
+const _invalidar  = (...prefijos) => { prefijos.forEach(p => Object.keys(_cache).filter(k => k.startsWith(p)).forEach(k => delete _cache[k])) }
+const _limpiarCache = () => { Object.keys(_cache).forEach(k => delete _cache[k]) }
 
 const requestCacheado = async (clave) => _leer(clave) ?? _guardar(clave, await request(clave))
 
@@ -58,6 +59,7 @@ export const authService = {
 }
 
 export const saveSession  = (token, user) => {
+  _limpiarCache()
   localStorage.setItem('token', token)
   localStorage.setItem('user', JSON.stringify(user))
 }
@@ -69,6 +71,7 @@ export const getSession = () => {
 }
 
 export const clearSession = () => {
+  _limpiarCache()
   localStorage.removeItem('token')
   localStorage.removeItem('user')
 }
