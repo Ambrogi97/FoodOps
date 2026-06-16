@@ -67,10 +67,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
         if (zonasData.length === 0) {
           const salon = await zonasService.crear({ label: 'Salón', removible: false })
           if (cancelled) return
-          const nuevas  = MESAS_DEFAULT.map(m => ({ ...m, zona: salon.id, estado: 'libre' }))
-          const creadas = await mesasService.crearVarias(nuevas)
-          if (cancelled) return
-          setZonas([{ ...salon, mesas: creadas }])
+          setZonas([{ ...salon, mesas: [] }])
           setZonaActiva(salon.id)
         } else {
           const zonasMapped = zonasData.map(z => ({
