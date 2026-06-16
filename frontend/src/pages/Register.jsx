@@ -25,6 +25,7 @@ export default function Register() {
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [exitoso, setExitoso] = useState(false)
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -49,7 +50,7 @@ export default function Register() {
         plan: planId,
       })
       saveSession(token, user)
-      navigate('/dashboard')
+      setExitoso(true)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -59,6 +60,19 @@ export default function Register() {
 
   return (
     <div className="register-page">
+      {exitoso && (
+        <div className="register-overlay">
+          <div className="register-success-modal">
+            <div className="register-success-icon">✅</div>
+            <h2>¡Cuenta creada exitosamente!</h2>
+            <p>Tu cuenta fue registrada. Podés iniciar sesión cuando quieras.</p>
+            <button className="btn btn--primary btn--lg" onClick={() => setExitoso(false)}>
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+    <div className="register-page-inner">
       <div className="register-card">
         <Link to="/" className="register-logo">
           <span><UtensilsCrossed size={22} /></span>
@@ -152,6 +166,7 @@ export default function Register() {
           ¿Ya tenés cuenta? <Link to="/login">Iniciá sesión</Link>
         </p>
       </div>
+    </div>
     </div>
   )
 }

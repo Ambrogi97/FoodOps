@@ -151,6 +151,44 @@
 
 .register-error { color: #dc2626; font-size: 0.875rem; margin-bottom: 0.75rem; }
 
+.register-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.register-success-modal {
+  background: var(--surface);
+  border-radius: 1.25rem;
+  padding: 2.5rem 2rem;
+  width: 90%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.register-success-icon { font-size: 3rem; }
+
+.register-success-modal h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.register-success-modal p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
 .register-modal {
   background: var(--surface);
   border: 1px solid var(--border);
