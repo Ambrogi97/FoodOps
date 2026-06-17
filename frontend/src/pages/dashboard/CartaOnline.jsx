@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { pedidosOnlineService } from '../../services/api'
-import { Armchair, ShoppingBag, User, FileText, RefreshCw, Bike, MapPin } from 'lucide-react'
+import { Armchair, ShoppingBag, User, FileText, RefreshCw, Bike, MapPin, Printer } from 'lucide-react'
 import './CartaOnline.css'
 
 const ESTADOS = ['pendiente', 'preparando', 'listo', 'entregado']
@@ -66,7 +66,49 @@ export default function CartaOnline() {
     }
   }
 
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(cartaUrl)}`
+  const qrUrl      = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(cartaUrl)}`
+  const qrPrintUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(cartaUrl)}`
+
+  const imprimirQR = () => {
+    const nombre = user.restaurante || 'Carta Online'
+    const ventana = window.open('', '_blank', 'width=520,height=700')
+    ventana.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>QR - ${nombre}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: #fff;
+      display: flex; justify-content: center; align-items: center;
+      min-height: 100vh; padding: 32px;
+    }
+    .card {
+      border: 2px solid #111; border-radius: 20px;
+      padding: 36px 44px; text-align: center; max-width: 360px; width: 100%;
+    }
+    h1 { font-size: 28px; font-weight: 800; color: #111; margin-bottom: 4px; }
+    .sub { font-size: 14px; color: #777; margin-bottom: 28px; }
+    img { width: 240px; height: 240px; display: block; margin: 0 auto 24px; }
+    .cta { font-size: 17px; font-weight: 700; color: #111; margin-bottom: 10px; }
+    .url { font-size: 10px; color: #aaa; word-break: break-all; }
+    @media print { body { padding: 0; } }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>${nombre}</h1>
+    <p class="sub">Menú digital</p>
+    <img src="${qrPrintUrl}" alt="QR" onload="window.print()" onerror="window.print()" />
+    <p class="cta">Escaneá para ver el menú</p>
+    <p class="url">${cartaUrl}</p>
+  </div>
+</body>
+</html>`)
+    ventana.document.close()
+  }
 
   const pedidosFiltrados = filtro === 'todos'
     ? pedidos
@@ -97,6 +139,9 @@ export default function CartaOnline() {
         <div className="co-qr-wrap">
           <img src={qrUrl} alt="QR carta" className="co-qr" />
           <span className="co-qr-label">Escanear para ver la carta</span>
+          <button className="co-print-btn" onClick={imprimirQR}>
+            <Printer size={13} /> Imprimir QR
+          </button>
         </div>
       </div>
 

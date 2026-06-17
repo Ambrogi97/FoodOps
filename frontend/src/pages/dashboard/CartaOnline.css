@@ -61,6 +61,15 @@
   border: 1px solid var(--border);
 }
 .co-qr-label { font-size: 11px; color: var(--muted); text-align: center; max-width: 140px; }
+.co-print-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 14px;
+  border: 1.5px solid var(--border); border-radius: 8px;
+  background: transparent; color: var(--text);
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all .15s;
+}
+.co-print-btn:hover { border-color: var(--accent); color: var(--accent); }
 
 /* Pedidos section header */
 .co-pedidos-header {
