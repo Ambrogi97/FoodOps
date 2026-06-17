@@ -173,14 +173,23 @@ export default function Carta() {
         <span className="carta-cart-tipo-label">¿Cómo es tu pedido?</span>
         <div className="carta-tipo-row">
           <button className={`carta-tipo-btn ${form.tipo === 'mesa'     ? 'carta-tipo-btn--active' : ''}`} onClick={() => setForm(f => ({ ...f, tipo: 'mesa' }))}><Armchair size={15} /> En mesa</button>
-          <button className={`carta-tipo-btn ${form.tipo === 'takeaway' ? 'carta-tipo-btn--active' : ''}`} onClick={() => setForm(f => ({ ...f, tipo: 'takeaway' }))}><ShoppingBag size={15} /> Retiro</button>
+          <button
+            className={`carta-tipo-btn ${form.tipo === 'takeaway' ? 'carta-tipo-btn--active' : ''} ${!retiroHabilitado ? 'carta-tipo-btn--disabled' : ''}`}
+            onClick={() => retiroHabilitado && setForm(f => ({ ...f, tipo: 'takeaway' }))}
+          ><ShoppingBag size={15} /> Retiro</button>
           <button
             className={`carta-tipo-btn ${form.tipo === 'delivery' ? 'carta-tipo-btn--active' : ''} ${!deliveryHabilitado ? 'carta-tipo-btn--disabled' : ''}`}
             onClick={() => deliveryHabilitado && setForm(f => ({ ...f, tipo: 'delivery' }))}
           ><Bike size={15} /> Delivery</button>
         </div>
-        {!deliveryHabilitado && (
+        {!retiroHabilitado && !deliveryHabilitado && (
+          <p className="carta-delivery-off">Por el momento no estamos haciendo envíos ni retiros, disculpe las molestias.</p>
+        )}
+        {retiroHabilitado && !deliveryHabilitado && (
           <p className="carta-delivery-off">Por el momento no estamos haciendo envíos, disculpe las molestias.</p>
+        )}
+        {!retiroHabilitado && deliveryHabilitado && (
+          <p className="carta-delivery-off">Por el momento no estamos haciendo retiros, disculpe las molestias.</p>
         )}
       </div>
 
