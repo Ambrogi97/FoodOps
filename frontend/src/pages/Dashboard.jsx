@@ -5,6 +5,7 @@ import {
   Armchair, Receipt, UtensilsCrossed, FlaskConical, Package,
   Truck, DollarSign, BarChart2, Calculator, Smartphone, LogOut, ShieldCheck, Settings,
 } from 'lucide-react'
+import Logo from '../components/Logo'
 import Mesas from './dashboard/Mesas'
 import Productos from './dashboard/Productos'
 import Ingredientes from './dashboard/Ingredientes'
@@ -96,7 +97,7 @@ export default function Dashboard() {
       {/* Sidebar */}
       <aside className={`dash-sidebar${menuOpen ? ' dash-sidebar--open' : ''}`}>
         <div className="dash-logo">
-          <span className="dash-logo-icon"><UtensilsCrossed size={22} /></span>
+          <Logo size={34} />
           <span className="dash-logo-text">Food<strong>Ops</strong></span>
         </div>
 
