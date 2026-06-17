@@ -6,6 +6,21 @@ import './Carta.css'
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 const fmt = (n) => `$${Number(n).toLocaleString('es-AR')}`
 
+const DIAS_KEY = ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab']
+function estaAbiertaAhora(cfg) {
+  if (!cfg?.habilitado) return false
+  const now    = new Date()           // hora local del browser (Argentina)
+  const diaKey = DIAS_KEY[now.getDay()]
+  const dia    = (cfg.horarios || []).find(d => d.dia === diaKey)
+  if (!dia?.habilitado) return false
+  const min = now.getHours() * 60 + now.getMinutes()
+  return (dia.franjas || []).some(f => {
+    const [h1, m1] = f.desde.split(':').map(Number)
+    const [h2, m2] = f.hasta.split(':').map(Number)
+    return min >= h1 * 60 + m1 && min <= h2 * 60 + m2
+  })
+}
+
 function ProductoCard({ p, cant, onClick }) {
   return (
     <div className="carta-prod" onClick={onClick}>
@@ -69,7 +84,9 @@ export default function Carta() {
     </div>
   )
 
-  const { restaurante, logo, portada, colorFondo, deliveryHabilitado, retiroHabilitado, costoDelivery = 0, categorias = [], productos: todosProductos = [] } = datos
+  const { restaurante, logo, portada, colorFondo, deliveryCfg, retiroCfg, costoDelivery = 0, categorias = [], productos: todosProductos = [] } = datos
+  const deliveryHabilitado = estaAbiertaAhora(deliveryCfg)
+  const retiroHabilitado   = estaAbiertaAhora(retiroCfg)
   const productos = todosProductos.filter(p => p.activo !== false)
   const subtotalCarrito = carrito.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
   const totalCarrito    = subtotalCarrito + (form.tipo === 'delivery' ? costoDelivery : 0)

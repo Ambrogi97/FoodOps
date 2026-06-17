@@ -6,22 +6,6 @@ const Producto       = require('../models/Producto')
 const PedidoOnline   = require('../models/PedidoOnline')
 const ConfigTienda   = require('../models/ConfigTienda')
 
-const DIAS_KEY = ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab']
-
-function estaAbiertaAhora(seccion) {
-  if (!seccion?.habilitado) return false
-  const now     = new Date()
-  const diaKey  = DIAS_KEY[now.getDay()]
-  const diaCfg  = (seccion.horarios || []).find(d => d.dia === diaKey)
-  if (!diaCfg?.habilitado) return false
-  const minutos = now.getHours() * 60 + now.getMinutes()
-  return (diaCfg.franjas || []).some(f => {
-    const [h1, m1] = f.desde.split(':').map(Number)
-    const [h2, m2] = f.hasta.split(':').map(Number)
-    return minutos >= h1 * 60 + m1 && minutos <= h2 * 60 + m2
-  })
-}
-
 // Menú público del restaurante
 router.get('/:userId', async (req, res) => {
   try {
@@ -44,9 +28,9 @@ router.get('/:userId', async (req, res) => {
       logo:               config.logo               || null,
       portada:            config.portada             || null,
       colorFondo:         config.colorFondo          || null,
-      deliveryHabilitado: estaAbiertaAhora(config.delivery),
-      retiroHabilitado:   estaAbiertaAhora(config.retiro),
-      costoDelivery:      config.delivery?.costoEnvio  || 0,
+      deliveryCfg:   config.delivery  || null,
+      retiroCfg:     config.retiro    || null,
+      costoDelivery: config.delivery?.costoEnvio || 0,
       categorias,
       productos,
     })
