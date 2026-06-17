@@ -17,16 +17,22 @@ const DIAS_DEFAULT = ['dom','lun','mar','mie','jue','vie','sab'].map(dia => ({
 const SECCION_DEFAULT = { habilitado: false, horarios: DIAS_DEFAULT }
 
 // ── Sub-componente: bloque de horarios por sección ────────────────────────────
-function SeccionHorarios({ titulo, label, seccion, onChange, showCostoEnvio }) {
+function SeccionHorarios({ titulo, label, seccion, onChange, onToggle, showCostoEnvio }) {
   const disabled = !seccion.habilitado
 
-  const toggleSeccion = () => onChange({ ...seccion, habilitado: !seccion.habilitado })
+  const toggleSeccion = () => {
+    const next = { ...seccion, habilitado: !seccion.habilitado }
+    onChange(next)
+    onToggle?.(next)
+  }
 
   const toggleDia = (i) => {
     const horarios = seccion.horarios.map((d, idx) =>
       idx === i ? { ...d, habilitado: !d.habilitado } : d
     )
-    onChange({ ...seccion, horarios })
+    const next = { ...seccion, horarios }
+    onChange(next)
+    onToggle?.(next)
   }
 
   const setFranja = (diaIdx, franjaIdx, campo, valor) => {
@@ -238,7 +244,23 @@ export default function TiendaOnline() {
       .catch(() => setError('No se pudo cargar la configuración'))
   }, [])
 
-  // Auto-guardado: 600ms después de cualquier cambio en delivery o retiro
+  // Guardado inmediato cuando se tilda/destilda un checkbox de sección o día
+  const guardarDelivery = async (newDelivery) => {
+    try {
+      await configService.saveTienda({ delivery: newDelivery, retiro })
+      setGuardado(true)
+      setTimeout(() => setGuardado(false), 1500)
+    } catch { setError('Error al guardar') }
+  }
+  const guardarRetiro = async (newRetiro) => {
+    try {
+      await configService.saveTienda({ delivery, retiro: newRetiro })
+      setGuardado(true)
+      setTimeout(() => setGuardado(false), 1500)
+    } catch { setError('Error al guardar') }
+  }
+
+  // Auto-guardado con debounce para cambios de horario (campos de hora)
   useEffect(() => {
     if (!cargado.current) return
     const t = setTimeout(async () => {
@@ -368,6 +390,7 @@ export default function TiendaOnline() {
         titulo="Habilitar delivery"
         seccion={delivery}
         onChange={setDelivery}
+        onToggle={guardarDelivery}
         showCostoEnvio
       />
 
@@ -379,6 +402,7 @@ export default function TiendaOnline() {
         titulo="Habilitar retiro en el local"
         seccion={retiro}
         onChange={setRetiro}
+        onToggle={guardarRetiro}
       />
 
       {/* Indicador de guardado automático */}

@@ -42,7 +42,7 @@ export default function Carta() {
 
   useEffect(() => {
     if (!userId) { setError('Enlace inválido'); return }
-    fetch(`${API}/api/carta/${userId}`)
+    fetch(`${API}/api/carta/${userId}`, { cache: 'no-store' })
       .then(r => { if (!r.ok) throw new Error(); return r.json() })
       .then(data => {
         if (data.habilitado === false) {
