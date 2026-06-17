@@ -245,16 +245,17 @@ export default function TiendaOnline() {
   }, [])
 
   // Guardado inmediato cuando se tilda/destilda un checkbox de sección o día
+  // Cada función solo guarda su propia sección para no pisar la otra
   const guardarDelivery = async (newDelivery) => {
     try {
-      await configService.saveTienda({ delivery: newDelivery, retiro })
+      await configService.saveTienda({ delivery: newDelivery })
       setGuardado(true)
       setTimeout(() => setGuardado(false), 1500)
     } catch { setError('Error al guardar') }
   }
   const guardarRetiro = async (newRetiro) => {
     try {
-      await configService.saveTienda({ delivery, retiro: newRetiro })
+      await configService.saveTienda({ retiro: newRetiro })
       setGuardado(true)
       setTimeout(() => setGuardado(false), 1500)
     } catch { setError('Error al guardar') }
