@@ -26,4 +26,4 @@ Thumbs.db
 backend/uploads/
 
 # Claude
-.claude/scheduled_tasks.lock
+.claude/
