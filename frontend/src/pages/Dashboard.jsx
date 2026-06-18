@@ -13,7 +13,6 @@ import Ingredientes from './dashboard/Ingredientes'
 import Ventas from './dashboard/Ventas'
 import Gastos from './dashboard/Gastos'
 import Stock from './dashboard/Stock'
-import Pedidos from './dashboard/Pedidos'
 import Proveedores from './dashboard/Proveedores'
 import Reportes from './dashboard/Reportes'
 import CartaOnline from './dashboard/CartaOnline'
@@ -23,7 +22,6 @@ import './Dashboard.css'
 
 const NAV_ITEMS = [
   { id: 'restaurante',  label: 'Restaurante',  Icon: UtensilsCrossed },
-  { id: 'pedidos',      label: 'Pedidos',       Icon: Receipt },
   { id: 'productos',    label: 'Productos',     Icon: UtensilsCrossed },
   { id: 'ingredientes', label: 'Ingredientes',  Icon: FlaskConical },
   { id: 'stock',        label: 'Stock',         Icon: Package },
@@ -38,7 +36,7 @@ const NAV_ITEMS = [
 export default function Dashboard() {
   const navigate = useNavigate()
   const { user } = getSession()
-  const [active, setActive]                   = useState('mesas')
+  const [active, setActive]                   = useState('restaurante')
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const isAdmin = user?.role === 'admin'
   const [menuOpen, setMenuOpen]               = useState(false)
@@ -168,8 +166,8 @@ export default function Dashboard() {
         {/* Content */}
         <main className="dash-content">
 
-          {active === 'restaurante'  && <Restaurante productos={productos} categorias={categorias} />}
-          {active === 'productos'    && (
+          {active === 'restaurante' && <Restaurante productos={productos} categorias={categorias} />}
+          {active === 'productos'   && (
             <Productos
               productos={productos} setProductos={setProductos}
               categorias={categorias} setCategorias={setCategorias}
@@ -177,8 +175,7 @@ export default function Dashboard() {
           )}
           {active === 'ingredientes' && <Ingredientes />}
           {active === 'stock'        && <Stock />}
-          {active === 'pedidos'      && <Pedidos />}
-          {active === 'proveedores'   && <Proveedores />}
+          {active === 'proveedores'  && <Proveedores />}
           {active === 'ventas'       && <Ventas />}
           {active === 'gastos'       && <Gastos />}
           {active === 'reportes'     && <Reportes />}
