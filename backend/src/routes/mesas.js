@@ -38,13 +38,14 @@ router.post('/', auth, async (req, res) => {
 
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { estado, col, row, hora, items } = req.body
+    const { estado, col, row, hora, items, personas } = req.body
     const update = {}
-    if (estado  !== undefined) update.estado = estado
-    if (col     !== undefined) update.col    = col
-    if (row     !== undefined) update.row    = row
-    if (hora    !== undefined) update.hora   = hora
-    if (items   !== undefined) update.items  = items
+    if (estado   !== undefined) update.estado   = estado
+    if (col      !== undefined) update.col      = col
+    if (row      !== undefined) update.row      = row
+    if (hora     !== undefined) update.hora     = hora
+    if (items    !== undefined) update.items    = items
+    if (personas !== undefined) update.personas = personas
     const mesa = await Mesa.findOneAndUpdate(
       { _id: req.params.id, usuario: req.usuario.id },
       update,

@@ -13,8 +13,9 @@ const mesaSchema = new mongoose.Schema({
   estado:  { type: String, enum: ['libre', 'ocupada', 'cuenta'], default: 'libre' },
   col:     { type: Number, required: true },
   row:     { type: Number, required: true },
-  hora:    { type: String, default: null },
-  items:   { type: [itemSchema], default: [] },
+  hora:     { type: String, default: null },
+  personas: { type: Number, default: null },
+  items:    { type: [itemSchema], default: [] },
   usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 }, { timestamps: true })
 
