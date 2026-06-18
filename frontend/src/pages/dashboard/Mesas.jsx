@@ -27,15 +27,7 @@ const formatDateTime = (d = new Date()) => {
   return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-const SUB_TABS = [
-  { id: 'mesas',            label: 'Mesas' },
-  { id: 'mostrador',        label: 'Mostrador' },
-  { id: 'delivery',         label: 'Delivery' },
-  { id: 'mostrador-rapido', label: 'Mostrador rápido' },
-]
-
 export default function Mesas({ productos = [], categorias = [] }) {
-  const [subTab, setSubTab]         = useState('mesas')
   const [zonas, setZonas]           = useState([])
   const [zonaActiva, setZonaActiva] = useState(null)
   const [selected, setSelected]     = useState(null)
@@ -405,28 +397,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
   )
 
   return (
-    <div className="mesas-layout mesas-layout--col">
-
-      {/* Sub-tabs */}
-      <div className="mesas-subtabs">
-        {SUB_TABS.map(t => (
-          <button
-            key={t.id}
-            className={`mesas-subtab${subTab === t.id ? ' mesas-subtab--active' : ''}`}
-            onClick={() => setSubTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {subTab !== 'mesas' && (
-        <div className="mesas-placeholder">
-          <p>Próximamente</p>
-        </div>
-      )}
-
-      {subTab === 'mesas' && <div className="mesas-layout mesas-layout--inner">
+    <div className="mesas-layout">
 
       {/* Izquierda */}
       <div className="mesas-left">
@@ -713,7 +684,6 @@ export default function Mesas({ productos = [], categorias = [] }) {
           </div>
         </div>
       )}
-    </div>}{/* fin subTab mesas */}
     </div>
   )
 }

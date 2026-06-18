@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import Logo from '../components/Logo'
 import Mesas from './dashboard/Mesas'
+import Restaurante from './dashboard/Restaurante'
 import Productos from './dashboard/Productos'
 import Ingredientes from './dashboard/Ingredientes'
 import Ventas from './dashboard/Ventas'
@@ -22,6 +23,7 @@ import './Dashboard.css'
 
 const NAV_ITEMS = [
   { id: 'mesas',        label: 'Mesas',        Icon: Armchair },
+  { id: 'restaurante',  label: 'Restaurante',  Icon: UtensilsCrossed },
   { id: 'pedidos',      label: 'Pedidos',       Icon: Receipt },
   { id: 'productos',    label: 'Productos',     Icon: UtensilsCrossed },
   { id: 'ingredientes', label: 'Ingredientes',  Icon: FlaskConical },
@@ -168,6 +170,7 @@ export default function Dashboard() {
         <main className="dash-content">
 
           {active === 'mesas'        && <Mesas productos={productos} categorias={categorias} />}
+          {active === 'restaurante'  && <Restaurante />}
           {active === 'productos'    && (
             <Productos
               productos={productos} setProductos={setProductos}
