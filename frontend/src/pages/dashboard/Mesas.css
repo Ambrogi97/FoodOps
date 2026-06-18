@@ -465,6 +465,85 @@
 }
 .mesa-btn--ticket:hover { background: #fef3c7; }
 
+/* ADICIONAR — sección inline de búsqueda de productos */
+.mesa-adicionar {
+  padding: 14px 20px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.mesa-adicionar-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.mesa-adicionar-search {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-family: inherit;
+  outline: none;
+  background: var(--bg);
+  color: var(--text);
+  margin-bottom: 10px;
+  box-sizing: border-box;
+  transition: border-color var(--transition);
+}
+.mesa-adicionar-search:focus { border-color: var(--primary); }
+.mesa-adicionar-search::placeholder { color: #aaa; }
+
+.mesa-adicionar-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 110px;
+  overflow-y: auto;
+  padding-bottom: 4px;
+}
+
+.mesa-chip {
+  padding: 5px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.mesa-chip:hover {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.mesa-chip-empty {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 4px 2px;
+}
+
+/* Badge de cantidad de items en la mesa card */
+.mesa-items-count {
+  font-size: 0.65rem;
+  font-weight: 800;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 10px;
+  padding: 1px 6px;
+  pointer-events: none;
+  line-height: 1.4;
+}
+
 /* Panel pedido */
 .mesa-pedido-back {
   background: none;
@@ -648,6 +727,122 @@
 .mesas-modal-actions {
   display: flex;
   gap: 8px;
+}
+
+.mesas-modal-field-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* Modal pago */
+.mesas-modal--pago {
+  max-width: 380px;
+}
+
+.pago-items {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  padding: 10px 14px;
+  margin-bottom: 4px;
+  font-size: 0.82rem;
+}
+
+.pago-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+.pago-item:last-child { border-bottom: none; }
+
+.pago-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+  margin-top: 4px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.pago-metodos {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.pago-metodo-btn {
+  flex: 1;
+  padding: 9px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.pago-metodo-btn:hover { border-color: var(--primary); color: var(--primary); }
+.pago-metodo-btn--active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.pago-vuelto {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 6px 12px;
+  background: #f0fdf4;
+  border-radius: var(--radius-sm);
+  border: 1px solid #86efac;
+}
+.pago-vuelto strong { color: #16a34a; }
+
+/* Persona badge en mesa card */
+.mesa-personas-badge {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* Info extra en header del panel */
+.mesa-detalle-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.mesa-detalle-personas {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.mesa-detalle-hora {
+  font-size: 0.78rem;
+  color: var(--primary);
+  font-weight: 600;
 }
 
 /* Selector de productos */

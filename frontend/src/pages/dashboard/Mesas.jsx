@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { zonasService, mesasService, ventasService } from '../../services/api'
-import { Armchair, Receipt } from 'lucide-react'
+import { Armchair, Receipt, Users } from 'lucide-react'
 import './Mesas.css'
 
 const COLS = 12
@@ -12,15 +12,7 @@ const ESTADO_CONFIG = {
   cuenta:  { label: 'Cuenta',  color: '#f59e0b' },
 }
 
-const MESAS_DEFAULT = [
-  { numero: 1, col: 0, row: 0 },
-  { numero: 2, col: 1, row: 0 },
-  { numero: 3, col: 2, row: 0 },
-  { numero: 4, col: 4, row: 0 },
-  { numero: 5, col: 0, row: 2 },
-  { numero: 6, col: 1, row: 2 },
-  { numero: 7, col: 2, row: 2 },
-]
+const METODOS_PAGO = ['Efectivo', 'Tarjeta', 'Transferencia']
 
 const formatDateTime = (d = new Date()) => {
   const pad = n => n.toString().padStart(2, '0')
@@ -34,16 +26,21 @@ export default function Mesas({ productos = [], categorias = [] }) {
   const [showModal, setShowModal]   = useState(false)
   const [nombreZona, setNombreZona] = useState('')
   const [draggingId, setDraggingId]               = useState(null)
-  const pointerDragRef = useRef(null) // { mesaId, startX, startY, active, cardEl, offsetX, offsetY, cardW, cardH }
-  const dragCellRef    = useRef(null) // celda target actualizada en pointermove
-  const ghostRef       = useRef(null) // elemento DOM clonado que sigue el dedo
-  const wasDraggedRef  = useRef(false) // evita que el click que sigue al pointerup abra el detalle
-  const [confirmarEliminar, setConfirmarEliminar] = useState(null) // { id, numero }
+  const pointerDragRef = useRef(null)
+  const dragCellRef    = useRef(null)
+  const ghostRef       = useRef(null)
+  const wasDraggedRef  = useRef(false)
+  const [confirmarEliminar, setConfirmarEliminar] = useState(null)
   const [showAgregarMesas, setShowAgregarMesas]   = useState(false)
   const [cantidadMesas, setCantidadMesas]         = useState(1)
-  const [showSelector, setShowSelector]           = useState(false)
-  const [catSelector, setCatSelector]             = useState(null)
-  const [confirmarCerrar, setConfirmarCerrar]     = useState(null) // { id, numero }
+  const [searchProducto, setSearchProducto]       = useState('')
+  // Abrir mesa
+  const [showAbrirModal, setShowAbrirModal]       = useState(null) // mesaId
+  const [personasMesa, setPersonasMesa]           = useState(1)
+  // Cerrar pedido / pago
+  const [showPagoModal, setShowPagoModal]         = useState(null) // { mesaId, numero }
+  const [metodoPago, setMetodoPago]               = useState('Efectivo')
+  const [montoPago, setMontoPago]                 = useState('')
   const [cargando, setCargando]                   = useState(true)
   const [isMobile, setIsMobile]                   = useState(() => window.innerWidth <= 768)
 
@@ -74,7 +71,6 @@ export default function Mesas({ productos = [], categorias = [] }) {
             ...z,
             mesas: mesasData.filter(m => m.zona === z.id),
           }))
-          // Preferir la primera zona que tenga mesas; si todas están vacías, usar la primera
           const zonaInicial = zonasMapped.find(z => z.mesas.length > 0) ?? zonasMapped[0]
           setZonas(zonasMapped)
           setZonaActiva(zonaInicial?.id || null)
@@ -109,7 +105,6 @@ export default function Mesas({ productos = [], categorias = [] }) {
 
   /* ── Drag unificado (Pointer Events — mouse + touch) ── */
   const handlePointerDown = (e, mesaId) => {
-    // Ignorar clicks secundarios (botón derecho, etc.)
     if (e.button !== undefined && e.button !== 0) return
     const rect = e.currentTarget.getBoundingClientRect()
     e.currentTarget.setPointerCapture(e.pointerId)
@@ -133,8 +128,6 @@ export default function Mesas({ productos = [], categorias = [] }) {
     if (!pd.active && Math.sqrt(dx * dx + dy * dy) < 8) return
     if (!pd.active) {
       pointerDragRef.current = { ...pd, active: true }
-      // Aplicar pointer-events:none de forma inmediata (sin esperar re-render de React)
-      // para que elementFromPoint encuentre la celda debajo en este mismo evento
       pd.cardEl.style.pointerEvents = 'none'
       setDraggingId(pd.mesaId)
       setSelected(null)
@@ -214,6 +207,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
     </style></head><body>
     <h2>Mesa ${mesa.numero}</h2>
     ${mesa.hora ? `<p class="sub">${mesa.hora}</p>` : ''}
+    ${mesa.personas ? `<p class="sub">${mesa.personas} personas</p>` : ''}
     <div class="sep"></div>
     <table>${filas}</table>
     <div class="sep"></div>
@@ -230,8 +224,8 @@ export default function Mesas({ productos = [], categorias = [] }) {
 
   const pedirCuenta = async (mesaId) => {
     actualizarMesaEnState(mesaId, { estado: 'cuenta' })
-    const mesa = zona.mesas.find(x => x.id === mesaId)
-    if (mesa) imprimirTicket({ ...mesa, estado: 'cuenta' })
+    const m = zona.mesas.find(x => x.id === mesaId)
+    if (m) imprimirTicket({ ...m, estado: 'cuenta' })
     try {
       await mesasService.actualizar(mesaId, { estado: 'cuenta' })
     } catch (e) {
@@ -245,20 +239,36 @@ export default function Mesas({ productos = [], categorias = [] }) {
       const cierre = formatDateTime()
       try {
         await ventasService.crear({
-          mesa:   `Mesa ${m.numero}`,
-          inicio: m.hora,
+          mesa:      `Mesa ${m.numero}`,
+          inicio:    m.hora,
           cierre,
-          items:  m.items,
+          items:     m.items,
+          personas:  m.personas || 1,
+          metodoPago,
         })
       } catch (e) {
         console.error('Error registrando venta:', e)
       }
     }
-    actualizarMesaEnState(mesaId, { estado: 'libre', hora: null, items: [] })
+    actualizarMesaEnState(mesaId, { estado: 'libre', hora: null, items: [], personas: null })
     setSelected(null)
-    setConfirmarCerrar(null)
+    setShowPagoModal(null)
     try {
-      await mesasService.actualizar(mesaId, { estado: 'libre', hora: null, items: [] })
+      await mesasService.actualizar(mesaId, { estado: 'libre', hora: null, items: [], personas: null })
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const abrirMesaConDatos = async () => {
+    const mesaId = showAbrirModal
+    const hora = formatDateTime()
+    const cambios = { estado: 'ocupada', hora, items: [], personas: personasMesa }
+    actualizarMesaEnState(mesaId, cambios)
+    setShowAbrirModal(null)
+    setPersonasMesa(1)
+    try {
+      await mesasService.actualizar(mesaId, cambios)
     } catch (e) {
       console.error(e)
     }
@@ -287,19 +297,8 @@ export default function Mesas({ productos = [], categorias = [] }) {
       ? items.map(i => i.nombre === producto.nombre ? { ...i, cantidad: i.cantidad + 1 } : i)
       : [...items, { nombre: producto.nombre, cantidad: 1, precio: producto.precio }]
     actualizarMesaEnState(mesaId, { items: nuevosItems })
-    setShowSelector(false)
     try {
       await mesasService.actualizar(mesaId, { items: nuevosItems })
-    } catch (e) {
-      console.error(e)
-    }
-  }
-
-  const nuevoPedido = async (mesaId) => {
-    const hora = formatDateTime()
-    actualizarMesaEnState(mesaId, { estado: 'ocupada', hora, items: [] })
-    try {
-      await mesasService.actualizar(mesaId, { estado: 'ocupada', hora, items: [] })
     } catch (e) {
       console.error(e)
     }
@@ -375,11 +374,10 @@ export default function Mesas({ productos = [], categorias = [] }) {
     }
   }
 
-  /* ── Render celdas (columnas/filas dinámicas según mesas existentes) ── */
+  /* ── Render celdas ── */
   const maxRow = zona?.mesas.length > 0 ? Math.max(...zona.mesas.map(m => m.row)) : 0
   const maxCol = zona?.mesas.length > 0 ? Math.max(...zona.mesas.map(m => m.col)) : 0
   const displayRows = Math.max(3, maxRow + 4)
-  // En mobile muestra solo las columnas necesarias; en desktop siempre COLS
   const displayCols = isMobile ? Math.max(6, Math.min(COLS, maxCol + 2)) : COLS
 
   const celdas = []
@@ -389,6 +387,16 @@ export default function Mesas({ productos = [], categorias = [] }) {
       celdas.push({ col, row, mesa: m })
     }
   }
+
+  const productosFilter = productos.filter(p =>
+    !searchProducto || p.nombre.toLowerCase().includes(searchProducto.toLowerCase())
+  )
+
+  // Para el modal de pago
+  const mesaPago = showPagoModal ? zona?.mesas.find(x => x.id === showPagoModal.mesaId) : null
+  const totalPago = mesaPago?.items?.reduce((acc, i) => acc + i.precio * i.cantidad, 0) || 0
+  const montoNum = parseFloat(montoPago.replace(',', '.')) || 0
+  const vuelto   = metodoPago === 'Efectivo' && montoPago ? Math.max(0, montoNum - totalPago) : 0
 
   if (cargando) return (
     <div className="mesas-layout" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
@@ -475,10 +483,21 @@ export default function Mesas({ productos = [], categorias = [] }) {
                     onClick={() => {
                       if (wasDraggedRef.current) { wasDraggedRef.current = false; return }
                       setSelected(selected === m.id ? null : m.id)
+                      setSearchProducto('')
                     }}
                   >
                     <span className="mesa-numero">{m.numero}</span>
-                    <span className="mesa-estado-dot" style={{ background: ESTADO_CONFIG[m.estado].color }} />
+                    {m.estado !== 'libre' && m.personas > 0 && (
+                      <span className="mesa-personas-badge">
+                        <Users size={11} />
+                        {m.personas}
+                      </span>
+                    )}
+                    {m.estado !== 'libre' && m.items?.length > 0 && (
+                      <span className="mesa-items-count">
+                        {m.items.reduce((s, i) => s + i.cantidad, 0)}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
@@ -511,13 +530,45 @@ export default function Mesas({ productos = [], categorias = [] }) {
               </div>
               <h2 className="mesa-detalle-title">Mesa {mesa.numero}</h2>
               <p className="mesa-detalle-salon">{zona.label}</p>
-              {mesa.estado === 'ocupada' && mesa.hora && (
-                <p className="mesa-detalle-hora">Desde las {mesa.hora.split(' ')[1]}</p>
+              {mesa.estado !== 'libre' && mesa.hora && (
+                <div className="mesa-detalle-meta">
+                  {mesa.personas > 0 && (
+                    <span className="mesa-detalle-personas"><Users size={12} /> {mesa.personas} personas</span>
+                  )}
+                  <span className="mesa-detalle-hora">Desde {mesa.hora.split(' ')[1]}</span>
+                </div>
               )}
             </div>
 
+            {/* ADICIONAR — inline cuando la mesa está activa */}
+            {(mesa.estado === 'ocupada' || mesa.estado === 'cuenta') && (
+              <div className="mesa-adicionar">
+                <div className="mesa-adicionar-label">ADICIONAR</div>
+                <input
+                  className="mesa-adicionar-search"
+                  type="text"
+                  placeholder="Buscar producto..."
+                  value={searchProducto}
+                  onChange={e => setSearchProducto(e.target.value)}
+                />
+                <div className="mesa-adicionar-chips">
+                  {productosFilter.length > 0
+                    ? productosFilter.slice(0, 24).map(p => (
+                        <button key={p.id} className="mesa-chip" onClick={() => agregarProductoAlPedido(p)}>
+                          {p.nombre}
+                        </button>
+                      ))
+                    : <span className="mesa-chip-empty">Sin resultados</span>
+                  }
+                  {productos.length === 0 && (
+                    <span className="mesa-chip-empty">Agregá productos en el módulo Productos</span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Items del pedido */}
-            {mesa.estado === 'ocupada' && (
+            {(mesa.estado === 'ocupada' || mesa.estado === 'cuenta') && (
               <>
                 {mesa.items && mesa.items.length > 0 ? (
                   <>
@@ -540,7 +591,7 @@ export default function Mesas({ productos = [], categorias = [] }) {
                   <div className="mesa-pedido-empty">
                     <span><Receipt size={32} /></span>
                     <p>Sin productos</p>
-                    <span>Agregá items al pedido</span>
+                    <span>Usá ADICIONAR para agregar items</span>
                   </div>
                 )}
               </>
@@ -549,27 +600,138 @@ export default function Mesas({ productos = [], categorias = [] }) {
             {/* Acciones */}
             <div className="mesa-detalle-actions">
               {mesa.estado === 'libre' && (
-                <button className="mesa-btn mesa-btn--primary" onClick={() => nuevoPedido(mesa.id)}>Abrir mesa</button>
+                <button
+                  className="mesa-btn mesa-btn--primary"
+                  onClick={() => { setShowAbrirModal(mesa.id); setPersonasMesa(1) }}
+                >
+                  Abrir mesa
+                </button>
               )}
               {mesa.estado === 'ocupada' && (
                 <>
-                  <button className="mesa-btn mesa-btn--primary" onClick={() => setShowSelector(true)}>+ Agregar producto</button>
-                  <button className="mesa-btn mesa-btn--ticket" onClick={() => pedirCuenta(mesa.id)}>Imprimir ticket</button>
+                  <button
+                    className="mesa-btn mesa-btn--primary"
+                    onClick={() => { setShowPagoModal({ mesaId: mesa.id, numero: mesa.numero }); setMontoPago(''); setMetodoPago('Efectivo') }}
+                  >
+                    Cerrar pedido
+                  </button>
+                  <button className="mesa-btn mesa-btn--ticket" onClick={() => pedirCuenta(mesa.id)}>
+                    Imprimir ticket
+                  </button>
                 </>
               )}
               {mesa.estado === 'cuenta' && (
                 <>
-                  <button className="mesa-btn mesa-btn--primary" onClick={() => setShowSelector(true)}>+ Agregar producto</button>
-                  <button className="mesa-btn mesa-btn--ticket" onClick={() => imprimirTicket(mesa)}>Reimprimir ticket</button>
-                  <button className="mesa-btn mesa-btn--secondary" onClick={() => setConfirmarCerrar({ id: mesa.id, numero: mesa.numero })}>Cobrado — Cerrar mesa</button>
+                  <button
+                    className="mesa-btn mesa-btn--primary"
+                    onClick={() => { setShowPagoModal({ mesaId: mesa.id, numero: mesa.numero }); setMontoPago(''); setMetodoPago('Efectivo') }}
+                  >
+                    Cerrar pedido
+                  </button>
+                  <button className="mesa-btn mesa-btn--ticket" onClick={() => imprimirTicket(mesa)}>
+                    Reimprimir ticket
+                  </button>
                 </>
               )}
-              <button className="mesa-btn mesa-btn--danger" onClick={() => setConfirmarEliminar({ id: mesa.id, numero: mesa.numero })}>Eliminar mesa</button>
+              <button className="mesa-btn mesa-btn--danger" onClick={() => setConfirmarEliminar({ id: mesa.id, numero: mesa.numero })}>
+                Eliminar mesa
+              </button>
             </div>
 
           </div>
         )}
       </div>
+
+      {/* Modal: Abrir mesa */}
+      {showAbrirModal && (
+        <div className="mesas-modal-overlay" onClick={() => setShowAbrirModal(null)}>
+          <div className="mesas-modal" onClick={e => e.stopPropagation()}>
+            <h3 className="mesas-modal-title">Abrir mesa {zona?.mesas.find(m => m.id === showAbrirModal)?.numero}</h3>
+            <p className="mesas-modal-sub">Ingresá los datos para iniciar el pedido.</p>
+            <label className="mesas-modal-field-label">Personas</label>
+            <div className="mesas-cantidad-wrap">
+              <button className="mesas-cantidad-btn" onClick={() => setPersonasMesa(v => Math.max(1, v - 1))}>−</button>
+              <input
+                className="mesas-cantidad-input"
+                type="number"
+                min="1"
+                max="50"
+                value={personasMesa}
+                onChange={e => setPersonasMesa(Math.max(1, parseInt(e.target.value) || 1))}
+              />
+              <button className="mesas-cantidad-btn" onClick={() => setPersonasMesa(v => Math.min(50, v + 1))}>+</button>
+            </div>
+            <div className="mesas-modal-actions">
+              <button className="mesa-btn mesa-btn--secondary" onClick={() => setShowAbrirModal(null)}>Cancelar</button>
+              <button className="mesa-btn mesa-btn--primary" onClick={abrirMesaConDatos}>Abrir mesa</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Cerrar pedido / Pago */}
+      {showPagoModal && (
+        <div className="mesas-modal-overlay" onClick={() => setShowPagoModal(null)}>
+          <div className="mesas-modal mesas-modal--pago" onClick={e => e.stopPropagation()}>
+            <h3 className="mesas-modal-title">Cerrar pedido — Mesa {showPagoModal.numero}</h3>
+
+            {mesaPago?.items?.length > 0 && (
+              <div className="pago-items">
+                {mesaPago.items.map((item, i) => (
+                  <div key={i} className="pago-item">
+                    <span>{item.cantidad}× {item.nombre}</span>
+                    <span>${(item.precio * item.cantidad).toLocaleString('es-AR')}</span>
+                  </div>
+                ))}
+                <div className="pago-total-row">
+                  <span>TOTAL</span>
+                  <strong>${totalPago.toLocaleString('es-AR')}</strong>
+                </div>
+              </div>
+            )}
+
+            <label className="mesas-modal-field-label" style={{ marginTop: 12, display: 'block' }}>Medio de pago</label>
+            <div className="pago-metodos">
+              {METODOS_PAGO.map(m => (
+                <button
+                  key={m}
+                  className={`pago-metodo-btn${metodoPago === m ? ' pago-metodo-btn--active' : ''}`}
+                  onClick={() => setMetodoPago(m)}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+
+            {metodoPago === 'Efectivo' && (
+              <div style={{ marginTop: 12 }}>
+                <label className="mesas-modal-field-label">Monto recibido</label>
+                <input
+                  className="mesas-modal-input"
+                  type="number"
+                  placeholder={`Mínimo $${totalPago.toLocaleString('es-AR')}`}
+                  value={montoPago}
+                  onChange={e => setMontoPago(e.target.value)}
+                  style={{ marginBottom: 0 }}
+                  autoFocus
+                />
+                {montoPago && (
+                  <div className="pago-vuelto">
+                    Vuelto: <strong>${vuelto.toLocaleString('es-AR')}</strong>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="mesas-modal-actions" style={{ marginTop: 16 }}>
+              <button className="mesa-btn mesa-btn--secondary" onClick={() => setShowPagoModal(null)}>Cancelar</button>
+              <button className="mesa-btn mesa-btn--confirm-danger" onClick={() => cerrarMesa(showPagoModal.mesaId)}>
+                Cerrar Pedido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal agregar mesas */}
       {showAgregarMesas && (
@@ -597,20 +759,6 @@ export default function Mesas({ productos = [], categorias = [] }) {
         </div>
       )}
 
-      {/* Modal confirmar cerrar mesa */}
-      {confirmarCerrar !== null && (
-        <div className="mesas-modal-overlay" onClick={() => setConfirmarCerrar(null)}>
-          <div className="mesas-modal" onClick={e => e.stopPropagation()}>
-            <h3 className="mesas-modal-title">¿Cerrar mesa {confirmarCerrar.numero}?</h3>
-            <p className="mesas-modal-sub">Se registrará la venta y se liberará la mesa.</p>
-            <div className="mesas-modal-actions">
-              <button className="mesa-btn mesa-btn--secondary" onClick={() => setConfirmarCerrar(null)}>Cancelar</button>
-              <button className="mesa-btn mesa-btn--confirm-danger" onClick={() => cerrarMesa(confirmarCerrar.id)}>Sí, cerrar</button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Modal confirmar eliminar mesa */}
       {confirmarEliminar !== null && (
         <div className="mesas-modal-overlay" onClick={() => setConfirmarEliminar(null)}>
@@ -621,43 +769,6 @@ export default function Mesas({ productos = [], categorias = [] }) {
               <button className="mesa-btn mesa-btn--secondary" onClick={() => setConfirmarEliminar(null)}>Cancelar</button>
               <button className="mesa-btn mesa-btn--confirm-danger" onClick={() => eliminarMesa(confirmarEliminar.id)}>Sí, eliminar</button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal selector de productos */}
-      {showSelector && (
-        <div className="mesas-modal-overlay">
-          <div className="mesas-modal mesas-modal--selector">
-            <h3 className="mesas-modal-title">Agregar producto — Mesa {mesa?.numero}</h3>
-
-            <div className="selector-cats">
-              <button
-                className={`selector-cat ${catSelector === null ? 'selector-cat--active' : ''}`}
-                onClick={() => setCatSelector(null)}
-              >Todos</button>
-              {categorias.map(c => (
-                <button
-                  key={c.id}
-                  className={`selector-cat ${catSelector === c.id ? 'selector-cat--active' : ''}`}
-                  onClick={() => setCatSelector(c.id)}
-                >{c.nombre}</button>
-              ))}
-            </div>
-
-            <div className="selector-productos">
-              {productos
-                .filter(p => catSelector === null || p.categoriaId === catSelector)
-                .map(p => (
-                  <button key={p.id} className="selector-prod" onClick={() => agregarProductoAlPedido(p)}>
-                    <span className="selector-prod-nombre">{p.nombre}</span>
-                    <span className="selector-prod-precio">${p.precio.toLocaleString('es-AR')}</span>
-                  </button>
-                ))
-              }
-            </div>
-
-            <button className="mesa-btn mesa-btn--secondary" style={{ marginTop: 12 }} onClick={() => setShowSelector(false)}>Cerrar</button>
           </div>
         </div>
       )}
