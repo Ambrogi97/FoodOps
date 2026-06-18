@@ -389,4 +389,6 @@
 @media (max-width: 768px) {
   .stock-layout { flex-direction: column; height: auto; }
   .stock-table-wrap { overflow-x: auto; }
+  .stock-table { min-width: 520px; }
+  .stock-resumen { overflow-x: auto; flex-wrap: nowrap; }
 }

@@ -517,8 +517,24 @@
   min-height: 80px;
 }
 
+@media (max-width: 900px) {
+  .prov-body { grid-template-columns: 1fr; }
+  .prov-sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    max-height: 260px;
+  }
+  .prov-list { max-height: 180px; }
+}
+
 @media (max-width: 768px) {
+  .prov-body { overflow-y: auto; }
   .prov-panel { overflow-x: auto; }
+  .prov-detalle { padding: 20px; }
+  .prov-info-grid { grid-template-columns: 1fr; }
   .prov-form-row { grid-template-columns: 1fr; }
   .prov-modal { max-width: calc(100vw - 32px); padding: 20px; }
+  .prov-modal-actions { flex-wrap: wrap; }
+  .prov-detalle-hero { flex-wrap: wrap; }
+  .prov-detalle-btns { width: 100%; justify-content: flex-end; }
 }

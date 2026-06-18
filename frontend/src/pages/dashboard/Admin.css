@@ -209,3 +209,8 @@
 /* Empty / loading */
 .adm-loading   { text-align: center; padding: 40px; color: var(--text-muted); }
 .adm-empty-row { text-align: center; color: var(--text-muted); padding: 32px !important; }
+
+@media (max-width: 768px) {
+  .adm-table { min-width: 560px; }
+  .adm-stats { gap: 12px; padding: 12px 16px; }
+}

@@ -48,3 +48,14 @@
   color: var(--text-muted);
   font-size: 1rem;
 }
+
+@media (max-width: 640px) {
+  .restaurante-tabs {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .restaurante-tabs::-webkit-scrollbar { display: none; }
+  .restaurante-tab { padding: 8px 14px; font-size: 0.82rem; }
+}

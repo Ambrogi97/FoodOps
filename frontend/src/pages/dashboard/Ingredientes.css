@@ -250,4 +250,10 @@
   .ing-layout { flex-direction: column; height: auto; }
   .ing-table-wrap { overflow-x: auto; }
   .ing-table { min-width: 480px; }
+  .ing-modal { max-width: calc(100vw - 32px); }
+}
+
+@media (max-width: 480px) {
+  .ing-toolbar { flex-wrap: wrap; }
+  .ing-form-row { flex-direction: column; gap: 10px; }
 }

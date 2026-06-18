@@ -184,5 +184,7 @@
 @media (max-width: 768px) {
   .ventas-layout { flex-direction: column; height: auto; }
   .ventas-table-wrap { overflow-x: auto; }
+  .ventas-table { min-width: 500px; }
   .ventas-filtros { flex-wrap: wrap; }
+  .ventas-resumen { width: 100%; justify-content: center; }
 }

@@ -309,6 +309,7 @@
 @media (max-width: 768px) {
   .gastos-layout { flex-direction: column; height: auto; }
   .gastos-table-wrap { overflow-x: auto; }
+  .gastos-table { min-width: 460px; }
   .gastos-toolbar { flex-wrap: wrap; }
   .gastos-form-row { flex-direction: column; gap: 10px; }
 }
