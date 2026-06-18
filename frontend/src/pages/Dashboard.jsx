@@ -22,7 +22,6 @@ import Configuracion from './dashboard/Configuracion'
 import './Dashboard.css'
 
 const NAV_ITEMS = [
-  { id: 'mesas',        label: 'Mesas',        Icon: Armchair },
   { id: 'restaurante',  label: 'Restaurante',  Icon: UtensilsCrossed },
   { id: 'pedidos',      label: 'Pedidos',       Icon: Receipt },
   { id: 'productos',    label: 'Productos',     Icon: UtensilsCrossed },
@@ -169,8 +168,7 @@ export default function Dashboard() {
         {/* Content */}
         <main className="dash-content">
 
-          {active === 'mesas'        && <Mesas productos={productos} categorias={categorias} />}
-          {active === 'restaurante'  && <Restaurante />}
+          {active === 'restaurante'  && <Restaurante productos={productos} categorias={categorias} />}
           {active === 'productos'    && (
             <Productos
               productos={productos} setProductos={setProductos}
