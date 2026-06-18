@@ -4,6 +4,56 @@
   height: 100%;
 }
 
+.mesas-layout--col {
+  flex-direction: column;
+  gap: 0;
+}
+
+.mesas-layout--inner {
+  flex: 1;
+  display: flex;
+  gap: 20px;
+  min-height: 0;
+}
+
+.mesas-subtabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.mesas-subtab {
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.mesas-subtab:hover { color: var(--text); }
+
+.mesas-subtab--active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.mesas-placeholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
 /* Izquierda */
 .mesas-left {
   flex: 1;
