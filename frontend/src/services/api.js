@@ -238,3 +238,12 @@ export const configService = {
   uploadPortada:  async (file) => uploadFile('/api/config/tienda/portada', 'portada', file),
   deletePortada:  async ()     => request('/api/config/tienda/portada', { method: 'DELETE' }),
 }
+
+// ── Mostrador ────────────────────────────────────────────────────────────────
+export const mostradorService = {
+  listar:     async ()        => request('/api/mostrador'),
+  crear:      async (data)    => request('/api/mostrador', { method: 'POST', body: JSON.stringify(data) }),
+  actualizar: async (id, data) => request(`/api/mostrador/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  eliminar:   async (id)      => request(`/api/mostrador/${id}`, { method: 'DELETE' }),
+}
+

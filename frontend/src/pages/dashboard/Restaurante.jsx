@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Mesas from './Mesas'
-import Mostrador from './Pedidos'
+import Mostrador from './Mostrador'
 import './Restaurante.css'
 
 const TABS = [
@@ -29,7 +29,7 @@ export default function Restaurante({ productos = [], categorias = [] }) {
 
       <div className="restaurante-content">
         {tab === 'mesas'     && <Mesas productos={productos} categorias={categorias} />}
-        {tab === 'mostrador' && <Mostrador />}
+        {tab === 'mostrador' && <Mostrador productos={productos} />}
         {(tab === 'delivery' || tab === 'mostrador-rapido') && <p className="restaurante-placeholder">Próximamente</p>}
       </div>
     </div>
