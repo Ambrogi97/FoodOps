@@ -70,6 +70,18 @@
   gap: 8px;
 }
 
+.mesas-tabs-scroll {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.mesas-tabs-scroll::-webkit-scrollbar { display: none; }
+
 .mesas-tabs {
   display: flex;
   gap: 4px;
@@ -219,7 +231,7 @@
 }
 
 .mesas-add-mesa {
-  margin-left: auto;
+  flex-shrink: 0;
   padding: 7px 16px;
   background: var(--primary);
   border: none;
@@ -956,20 +968,17 @@
 @media (max-width: 768px) {
   .mesas-layout { flex-direction: column; gap: 8px; }
   .mesas-left { overflow-x: hidden; }
-  .mesas-tabs-row { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .mesas-tabs { flex-wrap: nowrap; width: max-content; }
   .mesas-grid-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .mesas-grid { width: 100%; }
   .mesas-leyenda-hint { display: none; }
   .mesas-leyenda { flex-wrap: wrap; gap: 8px; }
-  .mesas-add-mesa { margin-left: 0; }
   .mesas-resumen { width: 100%; justify-content: center; }
 }
 
 @media (max-width: 480px) {
   .mesas-resumen-item { padding: 0 10px; }
-  .mesas-tabs-row { gap: 4px; }
-  .mesas-add-mesa { width: 100%; justify-content: center; }
+  .mesas-add-mesa { font-size: 0.78rem; padding: 6px 12px; }
   .mesas-modal { max-width: calc(100vw - 32px); padding: 20px; }
   .mesas-modal--selector { max-width: calc(100vw - 32px); }
   .selector-productos { grid-template-columns: 1fr; }

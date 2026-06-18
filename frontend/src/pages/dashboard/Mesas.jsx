@@ -412,19 +412,22 @@ export default function Mesas({ productos = [], categorias = [] }) {
 
         {/* Tabs */}
         <div className="mesas-tabs-row">
-          <div className="mesas-tabs">
-            {zonas.map(z => (
-              <div key={z.id} className={`mesas-tab-wrap ${zonaActiva === z.id ? 'mesas-tab-wrap--active' : ''}`}>
-                <button className="mesas-tab" onClick={() => { setZonaActiva(z.id); setSelected(null) }}>
-                  {z.label}
-                </button>
-                {z.removible && (
-                  <button className="mesas-tab-remove" onClick={() => eliminarZona(z.id)}>×</button>
-                )}
-              </div>
-            ))}
+          <div className="mesas-tabs-scroll">
+            <div className="mesas-tabs">
+              {zonas.map(z => (
+                <div key={z.id} className={`mesas-tab-wrap ${zonaActiva === z.id ? 'mesas-tab-wrap--active' : ''}`}>
+                  <button className="mesas-tab" onClick={() => { setZonaActiva(z.id); setSelected(null) }}>
+                    {z.label}
+                  </button>
+                  {z.removible && (
+                    <button className="mesas-tab-remove" onClick={() => eliminarZona(z.id)}>×</button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button className="mesas-add-zona" onClick={() => setShowModal(true)} title="Agregar zona">+</button>
           </div>
-          <button className="mesas-add-zona" onClick={() => setShowModal(true)} title="Agregar zona">+</button>
+          <button className="mesas-add-mesa" onClick={() => setShowAgregarMesas(true)}>+ Mesa</button>
         </div>
 
         {/* Resumen */}
@@ -459,7 +462,6 @@ export default function Mesas({ productos = [], categorias = [] }) {
             </span>
           ))}
           <span className="mesas-leyenda-hint">Arrastrá las mesas para acomodarlas</span>
-          <button className="mesas-add-mesa" onClick={() => setShowAgregarMesas(true)}>+ Mesa</button>
         </div>
 
         {/* Grilla */}
