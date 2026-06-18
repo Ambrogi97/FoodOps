@@ -325,16 +325,9 @@
   pointer-events: none;
 }
 
-/* Derecha: panel detalle */
+/* Derecha: panel detalle — siempre como modal centrado */
 .mesas-right {
-  width: 280px;
-  min-width: 280px;
-  background: var(--surface);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
+  display: none;
 }
 
 .mesas-empty {
@@ -926,47 +919,38 @@
   to   { transform: translateY(0);    opacity: 1; }
 }
 
-/* Backdrop del bottom-sheet (oculto en desktop) */
-.mesas-backdrop { display: none; }
+/* Modal centrado para el detalle de mesa (todos los tamaños) */
+.mesas-right--open {
+  display: flex !important;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 400px;
+  max-height: 85vh;
+  overflow-y: auto;
+  border-radius: var(--radius-lg);
+  z-index: 150;
+  box-shadow: 0 8px 40px rgba(0,0,0,.28);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  flex-direction: column;
+  animation: popIn .18s ease;
+}
 
-@media (max-width: 1100px) {
-  /* Panel oculto por defecto, visible como bottom-sheet cuando hay mesa seleccionada */
-  .mesas-right {
-    display: none;
-  }
+@keyframes popIn {
+  from { transform: translate(-50%, -50%) scale(0.95); opacity: 0; }
+  to   { transform: translate(-50%, -50%) scale(1);    opacity: 1; }
+}
 
-  .mesas-right--open {
-    display: flex !important;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 380px;
-    max-height: 85vh;
-    overflow-y: auto;
-    border-radius: var(--radius-lg);
-    z-index: 150;
-    box-shadow: 0 8px 40px rgba(0,0,0,.28);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    flex-direction: column;
-    animation: popIn .18s ease;
-  }
-
-  @keyframes popIn {
-    from { transform: translate(-50%, -50%) scale(0.95); opacity: 0; }
-    to   { transform: translate(-50%, -50%) scale(1);    opacity: 1; }
-  }
-
-  /* Backdrop semitransparente detrás del bottom-sheet */
-  .mesas-backdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.4);
-    z-index: 149;
-  }
+/* Backdrop semitransparente detrás del modal */
+.mesas-backdrop {
+  display: block;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.4);
+  z-index: 149;
 }
 
 @media (max-width: 768px) {
