@@ -77,23 +77,21 @@ export default function Mostrador({ productos = [] }) {
   }
 
   const agregarItem = (prod) => {
-    const prodId = prod.id || prod._id
+    console.log('[Mostrador] agregarItem:', prod.nombre, prod.id)
     setItemsTemp(prev => {
-      const ex = prev.find(i => i.productId ? i.productId === prodId : i.nombre === prod.nombre)
-      if (ex) return prev.map(i => {
-        const match = i.productId ? i.productId === prodId : i.nombre === prod.nombre
-        return match ? { ...i, cantidad: i.cantidad + 1 } : i
-      })
-      return [...prev, { productId: prodId, nombre: prod.nombre, precio: prod.precio, cantidad: 1 }]
+      console.log('[Mostrador] prev antes:', prev.map(i => i.nombre))
+      const idx = prev.findIndex(i => i.nombre === prod.nombre)
+      if (idx >= 0) {
+        return prev.map((item, i) => i === idx ? { ...item, cantidad: item.cantidad + 1 } : item)
+      }
+      return [...prev, { nombre: prod.nombre, precio: prod.precio, cantidad: 1 }]
     })
   }
 
-  const cambiarCantidad = (productId, nombre, delta) => {
+  const cambiarCantidad = (nombre, delta) => {
     setItemsTemp(prev =>
-      prev.map(i => {
-        const match = productId ? i.productId === productId : i.nombre === nombre
-        return match ? { ...i, cantidad: i.cantidad + delta } : i
-      }).filter(i => i.cantidad > 0)
+      prev.map(i => i.nombre === nombre ? { ...i, cantidad: i.cantidad + delta } : i)
+        .filter(i => i.cantidad > 0)
     )
   }
 
@@ -275,6 +273,7 @@ export default function Mostrador({ productos = [] }) {
               </button>
               <span className="most-panel-title">
                 {creando ? 'Nuevo pedido' : `Pedido #${panelPedido?.numero}`}
+                {' '}<span style={{fontSize:'0.7rem',opacity:0.6}}>({itemsTemp.length})</span>
               </span>
               {panelPedido && !esCerrado && (
                 <button className="most-panel-delete" onClick={() => eliminar(panelPedido._id)} title="Eliminar pedido">
@@ -305,13 +304,13 @@ export default function Mostrador({ productos = [] }) {
                       <span className="most-item-nombre">{it.nombre}</span>
                       <div className="most-item-qty">
                         {!esCerrado && (
-                          <button className="most-qty-btn" onClick={() => cambiarCantidad(it.productId, it.nombre, -1)}>
+                          <button className="most-qty-btn" onClick={() => cambiarCantidad(it.nombre, -1)}>
                             <Minus size={11} />
                           </button>
                         )}
                         <span>{it.cantidad}</span>
                         {!esCerrado && (
-                          <button className="most-qty-btn" onClick={() => cambiarCantidad(it.productId, it.nombre, 1)}>
+                          <button className="most-qty-btn" onClick={() => cambiarCantidad(it.nombre, 1)}>
                             <Plus size={11} />
                           </button>
                         )}
