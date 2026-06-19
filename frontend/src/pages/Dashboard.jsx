@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { getSession, clearSession, categoriasService, productosService, pedidosOnlineService } from '../services/api'
 import {
   Armchair, Receipt, UtensilsCrossed, FlaskConical, Package,
-  Truck, DollarSign, BarChart2, Calculator, Smartphone, LogOut, ShieldCheck, Settings,
+  Truck, DollarSign, BarChart2, Calculator, Smartphone, LogOut, ShieldCheck, Settings, Monitor,
 } from 'lucide-react'
 import Logo from '../components/Logo'
 import Mesas from './dashboard/Mesas'
 import Restaurante from './dashboard/Restaurante'
+import MonitorCocina from './dashboard/MonitorCocina'
 import Productos from './dashboard/Productos'
 import Ingredientes from './dashboard/Ingredientes'
 import Ventas from './dashboard/Ventas'
@@ -21,7 +22,8 @@ import Configuracion from './dashboard/Configuracion'
 import './Dashboard.css'
 
 const NAV_ITEMS = [
-  { id: 'restaurante',  label: 'Restaurante',  Icon: UtensilsCrossed },
+  { id: 'restaurante',     label: 'Restaurante',      Icon: UtensilsCrossed },
+  { id: 'monitor-cocina',  label: 'Monitor de Cocina', Icon: Monitor },
   { id: 'productos',    label: 'Productos',     Icon: UtensilsCrossed },
   { id: 'ingredientes', label: 'Ingredientes',  Icon: FlaskConical },
   { id: 'stock',        label: 'Stock',         Icon: Package },
@@ -160,7 +162,7 @@ export default function Dashboard() {
               <span /><span /><span />
             </button>
             <div>
-              <h1 className="dash-header-title">{active === 'admin' ? 'Admin' : NAV_ITEMS.find(i => i.id === active)?.label}</h1>
+              <h1 className="dash-header-title">{active === 'admin' ? 'Admin' : (NAV_ITEMS.find(i => i.id === active)?.label ?? '')}</h1>
               <p className="dash-header-sub">{user.restaurante}</p>
             </div>
           </div>
@@ -172,7 +174,8 @@ export default function Dashboard() {
         {/* Content */}
         <main className="dash-content">
 
-          {active === 'restaurante' && <Restaurante productos={productos} categorias={categorias} onIrAConfiguracion={irAConfiguracion} />}
+          {active === 'restaurante'    && <Restaurante productos={productos} categorias={categorias} onIrAConfiguracion={irAConfiguracion} />}
+          {active === 'monitor-cocina' && <MonitorCocina />}
           {active === 'productos'   && (
             <Productos
               productos={productos} setProductos={setProductos}
