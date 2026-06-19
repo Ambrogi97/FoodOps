@@ -38,8 +38,9 @@ router.post('/', auth, async (req, res) => {
 
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { estado, col, row, hora, items, personas } = req.body
+    const { estado, col, row, hora, items, personas, numero } = req.body
     const update = {}
+    if (numero   !== undefined) update.numero   = numero
     if (estado   !== undefined) update.estado   = estado
     if (col      !== undefined) update.col      = col
     if (row      !== undefined) update.row      = row

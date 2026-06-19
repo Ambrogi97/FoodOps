@@ -125,11 +125,15 @@ export default function ConfigSalasYMesas() {
 
   // Eliminar mesa
   const eliminarMesa = async (id) => {
+    if (!window.confirm('¿Eliminar esta mesa?')) return
     try {
       await mesasService.eliminar(id)
-      await recargar()
       setMesasSel(null)
-    } catch (e) { console.error(e) }
+      await recargar()
+    } catch (e) {
+      console.error(e)
+      alert('Error al eliminar: ' + (e.message || e))
+    }
   }
 
   // Agregar mesas nuevas
