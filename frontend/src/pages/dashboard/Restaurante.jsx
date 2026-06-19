@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Mesas from './Mesas'
 import Mostrador from './Mostrador'
+import Delivery from './Delivery'
 import './Restaurante.css'
 
 const TABS = [
@@ -30,7 +31,8 @@ export default function Restaurante({ productos = [], categorias = [], onIrAConf
       <div className="restaurante-content">
         {tab === 'mesas'     && <Mesas productos={productos} categorias={categorias} onIrAConfiguracion={onIrAConfiguracion} />}
         {tab === 'mostrador' && <Mostrador productos={productos} />}
-        {(tab === 'delivery' || tab === 'mostrador-rapido') && <p className="restaurante-placeholder">Próximamente</p>}
+        {tab === 'delivery'  && <Delivery productos={productos} />}
+        {tab === 'mostrador-rapido' && <p className="restaurante-placeholder">Próximamente</p>}
       </div>
     </div>
   )

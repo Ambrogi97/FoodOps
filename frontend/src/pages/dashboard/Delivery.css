@@ -1,0 +1,442 @@
+/* ── Layout ── */
+.del-layout {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.del-loading {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* ── Panel izquierdo ── */
+.del-left {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.del-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.del-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0;
+  color: var(--text);
+}
+
+.del-btn-nuevo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  background: #f97316;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.del-btn-nuevo:hover { opacity: 0.85; }
+
+.del-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ── Secciones ── */
+.del-section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.del-section-icon { font-style: normal; }
+
+.del-section--orange .del-section-title { color: #f97316; }
+.del-section--blue   .del-section-title { color: #3b82f6; }
+.del-section--gris   .del-section-title { color: #6b7280; }
+.del-section--green  .del-section-title { color: #16a34a; }
+
+.del-table-wrap {
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.del-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  min-width: 520px;
+}
+
+.del-table thead tr { font-size: 0.75rem; color: #fff; }
+.del-section--orange .del-table thead tr { background: #f97316; }
+.del-section--blue   .del-table thead tr { background: #3b82f6; }
+.del-section--gris   .del-table thead tr { background: #6b7280; }
+.del-section--green  .del-table thead tr { background: #16a34a; }
+
+.del-table th {
+  padding: 8px 10px;
+  text-align: left;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.del-row {
+  cursor: pointer;
+  transition: background 0.12s;
+  border-bottom: 1px solid var(--border);
+}
+.del-row:last-child { border-bottom: none; }
+.del-row:hover { background: var(--surface-hover, rgba(0,0,0,0.03)); }
+.del-row--active { background: rgba(249,115,22,0.08) !important; }
+
+.del-row td { padding: 9px 10px; vertical-align: middle; }
+
+.del-td-id    { font-weight: 700; }
+.del-td-dir   { max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.del-td-total { font-weight: 600; text-align: right; white-space: nowrap; }
+
+.del-empty-row {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 16px !important;
+  font-size: 0.82rem;
+}
+
+.del-btn-mas {
+  margin-top: 8px;
+  padding: 7px 18px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: block;
+}
+.del-btn-mas:hover { background: var(--surface); }
+
+/* ── Panel derecho ── */
+.del-right {
+  width: 380px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-left: 1px solid var(--border);
+  background: var(--surface, #f9fafb);
+}
+
+.del-right-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.del-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Header naranja */
+.del-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #f97316;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.del-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  color: #fff;
+}
+.del-back:hover { background: rgba(255,255,255,0.15); }
+
+.del-panel-title {
+  flex: 1;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+}
+
+.del-estado-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.5);
+  color: #fff;
+  white-space: nowrap;
+}
+
+.del-panel-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  color: #fff;
+}
+.del-panel-delete:hover { background: rgba(255,255,255,0.15); }
+
+/* Confirmación eliminar */
+.del-panel-header--confirm {
+  background: #fef2f2 !important;
+  border-bottom: 1px solid #fecaca;
+  color: #b91c1c !important;
+}
+.del-confirm-text { flex: 1; font-size: 0.85rem; font-weight: 600; color: #b91c1c; }
+.del-confirm-btn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.del-confirm-btn--cancel { background: #fff; border-color: #d1d5db; color: #374151; }
+.del-confirm-btn--cancel:hover { background: #f3f4f6; }
+.del-confirm-btn--danger { background: #ef4444; color: #fff; }
+.del-confirm-btn--danger:hover { opacity: 0.85; }
+
+/* Body */
+.del-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.del-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.del-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.del-field label, .del-field-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.del-input {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--bg, #fff);
+  color: var(--text);
+  font-size: 0.85rem;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+.del-input:focus { outline: none; border-color: #f97316; box-shadow: 0 0 0 2px rgba(249,115,22,0.12); }
+.del-input:disabled { opacity: 0.55; cursor: not-allowed; background: var(--surface); }
+.del-select { appearance: auto; cursor: pointer; }
+
+.del-input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+/* Selector productos */
+.del-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.del-prods-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.del-prod {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--bg, #fff);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.12s, background 0.12s;
+}
+.del-prod:hover { border-color: #f97316; background: rgba(249,115,22,0.04); }
+.del-prod-nombre { font-size: 0.78rem; font-weight: 500; color: var(--text); }
+.del-prod-precio { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+.del-prod-empty  { grid-column: 1/-1; text-align: center; color: var(--text-muted); font-size: 0.82rem; padding: 10px; }
+
+/* Items */
+.del-items {
+  flex-shrink: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg, #fff);
+}
+
+.del-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.del-item:last-child { border-bottom: none; }
+.del-item--envio { background: var(--surface, #f9fafb); }
+
+.del-item-nombre { flex: 1; font-size: 0.82rem; color: var(--text); }
+.del-item-qty {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.del-qty-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text);
+}
+.del-qty-btn:hover { background: var(--surface-hover, rgba(0,0,0,0.05)); }
+.del-item-qty span { font-size: 0.82rem; font-weight: 600; min-width: 18px; text-align: center; }
+.del-item-precio   { font-size: 0.82rem; font-weight: 600; min-width: 60px; text-align: right; }
+
+.del-items-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 14px;
+  background: var(--surface, #f9fafb);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Footer */
+.del-panel-footer {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+
+.del-btn-guardar {
+  flex: 1;
+  padding: 9px 14px;
+  background: #f97316;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.del-btn-guardar:disabled { opacity: 0.4; cursor: not-allowed; }
+.del-btn-guardar:not(:disabled):hover { opacity: 0.85; }
+
+.del-btn-estado {
+  flex: 1;
+  padding: 9px 12px;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.del-btn-estado:disabled { opacity: 0.4; cursor: not-allowed; }
+.del-btn-estado:not(:disabled):hover { opacity: 0.85; }
+.del-btn-estado--orange { background: #3b82f6; }
+.del-btn-estado--blue   { background: #6b7280; }
+.del-btn-estado--gris   { background: #22c55e; }
+
+/* ── Responsive ── */
+@media (max-width: 1000px) {
+  .del-right { width: 320px; }
+}
+
+@media (max-width: 768px) {
+  .del-layout { flex-direction: column; overflow-y: auto; height: auto; }
+  .del-left   { overflow-y: visible; }
+  .del-right  { width: 100%; height: auto; min-height: 400px; border-left: none; border-top: 1px solid var(--border); }
+  .del-panel  { height: auto; }
+  .del-prods-grid { max-height: none; }
+  .del-form-grid  { grid-template-columns: 1fr; }
+}

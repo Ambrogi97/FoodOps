@@ -240,6 +240,14 @@ export const configService = {
   deletePortada:  async ()     => request('/api/config/tienda/portada', { method: 'DELETE' }),
 }
 
+// ── Delivery ─────────────────────────────────────────────────────────────────
+export const deliveryService = {
+  listar:     async ()         => request('/api/delivery'),
+  crear:      async (data)     => request('/api/delivery', { method: 'POST', body: JSON.stringify(data) }),
+  actualizar: async (id, data) => request(`/api/delivery/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  eliminar:   async (id)       => request(`/api/delivery/${id}`, { method: 'DELETE' }),
+}
+
 // ── Mostrador ────────────────────────────────────────────────────────────────
 export const mostradorService = {
   listar:     async ()        => request('/api/mostrador'),

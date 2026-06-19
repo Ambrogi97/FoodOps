@@ -18,6 +18,7 @@ const pedidosOnlineRoutes  = require('./routes/pedidosOnline')
 const adminRoutes          = require('./routes/admin')
 const configRoutes         = require('./routes/config')
 const mostradorRoutes      = require('./routes/mostrador')
+const deliveryRoutes       = require('./routes/delivery')
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -44,6 +45,7 @@ app.use('/api/pedidos-online', pedidosOnlineRoutes)
 app.use('/api/admin',          adminRoutes)
 app.use('/api/config',         configRoutes)
 app.use('/api/mostrador',      mostradorRoutes)
+app.use('/api/delivery',       deliveryRoutes)
 
 app.get('/', (req, res) => {
   res.json({ message: 'FoodOps API running' })
