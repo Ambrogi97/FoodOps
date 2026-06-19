@@ -52,13 +52,48 @@ const EMPTY_DESC = { nombre: '', tipo: 'sin_importe', valor: '', estado: 'activo
 // Tab Ventas
 // ══════════════════════════════════════════════════════════════════════════════
 function TabVentas({ ventas, cargando }) {
-  const [periodo, setPeriodo]       = useState('hoy')
+  const [periodo, setPeriodo]             = useState('hoy')
+  const [diaFiltro, setDiaFiltro]         = useState('')
+  const [mesFiltro, setMesFiltro]         = useState('')
+  const [anioFiltro, setAnioFiltro]       = useState('')
   const [filtroEstado, setFiltroEstado]   = useState('')
   const [filtroMetodo, setFiltroMetodo]   = useState('')
-  const [masInfo, setMasInfo]       = useState(false)
-  const [selected, setSelected]     = useState(null)
+  const [masInfo, setMasInfo]             = useState(false)
+  const [selected, setSelected]           = useState(null)
 
-  const { desde, hasta } = calcRango(periodo)
+  const modoCustom = diaFiltro || mesFiltro || anioFiltro
+
+  const getRango = () => {
+    if (modoCustom) {
+      const y = Number(anioFiltro) || new Date().getFullYear()
+      const m = Number(mesFiltro)  || null
+      const d = Number(diaFiltro)  || null
+      if (d && m) {
+        const desde = new Date(y, m - 1, d)
+        return { desde, hasta: new Date(desde.getTime() + 86_400_000) }
+      }
+      if (m) return { desde: new Date(y, m - 1, 1), hasta: new Date(y, m, 1) }
+      return { desde: new Date(y, 0, 1), hasta: new Date(y + 1, 0, 1) }
+    }
+    return calcRango(periodo)
+  }
+
+  const handlePill = p => {
+    setPeriodo(p); setDiaFiltro(''); setMesFiltro(''); setAnioFiltro(''); setSelected(null)
+  }
+
+  const handleFecha = (tipo, val) => {
+    if (tipo === 'dia')  setDiaFiltro(val)
+    if (tipo === 'mes')  setMesFiltro(val)
+    if (tipo === 'anio') setAnioFiltro(val)
+    if (val) setPeriodo('')
+  }
+
+  const anoActual = new Date().getFullYear()
+  const ANOS = Array.from({ length: 4 }, (_, i) => anoActual - 2 + i)
+  const MESES = ['Ene.','Feb.','Mar.','Abr.','May.','Jun.','Jul.','Ago.','Sep.','Oct.','Nov.','Dic.']
+
+  const { desde, hasta } = getRango()
 
   const ventasFiltradas = ventas.filter(v => {
     const f = parseVentaDate(v.inicio)
@@ -97,11 +132,41 @@ function TabVentas({ ventas, cargando }) {
             {[['hoy', 'Hoy'], ['semana', 'Esta semana'], ['mes', 'Este mes']].map(([v, l]) => (
               <button
                 key={v}
-                className={`ventas-pill${periodo === v ? ' ventas-pill--active' : ''}`}
-                onClick={() => { setPeriodo(v); setSelected(null) }}
+                className={`ventas-pill${periodo === v && !modoCustom ? ' ventas-pill--active' : ''}`}
+                onClick={() => handlePill(v)}
               >{l}</button>
             ))}
           </div>
+
+          <div className="ventas-date-row">
+            <select
+              className={`ventas-select ventas-select--date${diaFiltro ? ' ventas-select--active' : ''}`}
+              value={diaFiltro}
+              onChange={e => handleFecha('dia', e.target.value)}
+            >
+              <option value="">Día</option>
+              {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+            <select
+              className={`ventas-select ventas-select--date${mesFiltro ? ' ventas-select--active' : ''}`}
+              value={mesFiltro}
+              onChange={e => handleFecha('mes', e.target.value)}
+            >
+              <option value="">Mes</option>
+              {MESES.map((m, i) => <option key={i + 1} value={i + 1}>{m}</option>)}
+            </select>
+            <select
+              className={`ventas-select ventas-select--date${anioFiltro ? ' ventas-select--active' : ''}`}
+              value={anioFiltro}
+              onChange={e => handleFecha('anio', e.target.value)}
+            >
+              <option value="">Año</option>
+              {ANOS.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
+
           <div className="ventas-selects">
             <select className="ventas-select" value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}>
               <option value="">Estado de Venta</option>
