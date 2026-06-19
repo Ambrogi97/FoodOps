@@ -123,19 +123,13 @@ export default function ConfigSalasYMesas() {
     finally { setGuardandoMesa(false) }
   }
 
-  // Eliminar mesa
+  // Eliminar mesa (el backend renumera automáticamente)
   const eliminarMesa = async () => {
     if (!mesasSel) return
     if (!window.confirm(`¿Eliminar la mesa ${mesasSel.numero}?`)) return
-    const { id, numero } = mesasSel
     try {
-      await mesasService.eliminar(id)
+      await mesasService.eliminar(mesasSel.id)
       setMesasSel(null)
-      // Renumerar hacia abajo las mesas con número mayor
-      const superiores = zonas.flatMap(z => z.mesas).filter(m => m.id !== id && m.numero > numero)
-      if (superiores.length > 0) {
-        await Promise.all(superiores.map(m => mesasService.actualizar(m.id, { numero: m.numero - 1 })))
-      }
       await recargar()
     } catch (e) {
       console.error('Error eliminarMesa:', e)

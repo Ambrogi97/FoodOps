@@ -63,6 +63,10 @@ router.delete('/:id', auth, async (req, res) => {
   try {
     const mesa = await Mesa.findOneAndDelete({ _id: req.params.id, usuario: req.usuario.id })
     if (!mesa) return res.status(404).json({ message: 'Mesa no encontrada' })
+    await Mesa.updateMany(
+      { usuario: req.usuario.id, numero: { $gt: mesa.numero } },
+      { $inc: { numero: -1 } }
+    )
     res.json({ message: 'Mesa eliminada' })
   } catch (e) {
     res.status(500).json({ message: e.message })
