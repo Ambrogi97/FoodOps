@@ -90,7 +90,7 @@ function TabVentas({ ventas, cargando }) {
   }
 
   const anoActual = new Date().getFullYear()
-  const ANOS = Array.from({ length: 4 }, (_, i) => anoActual - 2 + i)
+  const ANOS = Array.from({ length: 10 }, (_, i) => anoActual - 4 + i)
   const MESES = ['Ene.','Feb.','Mar.','Abr.','May.','Jun.','Jul.','Ago.','Sep.','Oct.','Nov.','Dic.']
 
   const { desde, hasta } = getRango()
