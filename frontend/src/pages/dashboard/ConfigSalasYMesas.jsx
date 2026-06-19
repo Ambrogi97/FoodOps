@@ -62,11 +62,9 @@ export default function ConfigSalasYMesas() {
 
   const zona = zonas.find(z => z.id === zonaActiva)
 
-  // Grid de posiciones
-  const maxCol = zona ? Math.max(0, ...zona.mesas.map(m => m.col)) : 0
-  const maxRow = zona ? Math.max(0, ...zona.mesas.map(m => m.row)) : 0
-  const displayCols = Math.max(6, Math.min(COLS, maxCol + 3))
-  const displayRows = Math.max(5, Math.min(ROWS, maxRow + 3))
+  // Grid fijo para que las mesas no crezcan al eliminar
+  const displayCols = COLS
+  const displayRows = ROWS
   const celdas = []
   for (let row = 1; row <= displayRows; row++) {
     for (let col = 1; col <= displayCols; col++) {
