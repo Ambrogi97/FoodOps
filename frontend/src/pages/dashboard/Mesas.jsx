@@ -473,7 +473,6 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
               {val.label}
             </span>
           ))}
-          <span className="mesas-leyenda-hint">Arrastrá las mesas para acomodarlas</span>
         </div>
 
         {/* Grilla */}
@@ -488,14 +487,8 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
               >
                 {m && (
                   <div
-                    className={`mesa-card mesa-card--${m.estado} ${selected === m.id ? 'mesa-card--selected' : ''} ${draggingId === m.id ? 'mesa-card--dragging' : ''}`}
-                    style={{ touchAction: 'none', userSelect: 'none', pointerEvents: draggingId === m.id ? 'none' : 'auto' }}
-                    onPointerDown={e => handlePointerDown(e, m.id)}
-                    onPointerMove={handlePointerMove}
-                    onPointerUp={handlePointerUp}
-                    onPointerCancel={handlePointerCancel}
+                    className={`mesa-card mesa-card--${m.estado} ${selected === m.id ? 'mesa-card--selected' : ''}`}
                     onClick={() => {
-                      if (wasDraggedRef.current) { wasDraggedRef.current = false; return }
                       setSelected(selected === m.id ? null : m.id)
                       setSearchProducto('')
                     }}
