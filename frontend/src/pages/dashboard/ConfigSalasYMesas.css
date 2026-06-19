@@ -139,6 +139,8 @@
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 .csm-mesa:hover { background: #6b7280; transform: scale(1.05); }
+.csm-mesa--dragging { opacity: 0.3; }
+.csm-celda--drop-target { background: rgba(99,102,241,0.1); border-radius: 50%; }
 .csm-mesa--selected {
   background: var(--primary) !important;
   box-shadow: 0 0 0 3px var(--primary-light, rgba(99,102,241,0.3)), 0 2px 6px rgba(0,0,0,0.15);

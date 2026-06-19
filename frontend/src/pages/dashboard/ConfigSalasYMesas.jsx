@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { zonasService, mesasService } from '../../services/api'
 import { Pencil, Trash2, Check } from 'lucide-react'
 import './ConfigSalasYMesas.css'
@@ -9,8 +9,13 @@ const ROWS = 8
 export default function ConfigSalasYMesas() {
   const [zonas, setZonas]           = useState([])
   const [zonaActiva, setZonaActiva] = useState(null)
-  const [mesasSel, setMesasSel]     = useState(null) // mesa seleccionada para editar
+  const [mesasSel, setMesasSel]     = useState(null)
   const [cargando, setCargando]     = useState(true)
+  const [draggingId, setDraggingId] = useState(null)
+  const pointerDragRef = useRef(null)
+  const dragCellRef    = useRef(null)
+  const ghostRef       = useRef(null)
+  const wasDraggedRef  = useRef(false)
 
   // Modal nueva zona
   const [showModalZona, setShowModalZona] = useState(false)
@@ -73,6 +78,82 @@ export default function ConfigSalasYMesas() {
   }
 
   const mesaEnPos = (col, row) => zona?.mesas?.find(m => m.col === col && m.row === row)
+
+  /* ── Drag mesas en config ── */
+  const handlePointerDown = (e, m) => {
+    if (e.button !== undefined && e.button !== 0) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    e.currentTarget.setPointerCapture(e.pointerId)
+    pointerDragRef.current = {
+      mesaId: m.id, startX: e.clientX, startY: e.clientY, active: false,
+      cardEl: e.currentTarget, offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top, cardW: rect.width, cardH: rect.height,
+    }
+    dragCellRef.current = null
+  }
+
+  const handlePointerMove = (e) => {
+    const pd = pointerDragRef.current
+    if (!pd) return
+    const dx = e.clientX - pd.startX, dy = e.clientY - pd.startY
+    if (!pd.active && Math.sqrt(dx * dx + dy * dy) < 6) return
+    if (!pd.active) {
+      pointerDragRef.current = { ...pd, active: true }
+      pd.cardEl.style.opacity = '0.3'
+      setDraggingId(pd.mesaId)
+      setMesasSel(null)
+      const ghost = pd.cardEl.cloneNode(true)
+      Object.assign(ghost.style, {
+        position: 'fixed', width: `${pd.cardW}px`, height: `${pd.cardH}px`,
+        left: `${e.clientX - pd.offsetX}px`, top: `${e.clientY - pd.offsetY}px`,
+        pointerEvents: 'none', opacity: '0.85', zIndex: '9999',
+        transform: 'scale(1.08)', transition: 'none',
+        boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
+      })
+      document.body.appendChild(ghost)
+      ghostRef.current = ghost
+    }
+    if (ghostRef.current) {
+      ghostRef.current.style.left = `${e.clientX - pd.offsetX}px`
+      ghostRef.current.style.top  = `${e.clientY - pd.offsetY}px`
+    }
+    const el = document.elementFromPoint(e.clientX, e.clientY)
+    const cellEl = el?.closest('[data-col][data-row]')
+    if (cellEl) dragCellRef.current = { col: +cellEl.dataset.col, row: +cellEl.dataset.row }
+  }
+
+  const handlePointerUp = async () => {
+    const pd = pointerDragRef.current
+    if (!pd) return
+    if (pd.cardEl) pd.cardEl.style.opacity = ''
+    pointerDragRef.current = null
+    ghostRef.current?.remove()
+    ghostRef.current = null
+    if (!pd.active) { setDraggingId(null); return }
+    wasDraggedRef.current = true
+    setDraggingId(null)
+    const cell = dragCellRef.current
+    dragCellRef.current = null
+    if (!cell) return
+    const { col, row } = cell
+    const { mesaId } = pd
+    if (zona?.mesas?.some(m => m.col === col && m.row === row && m.id !== mesaId)) return
+    setZonas(prev => prev.map(z => ({
+      ...z, mesas: (z.mesas || []).map(m => m.id === mesaId ? { ...m, col, row } : m),
+    })))
+    try { await mesasService.actualizar(mesaId, { col, row }) }
+    catch (e) { console.error(e); await recargar() }
+  }
+
+  const handlePointerCancel = () => {
+    const pd = pointerDragRef.current
+    if (pd?.cardEl) pd.cardEl.style.opacity = ''
+    pointerDragRef.current = null
+    dragCellRef.current = null
+    ghostRef.current?.remove()
+    ghostRef.current = null
+    setDraggingId(null)
+  }
 
   // Crear zona
   const crearZona = async () => {
@@ -210,11 +291,24 @@ export default function ConfigSalasYMesas() {
               {celdas.map(({ col, row }) => {
                 const m = mesaEnPos(col, row)
                 return (
-                  <div key={`${col}-${row}`} className={`csm-celda${m ? '' : ' csm-celda--vacia'}`}>
+                  <div
+                    key={`${col}-${row}`}
+                    data-col={col}
+                    data-row={row}
+                    className={`csm-celda${m ? '' : ' csm-celda--vacia'}${draggingId && !m ? ' csm-celda--drop-target' : ''}`}
+                  >
                     {m && (
                       <div
-                        className={`csm-mesa${mesasSel?.id === m.id ? ' csm-mesa--selected' : ''}`}
-                        onClick={() => abrirMesa(m)}
+                        className={`csm-mesa${mesasSel?.id === m.id ? ' csm-mesa--selected' : ''}${draggingId === m.id ? ' csm-mesa--dragging' : ''}`}
+                        style={{ touchAction: 'none', userSelect: 'none', pointerEvents: draggingId === m.id ? 'none' : 'auto' }}
+                        onPointerDown={e => handlePointerDown(e, m)}
+                        onPointerMove={handlePointerMove}
+                        onPointerUp={handlePointerUp}
+                        onPointerCancel={handlePointerCancel}
+                        onClick={() => {
+                          if (wasDraggedRef.current) { wasDraggedRef.current = false; return }
+                          abrirMesa(m)
+                        }}
                       >
                         {m.numero}
                       </div>
