@@ -433,7 +433,6 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
               </div>
             ))}
           </div>
-          <button className="mesas-add-zona" onClick={() => setShowModal(true)} title="Agregar zona">+</button>
           <div className="mesas-menu-hamb" ref={menuHambRef}>
             <button className="mesas-hamb-btn" onClick={() => setMenuHamb(v => !v)} title="Menú">☰</button>
             {menuHamb && (
