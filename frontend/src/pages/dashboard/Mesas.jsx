@@ -434,7 +434,7 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
             {menuHamb && (
               <div className="mesas-hamb-dropdown">
                 <button onClick={() => { setMenuHamb(false); onIrAConfiguracion?.('salas') }}>
-                  Configurar salas y mesas
+                  Ir a salas y mesas en configuración
                 </button>
               </div>
             )}
