@@ -419,17 +419,19 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
       <div className="mesas-left">
 
         {/* Tabs */}
-        <div className="mesas-tabs-row">
-          <div className="mesas-tabs">
-            {zonas.map(z => (
-              <div key={z.id} className={`mesas-tab-wrap ${zonaActiva === z.id ? 'mesas-tab-wrap--active' : ''}`}>
-                <button className="mesas-tab" onClick={() => { setZonaActiva(z.id); setSelected(null) }}>
-                  {z.label}
-                </button>
-              </div>
-            ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <div className="mesas-tabs-row" style={{ flex: 1, minWidth: 0 }}>
+            <div className="mesas-tabs">
+              {zonas.map(z => (
+                <div key={z.id} className={`mesas-tab-wrap ${zonaActiva === z.id ? 'mesas-tab-wrap--active' : ''}`}>
+                  <button className="mesas-tab" onClick={() => { setZonaActiva(z.id); setSelected(null) }}>
+                    {z.label}
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="mesas-menu-hamb" ref={menuHambRef}>
+          <div className="mesas-menu-hamb" ref={menuHambRef} style={{ flexShrink: 0 }}>
             <button className="mesas-hamb-btn" onClick={() => setMenuHamb(v => !v)} title="Menú">☰</button>
             {menuHamb && (
               <div className="mesas-hamb-dropdown">
