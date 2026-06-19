@@ -36,7 +36,7 @@ export default function ConfigSalasYMesas() {
       try {
         const [zonasData, mesasData] = await Promise.all([
           zonasService.listar(),
-          mesasService.listar(),
+          mesasService.listarFresh(),
         ])
         const zs = combinar(zonasData, mesasData)
         setZonas(zs)
@@ -53,7 +53,7 @@ export default function ConfigSalasYMesas() {
   const recargar = async () => {
     const [zonasData, mesasData] = await Promise.all([
       zonasService.listar(),
-      mesasService.listar(),
+      mesasService.listarFresh(),
     ])
     const zs = combinar(zonasData, mesasData)
     setZonas(zs)
