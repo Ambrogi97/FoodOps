@@ -385,9 +385,8 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
 
   /* ── Render celdas ── */
   const maxRow = zona?.mesas.length > 0 ? Math.max(...zona.mesas.map(m => m.row)) : 0
-  const maxCol = zona?.mesas.length > 0 ? Math.max(...zona.mesas.map(m => m.col)) : 0
-  const displayRows = Math.max(3, maxRow + 4)
-  const displayCols = Math.max(4, Math.min(COLS, maxCol + 3))
+  const displayRows = Math.max(ROWS, maxRow + 4)
+  const displayCols = COLS
 
   const celdas = []
   for (let row = 0; row < displayRows; row++) {
