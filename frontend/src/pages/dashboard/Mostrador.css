@@ -266,12 +266,14 @@
 .most-input:focus { outline: none; border-color: var(--primary); }
 .most-input:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* Items del pedido */
+/* Items del pedido — sección fija fuera del scroll */
 .most-items {
+  flex-shrink: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   background: var(--bg, #fff);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
 }
 
 .most-item {

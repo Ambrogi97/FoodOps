@@ -279,9 +279,8 @@ export default function Mostrador({ productos = [] }) {
               )}
             </div>
 
-            {/* Panel body */}
+            {/* Body: solo selector de productos (scrollable) */}
             <div className="most-panel-body">
-
               <div className="most-field">
                 <label>Cliente (opcional)</label>
                 <input
@@ -292,8 +291,6 @@ export default function Mostrador({ productos = [] }) {
                   disabled={esCerrado}
                 />
               </div>
-
-              {/* Selector productos primero */}
               {!esCerrado && (
                 <div className="most-selector">
                   <input
@@ -315,37 +312,36 @@ export default function Mostrador({ productos = [] }) {
                   </div>
                 </div>
               )}
-
-              {/* Items debajo de la grid */}
-              {itemsTemp.length > 0 && (
-                <div className="most-items">
-                  {itemsTemp.map((it, i) => (
-                    <div key={i} className="most-item">
-                      <span className="most-item-nombre">{it.nombre}</span>
-                      <div className="most-item-qty">
-                        {!esCerrado && (
-                          <button className="most-qty-btn" onClick={() => cambiarCantidad(it.nombre, -1)}>
-                            <Minus size={11} />
-                          </button>
-                        )}
-                        <span>{it.cantidad}</span>
-                        {!esCerrado && (
-                          <button className="most-qty-btn" onClick={() => cambiarCantidad(it.nombre, 1)}>
-                            <Plus size={11} />
-                          </button>
-                        )}
-                      </div>
-                      <span className="most-item-precio">{fmtPrecio((it.precio || 0) * it.cantidad)}</span>
-                    </div>
-                  ))}
-                  <div className="most-items-total">
-                    <span>Total</span>
-                    <strong>{fmtPrecio(totalTemp)}</strong>
-                  </div>
-                </div>
-              )}
-
             </div>
+
+            {/* Items: fuera del scroll, siempre visible */}
+            {itemsTemp.length > 0 && (
+              <div className="most-items">
+                {itemsTemp.map((it, i) => (
+                  <div key={i} className="most-item">
+                    <span className="most-item-nombre">{it.nombre}</span>
+                    <div className="most-item-qty">
+                      {!esCerrado && (
+                        <button className="most-qty-btn" onClick={() => cambiarCantidad(it.nombre, -1)}>
+                          <Minus size={11} />
+                        </button>
+                      )}
+                      <span>{it.cantidad}</span>
+                      {!esCerrado && (
+                        <button className="most-qty-btn" onClick={() => cambiarCantidad(it.nombre, 1)}>
+                          <Plus size={11} />
+                        </button>
+                      )}
+                    </div>
+                    <span className="most-item-precio">{fmtPrecio((it.precio || 0) * it.cantidad)}</span>
+                  </div>
+                ))}
+                <div className="most-items-total">
+                  <span>Total</span>
+                  <strong>{fmtPrecio(totalTemp)}</strong>
+                </div>
+              </div>
+            )}
 
             {/* Acciones */}
             {!esCerrado && !cerrando && (
