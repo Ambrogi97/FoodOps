@@ -83,7 +83,18 @@ const mapProd = p => ({ id: p._id, nombre: p.nombre, categoriaId: p.categoria, p
 const mapIng  = i => ({ id: i._id, nombre: i.nombre, unidad: i.unidad, costo: i.costo, stockActual: i.stockActual ?? 0, stockMinimo: i.stockMinimo ?? 0 })
 const mapZona = z => ({ id: z._id, label: z.label, removible: z.removible })
 const mapMesa = m => ({ id: m._id, numero: m.numero, zona: m.zona, estado: m.estado, col: m.col, row: m.row, hora: m.hora || null, personas: m.personas || null, items: m.items || [] })
-const mapVenta = v => ({ id: v._id, mesa: v.mesa, inicio: v.inicio, cierre: v.cierre, estado: v.estado, items: v.items || [] })
+const mapVenta = v => ({
+  id:         v._id,
+  numero:     v.numero || null,
+  mesa:       v.mesa,
+  inicio:     v.inicio,
+  cierre:     v.cierre,
+  estado:     v.estado,
+  tipo:       v.tipo       || 'salon',
+  metodoPago: v.metodoPago || 'Efectivo',
+  personas:   v.personas   || 1,
+  items:      v.items      || [],
+})
 
 // ── Categorias ───────────────────────────────────────────────────────────────
 
@@ -246,6 +257,26 @@ export const deliveryService = {
   crear:      async (data)     => request('/api/delivery', { method: 'POST', body: JSON.stringify(data) }),
   actualizar: async (id, data) => request(`/api/delivery/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   eliminar:   async (id)       => request(`/api/delivery/${id}`, { method: 'DELETE' }),
+}
+
+// ── Descuentos ────────────────────────────────────────────────────────────────
+const mapDescuento = d => ({
+  id:         d._id,
+  nombre:     d.nombre,
+  tipo:       d.tipo       || 'sin_importe',
+  valor:      d.valor      ?? null,
+  estado:     d.estado     || 'activo',
+  vecesUsado: d.vecesUsado || 0,
+  montoUsado: d.montoUsado || 0,
+  ultimaVez:  d.ultimaVez  || null,
+  createdAt:  d.createdAt,
+})
+
+export const descuentosService = {
+  listar:     async ()         => (await request('/api/descuentos')).map(mapDescuento),
+  crear:      async (data)     => mapDescuento(await request('/api/descuentos', { method: 'POST', body: JSON.stringify(data) })),
+  actualizar: async (id, data) => mapDescuento(await request(`/api/descuentos/${id}`, { method: 'PUT', body: JSON.stringify(data) })),
+  eliminar:   async (id)       => request(`/api/descuentos/${id}`, { method: 'DELETE' }),
 }
 
 // ── Mostrador ────────────────────────────────────────────────────────────────
