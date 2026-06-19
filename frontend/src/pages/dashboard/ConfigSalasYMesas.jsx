@@ -187,7 +187,6 @@ export default function ConfigSalasYMesas() {
           ) : (
             <div
               className="csm-grid"
-              style={{ gridTemplateColumns: `repeat(${displayCols}, 1fr)` }}
             >
               {celdas.map(({ col, row }) => {
                 const m = mesaEnPos(col, row)
