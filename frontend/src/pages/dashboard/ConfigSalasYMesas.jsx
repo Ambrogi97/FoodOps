@@ -86,6 +86,18 @@ export default function ConfigSalasYMesas() {
     } catch (e) { console.error(e) }
   }
 
+  // Eliminar TODAS las mesas (limpieza de emergencia)
+  const eliminarTodasMesas = async () => {
+    if (!window.confirm('¿Eliminar TODAS las mesas? Esta acción no se puede deshacer.')) return
+    try {
+      await mesasService.eliminarTodas()
+      setMesasSel(null)
+      await recargar()
+    } catch (e) {
+      alert('Error: ' + (e.message || e))
+    }
+  }
+
   // Eliminar zona
   const eliminarZona = async (id) => {
     if (!window.confirm('¿Eliminar esta sala y todas sus mesas?')) return
@@ -184,6 +196,7 @@ export default function ConfigSalasYMesas() {
           </div>
           <button className="csm-btn-nueva-sala" onClick={() => setShowModalZona(true)}>+ Nueva Sala</button>
           <button className="csm-btn-add-mesa" onClick={() => setShowModalMesas(true)}>+ Mesa</button>
+          <button className="csm-btn-limpiar" onClick={eliminarTodasMesas} title="Eliminar todas las mesas">🗑 Limpiar todo</button>
         </div>
 
         {/* Grid */}

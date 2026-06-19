@@ -140,7 +140,8 @@ export const mesasService = {
   listarFresh: async () => { const data = await request('/api/mesas'); _guardar('/api/mesas', data); return data.map(mapMesa) },
   crearVarias: async (mesas) => { _invalidar('/api/mesas'); return (await request('/api/mesas/bulk', { method: 'POST', body: JSON.stringify({ mesas }) })).map(mapMesa) },
   actualizar:  async (id, data) => { _invalidar('/api/mesas'); return mapMesa(await request(`/api/mesas/${id}`, { method: 'PUT', body: JSON.stringify(data) })) },
-  eliminar:    async (id) => { _invalidar('/api/mesas'); return request(`/api/mesas/${id}`, { method: 'DELETE' }) },
+  eliminar:      async (id) => { _invalidar('/api/mesas'); return request(`/api/mesas/${id}`, { method: 'DELETE' }) },
+  eliminarTodas: async ()  => { _invalidar('/api/mesas'); return request('/api/mesas/all', { method: 'DELETE' }) },
 }
 
 // ── Ventas ───────────────────────────────────────────────────────────────────

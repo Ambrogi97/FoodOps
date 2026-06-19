@@ -85,6 +85,20 @@
 }
 .csm-btn-add-mesa:hover { opacity: 0.85; }
 
+.csm-btn-limpiar {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #ef4444;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.csm-btn-limpiar:hover { background: rgba(239,68,68,0.08); }
+
 /* Grid */
 .csm-grid-wrap {
   flex: 1;
