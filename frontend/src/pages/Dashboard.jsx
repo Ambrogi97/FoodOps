@@ -43,6 +43,12 @@ export default function Dashboard() {
   const [productos, setProductos]             = useState([])
   const [categorias, setCategorias]           = useState([])
   const [pedidosCounts, setPedidosCounts]     = useState({ pendiente: 0, preparando: 0, listo: 0 })
+  const [configTab, setConfigTab]             = useState('general')
+
+  const irAConfiguracion = (tab = 'general') => {
+    setConfigTab(tab)
+    setActive('configuracion')
+  }
 
   useEffect(() => {
     const cargar = async () => {
@@ -166,7 +172,7 @@ export default function Dashboard() {
         {/* Content */}
         <main className="dash-content">
 
-          {active === 'restaurante' && <Restaurante productos={productos} categorias={categorias} />}
+          {active === 'restaurante' && <Restaurante productos={productos} categorias={categorias} onIrAConfiguracion={irAConfiguracion} />}
           {active === 'productos'   && (
             <Productos
               productos={productos} setProductos={setProductos}
@@ -180,7 +186,7 @@ export default function Dashboard() {
           {active === 'gastos'       && <Gastos />}
           {active === 'reportes'     && <Reportes />}
           {active === 'carta'         && <CartaOnline />}
-          {active === 'configuracion' && <Configuracion />}
+          {active === 'configuracion' && <Configuracion tabInicial={configTab} />}
           {active === 'admin'         && isAdmin && <Admin />}
 
 

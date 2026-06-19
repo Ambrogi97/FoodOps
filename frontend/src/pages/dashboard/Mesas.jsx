@@ -19,7 +19,7 @@ const formatDateTime = (d = new Date()) => {
   return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-export default function Mesas({ productos = [], categorias = [] }) {
+export default function Mesas({ productos = [], categorias = [], onIrAConfiguracion }) {
   const [zonas, setZonas]           = useState([])
   const [zonaActiva, setZonaActiva] = useState(null)
   const [selected, setSelected]     = useState(null)
@@ -43,12 +43,21 @@ export default function Mesas({ productos = [], categorias = [] }) {
   const [montoPago, setMontoPago]                 = useState('')
   const [cargando, setCargando]                   = useState(true)
   const [isMobile, setIsMobile]                   = useState(() => window.innerWidth <= 768)
+  const [menuHamb, setMenuHamb]                   = useState(false)
+  const menuHambRef                               = useRef(null)
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth <= 768)
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
+
+  useEffect(() => {
+    if (!menuHamb) return
+    const handler = (e) => { if (menuHambRef.current && !menuHambRef.current.contains(e.target)) setMenuHamb(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [menuHamb])
 
   /* ── Carga inicial ── */
   useEffect(() => {
@@ -426,6 +435,16 @@ export default function Mesas({ productos = [], categorias = [] }) {
           </div>
           <button className="mesas-add-zona" onClick={() => setShowModal(true)} title="Agregar zona">+</button>
           <button className="mesas-add-mesa" onClick={() => setShowAgregarMesas(true)}>+ Mesa</button>
+          <div className="mesas-menu-hamb" ref={menuHambRef}>
+            <button className="mesas-hamb-btn" onClick={() => setMenuHamb(v => !v)} title="Menú">☰</button>
+            {menuHamb && (
+              <div className="mesas-hamb-dropdown">
+                <button onClick={() => { setMenuHamb(false); onIrAConfiguracion?.('salas') }}>
+                  Configurar salas y mesas
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Resumen */}

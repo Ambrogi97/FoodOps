@@ -10,7 +10,7 @@ const TABS = [
   { id: 'mostrador-rapido', label: 'Mostrador rápido' },
 ]
 
-export default function Restaurante({ productos = [], categorias = [] }) {
+export default function Restaurante({ productos = [], categorias = [], onIrAConfiguracion }) {
   const [tab, setTab] = useState('mesas')
 
   return (
@@ -28,7 +28,7 @@ export default function Restaurante({ productos = [], categorias = [] }) {
       </div>
 
       <div className="restaurante-content">
-        {tab === 'mesas'     && <Mesas productos={productos} categorias={categorias} />}
+        {tab === 'mesas'     && <Mesas productos={productos} categorias={categorias} onIrAConfiguracion={onIrAConfiguracion} />}
         {tab === 'mostrador' && <Mostrador productos={productos} />}
         {(tab === 'delivery' || tab === 'mostrador-rapido') && <p className="restaurante-placeholder">Próximamente</p>}
       </div>

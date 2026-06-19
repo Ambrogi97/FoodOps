@@ -150,6 +150,63 @@
   background: var(--primary-light);
 }
 
+/* Menú hamburguesa */
+.mesas-menu-hamb {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.mesas-hamb-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+}
+.mesas-hamb-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.mesas-hamb-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  min-width: 200px;
+  z-index: 100;
+  overflow: hidden;
+  animation: slideUp 0.14s ease;
+}
+
+.mesas-hamb-dropdown button {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.mesas-hamb-dropdown button:hover {
+  background: var(--primary-light, rgba(99,102,241,0.07));
+  color: var(--primary);
+}
+
 .mesas-zona-empty {
   color: var(--text-muted);
   font-size: 0.85rem;
