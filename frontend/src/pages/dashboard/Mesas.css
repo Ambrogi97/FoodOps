@@ -262,7 +262,7 @@
 /* Celda: padding permanente para espaciado visual sin cambiar layout durante drag */
 .celda {
   aspect-ratio: 1;
-  padding: 5px;
+  padding: 10px;
 }
 
 /* Celda vacía: invisible por defecto */
