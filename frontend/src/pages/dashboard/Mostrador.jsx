@@ -75,15 +75,24 @@ export default function Mostrador({ productos = [] }) {
   }
 
   const agregarItem = (prod) => {
+    const prodId = prod.id || prod._id
     setItemsTemp(prev => {
-      const ex = prev.find(i => i.nombre === prod.nombre)
-      if (ex) return prev.map(i => i.nombre === prod.nombre ? { ...i, cantidad: i.cantidad + 1 } : i)
-      return [...prev, { nombre: prod.nombre, precio: prod.precio, cantidad: 1 }]
+      const ex = prev.find(i => i.productId ? i.productId === prodId : i.nombre === prod.nombre)
+      if (ex) return prev.map(i => {
+        const match = i.productId ? i.productId === prodId : i.nombre === prod.nombre
+        return match ? { ...i, cantidad: i.cantidad + 1 } : i
+      })
+      return [...prev, { productId: prodId, nombre: prod.nombre, precio: prod.precio, cantidad: 1 }]
     })
   }
 
-  const cambiarCantidad = (nombre, delta) => {
-    setItemsTemp(prev => prev.map(i => i.nombre === nombre ? { ...i, cantidad: i.cantidad + delta } : i).filter(i => i.cantidad > 0))
+  const cambiarCantidad = (productId, nombre, delta) => {
+    setItemsTemp(prev =>
+      prev.map(i => {
+        const match = productId ? i.productId === productId : i.nombre === nombre
+        return match ? { ...i, cantidad: i.cantidad + delta } : i
+      }).filter(i => i.cantidad > 0)
+    )
   }
 
   const totalTemp = itemsTemp.reduce((s, i) => s + (i.precio || 0) * i.cantidad, 0)
@@ -294,13 +303,13 @@ export default function Mostrador({ productos = [] }) {
                       <span className="most-item-nombre">{it.nombre}</span>
                       <div className="most-item-qty">
                         {!esCerrado && (
-                          <button className="most-qty-btn" onClick={() => cambiarCantidad(it.nombre, -1)}>
+                          <button className="most-qty-btn" onClick={() => cambiarCantidad(it.productId, it.nombre, -1)}>
                             <Minus size={11} />
                           </button>
                         )}
                         <span>{it.cantidad}</span>
                         {!esCerrado && (
-                          <button className="most-qty-btn" onClick={() => cambiarCantidad(it.nombre, 1)}>
+                          <button className="most-qty-btn" onClick={() => cambiarCantidad(it.productId, it.nombre, 1)}>
                             <Plus size={11} />
                           </button>
                         )}

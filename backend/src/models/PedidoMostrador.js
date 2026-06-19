@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 
 const itemSchema = new mongoose.Schema({
+  productId: String,
   nombre:   String,
   cantidad: { type: Number, default: 1 },
   precio:   { type: Number, default: 0 },
