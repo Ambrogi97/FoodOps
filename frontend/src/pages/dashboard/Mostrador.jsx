@@ -77,9 +77,7 @@ export default function Mostrador({ productos = [] }) {
   }
 
   const agregarItem = (prod) => {
-    console.log('[Mostrador] agregarItem:', prod.nombre, prod.id)
     setItemsTemp(prev => {
-      console.log('[Mostrador] prev antes:', prev.map(i => i.nombre))
       const idx = prev.findIndex(i => i.nombre === prod.nombre)
       if (idx >= 0) {
         return prev.map((item, i) => i === idx ? { ...item, cantidad: item.cantidad + 1 } : item)
@@ -273,7 +271,6 @@ export default function Mostrador({ productos = [] }) {
               </button>
               <span className="most-panel-title">
                 {creando ? 'Nuevo pedido' : `Pedido #${panelPedido?.numero}`}
-                {' '}<span style={{fontSize:'0.7rem',opacity:0.6}}>({itemsTemp.length})</span>
               </span>
               {panelPedido && !esCerrado && (
                 <button className="most-panel-delete" onClick={() => eliminar(panelPedido._id)} title="Eliminar pedido">
@@ -282,7 +279,7 @@ export default function Mostrador({ productos = [] }) {
               )}
             </div>
 
-            {/* Cliente */}
+            {/* Panel body */}
             <div className="most-panel-body">
 
               <div className="most-field">
@@ -296,7 +293,30 @@ export default function Mostrador({ productos = [] }) {
                 />
               </div>
 
-              {/* Items */}
+              {/* Selector productos primero */}
+              {!esCerrado && (
+                <div className="most-selector">
+                  <input
+                    className="most-input"
+                    placeholder="Buscar producto..."
+                    value={searchProd}
+                    onChange={e => setSearchProd(e.target.value)}
+                  />
+                  <div className="most-prods-grid">
+                    {prodsFiltrados.map(p => (
+                      <button key={p.id || p._id} className="most-prod" onClick={() => agregarItem(p)}>
+                        <span className="most-prod-nombre">{p.nombre}</span>
+                        <span className="most-prod-precio">{fmtPrecio(p.precio)}</span>
+                      </button>
+                    ))}
+                    {prodsFiltrados.length === 0 && (
+                      <span className="most-prod-empty">Sin productos</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Items debajo de la grid */}
               {itemsTemp.length > 0 && (
                 <div className="most-items">
                   {itemsTemp.map((it, i) => (
@@ -321,29 +341,6 @@ export default function Mostrador({ productos = [] }) {
                   <div className="most-items-total">
                     <span>Total</span>
                     <strong>{fmtPrecio(totalTemp)}</strong>
-                  </div>
-                </div>
-              )}
-
-              {/* Selector productos */}
-              {!esCerrado && (
-                <div className="most-selector">
-                  <input
-                    className="most-input"
-                    placeholder="Buscar producto..."
-                    value={searchProd}
-                    onChange={e => setSearchProd(e.target.value)}
-                  />
-                  <div className="most-prods-grid">
-                    {prodsFiltrados.map(p => (
-                      <button key={p.id || p._id} className="most-prod" onClick={() => agregarItem(p)}>
-                        <span className="most-prod-nombre">{p.nombre}</span>
-                        <span className="most-prod-precio">{fmtPrecio(p.precio)}</span>
-                      </button>
-                    ))}
-                    {prodsFiltrados.length === 0 && (
-                      <span className="most-prod-empty">Sin productos</span>
-                    )}
                   </div>
                 </div>
               )}
