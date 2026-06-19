@@ -72,14 +72,14 @@ export default function ConfigSalasYMesas() {
     }
   }
 
-  const mesaEnPos = (col, row) => zona?.mesas.find(m => m.col === col && m.row === row)
+  const mesaEnPos = (col, row) => zona?.mesas?.find(m => m.col === col && m.row === row)
 
   // Crear zona
   const crearZona = async () => {
     if (!nombreZona.trim()) return
     try {
       const nueva = await zonasService.crear({ label: nombreZona.trim() })
-      setZonas(prev => [...prev, nueva])
+      setZonas(prev => [...prev, { ...nueva, mesas: [] }])
       setZonaActiva(nueva.id)
       setNombreZona('')
       setShowModalZona(false)
@@ -140,13 +140,14 @@ export default function ConfigSalasYMesas() {
   // Agregar mesas nuevas
   const agregarMesas = async () => {
     if (!zonaActiva || cantidadMesas < 1) return
-    const maxNum = zonas.flatMap(z => z.mesas).reduce((m, t) => Math.max(m, t.numero), 0)
+    const todasMesas = zonas.flatMap(z => z.mesas || [])
+    const maxNum = todasMesas.length > 0 ? Math.max(...todasMesas.map(m => m.numero)) : 0
     const nuevas = []
-    let col = (zona?.mesas.length > 0 ? Math.max(...zona.mesas.map(m => m.col)) : 0) + 1
+    let col = (zona?.mesas?.length > 0 ? Math.max(...zona.mesas.map(m => m.col)) : 0) + 1
     let row = 1
     for (let i = 0; i < cantidadMesas; i++) {
       if (col > COLS) { col = 1; row++ }
-      while (zona?.mesas.some(m => m.col === col && m.row === row)) {
+      while (zona?.mesas?.some(m => m.col === col && m.row === row)) {
         col++
         if (col > COLS) { col = 1; row++ }
       }

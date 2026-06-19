@@ -427,9 +427,6 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
                 <button className="mesas-tab" onClick={() => { setZonaActiva(z.id); setSelected(null) }}>
                   {z.label}
                 </button>
-                {z.removible && (
-                  <button className="mesas-tab-remove" onClick={() => eliminarZona(z.id)}>×</button>
-                )}
               </div>
             ))}
           </div>
@@ -476,7 +473,6 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
               {val.label}
             </span>
           ))}
-          <span className="mesas-leyenda-hint">Arrastrá las mesas para acomodarlas</span>
         </div>
 
         {/* Grilla */}
@@ -491,14 +487,8 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
               >
                 {m && (
                   <div
-                    className={`mesa-card mesa-card--${m.estado} ${selected === m.id ? 'mesa-card--selected' : ''} ${draggingId === m.id ? 'mesa-card--dragging' : ''}`}
-                    style={{ touchAction: 'none', userSelect: 'none', pointerEvents: draggingId === m.id ? 'none' : 'auto' }}
-                    onPointerDown={e => handlePointerDown(e, m.id)}
-                    onPointerMove={handlePointerMove}
-                    onPointerUp={handlePointerUp}
-                    onPointerCancel={handlePointerCancel}
+                    className={`mesa-card mesa-card--${m.estado} ${selected === m.id ? 'mesa-card--selected' : ''}`}
                     onClick={() => {
-                      if (wasDraggedRef.current) { wasDraggedRef.current = false; return }
                       setSelected(selected === m.id ? null : m.id)
                       setSearchProducto('')
                     }}
@@ -645,9 +635,6 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
                   </button>
                 </>
               )}
-              <button className="mesa-btn mesa-btn--danger" onClick={() => setConfirmarEliminar({ id: mesa.id, numero: mesa.numero })}>
-                Eliminar mesa
-              </button>
             </div>
 
           </div>
@@ -771,19 +758,6 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
         </div>
       )}
 
-      {/* Modal confirmar eliminar mesa */}
-      {confirmarEliminar !== null && (
-        <div className="mesas-modal-overlay" onClick={() => setConfirmarEliminar(null)}>
-          <div className="mesas-modal" onClick={e => e.stopPropagation()}>
-            <h3 className="mesas-modal-title">¿Eliminar mesa {confirmarEliminar.numero}?</h3>
-            <p className="mesas-modal-sub">Esta acción no se puede deshacer.</p>
-            <div className="mesas-modal-actions">
-              <button className="mesa-btn mesa-btn--secondary" onClick={() => setConfirmarEliminar(null)}>Cancelar</button>
-              <button className="mesa-btn mesa-btn--confirm-danger" onClick={() => eliminarMesa(confirmarEliminar.id)}>Sí, eliminar</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Modal agregar zona */}
       {showModal && (
