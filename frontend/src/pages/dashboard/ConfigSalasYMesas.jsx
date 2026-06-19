@@ -62,12 +62,12 @@ export default function ConfigSalasYMesas() {
 
   const zona = zonas.find(z => z.id === zonaActiva)
 
-  // Grid fijo para que las mesas no crezcan al eliminar
+  // Grid fijo, índices 0-based igual que la vista de restaurante
   const displayCols = COLS
   const displayRows = ROWS
   const celdas = []
-  for (let row = 1; row <= displayRows; row++) {
-    for (let col = 1; col <= displayCols; col++) {
+  for (let row = 0; row < displayRows; row++) {
+    for (let col = 0; col < displayCols; col++) {
       celdas.push({ col, row })
     }
   }
@@ -155,13 +155,13 @@ export default function ConfigSalasYMesas() {
     const todasMesas = zonas.flatMap(z => z.mesas || [])
     const maxNum = todasMesas.length > 0 ? Math.max(...todasMesas.map(m => m.numero)) : 0
     const nuevas = []
-    let col = (zona?.mesas?.length > 0 ? Math.max(...zona.mesas.map(m => m.col)) : 0) + 1
-    let row = 1
+    let col = zona?.mesas?.length > 0 ? Math.max(...zona.mesas.map(m => m.col)) + 1 : 0
+    let row = 0
     for (let i = 0; i < cantidadMesas; i++) {
-      if (col > COLS) { col = 1; row++ }
+      if (col >= COLS) { col = 0; row++ }
       while (zona?.mesas?.some(m => m.col === col && m.row === row)) {
         col++
-        if (col > COLS) { col = 1; row++ }
+        if (col >= COLS) { col = 0; row++ }
       }
       nuevas.push({ numero: maxNum + i + 1, zona: zonaActiva, col, row })
       col++
