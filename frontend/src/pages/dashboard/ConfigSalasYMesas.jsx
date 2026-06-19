@@ -124,14 +124,21 @@ export default function ConfigSalasYMesas() {
   }
 
   // Eliminar mesa
-  const eliminarMesa = async (id) => {
-    if (!window.confirm('¿Eliminar esta mesa?')) return
+  const eliminarMesa = async () => {
+    if (!mesasSel) return
+    if (!window.confirm(`¿Eliminar la mesa ${mesasSel.numero}?`)) return
+    const { id, numero } = mesasSel
     try {
       await mesasService.eliminar(id)
       setMesasSel(null)
+      // Renumerar hacia abajo las mesas con número mayor
+      const superiores = zonas.flatMap(z => z.mesas).filter(m => m.id !== id && m.numero > numero)
+      if (superiores.length > 0) {
+        await Promise.all(superiores.map(m => mesasService.actualizar(m.id, { numero: m.numero - 1 })))
+      }
       await recargar()
     } catch (e) {
-      console.error(e)
+      console.error('Error eliminarMesa:', e)
       alert('Error al eliminar: ' + (e.message || e))
     }
   }
@@ -266,7 +273,7 @@ export default function ConfigSalasYMesas() {
                   <button className="csm-btn-cancel" onClick={() => setMesasSel(null)}>Cancelar</button>
                   <button className="csm-btn-guardar" onClick={guardarMesa} disabled={guardandoMesa}>Guardar</button>
                 </div>
-                <button className="csm-btn-eliminar-mesa" onClick={() => eliminarMesa(mesasSel.id)}>
+                <button className="csm-btn-eliminar-mesa" onClick={eliminarMesa}>
                   <Trash2 size={13} /> Eliminar mesa
                 </button>
               </div>
