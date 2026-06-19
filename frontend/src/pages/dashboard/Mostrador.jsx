@@ -59,6 +59,8 @@ export default function Mostrador({ productos = [] }) {
   }
 
   const abrirPedido = (p) => {
+    if (panelPedido?._id === p._id) return
+    if (creando && itemsTemp.length > 0) return
     setPanelPedido(p)
     setCreando(false)
     setCliente(p.cliente || '')
