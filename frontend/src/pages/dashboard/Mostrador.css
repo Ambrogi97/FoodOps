@@ -236,6 +236,39 @@
 }
 .most-panel-delete:hover { background: rgba(239,68,68,0.08); }
 
+.most-panel-header--confirm {
+  background: #fef2f2;
+  border-bottom-color: #fecaca;
+  gap: 10px;
+}
+
+.most-confirm-text {
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #b91c1c;
+}
+
+.most-confirm-btn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.most-confirm-btn--cancel {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text);
+}
+.most-confirm-btn--cancel:hover { background: var(--surface-hover, rgba(0,0,0,0.05)); }
+.most-confirm-btn--danger {
+  background: #ef4444;
+  color: #fff;
+}
+.most-confirm-btn--danger:hover { opacity: 0.85; }
+
 .most-panel-body {
   flex: 1;
   overflow-y: auto;

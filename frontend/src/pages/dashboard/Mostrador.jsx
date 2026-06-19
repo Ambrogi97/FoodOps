@@ -25,9 +25,10 @@ export default function Mostrador({ productos = [] }) {
   const [cliente, setCliente]         = useState('')
   const [itemsTemp, setItemsTemp]     = useState([])
   const [searchProd, setSearchProd]   = useState('')
-  const [cerrando, setCerrando]       = useState(false)
-  const [metodoPago, setMetodoPago]   = useState('Efectivo')
-  const [guardando, setGuardando]     = useState(false)
+  const [cerrando, setCerrando]             = useState(false)
+  const [metodoPago, setMetodoPago]         = useState('Efectivo')
+  const [guardando, setGuardando]           = useState(false)
+  const [confirmEliminar, setConfirmEliminar] = useState(false)
 
   const cargar = useCallback(async (mostrarCarga = false) => {
     if (mostrarCarga) setCargando(true)
@@ -74,6 +75,7 @@ export default function Mostrador({ productos = [] }) {
     setPanelPedido(null)
     setCreando(false)
     setCerrando(false)
+    setConfirmEliminar(false)
   }
 
   const agregarItem = (prod) => {
@@ -265,19 +267,31 @@ export default function Mostrador({ productos = [] }) {
           <div className="most-panel">
 
             {/* Header */}
-            <div className="most-panel-header">
-              <button className="most-back" onClick={cerrarPanel}>
-                <ChevronLeft size={16} />
-              </button>
-              <span className="most-panel-title">
-                {creando ? 'Nuevo pedido' : `Pedido #${panelPedido?.numero}`}
-              </span>
-              {panelPedido && !esCerrado && (
-                <button className="most-panel-delete" onClick={() => eliminar(panelPedido._id)} title="Eliminar pedido">
-                  <X size={14} />
+            {confirmEliminar ? (
+              <div className="most-panel-header most-panel-header--confirm">
+                <span className="most-confirm-text">¿Eliminar pedido #{panelPedido?.numero}?</span>
+                <button className="most-confirm-btn most-confirm-btn--cancel" onClick={() => setConfirmEliminar(false)}>
+                  Cancelar
                 </button>
-              )}
-            </div>
+                <button className="most-confirm-btn most-confirm-btn--danger" onClick={() => eliminar(panelPedido._id)}>
+                  Eliminar
+                </button>
+              </div>
+            ) : (
+              <div className="most-panel-header">
+                <button className="most-back" onClick={cerrarPanel}>
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="most-panel-title">
+                  {creando ? 'Nuevo pedido' : `Pedido #${panelPedido?.numero}`}
+                </span>
+                {panelPedido && !esCerrado && (
+                  <button className="most-panel-delete" onClick={() => setConfirmEliminar(true)} title="Eliminar pedido">
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Body: solo selector de productos (scrollable) */}
             <div className="most-panel-body">
