@@ -493,11 +493,6 @@ export default function Mesas({ productos = [], categorias = [] }) {
                         {m.personas}
                       </span>
                     )}
-                    {m.estado !== 'libre' && m.items?.length > 0 && (
-                      <span className="mesa-items-count">
-                        {m.items.reduce((s, i) => s + i.cantidad, 0)}
-                      </span>
-                    )}
                   </div>
                 )}
               </div>

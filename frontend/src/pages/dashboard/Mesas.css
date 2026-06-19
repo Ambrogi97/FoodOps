@@ -285,29 +285,28 @@
   width: 100%;
   aspect-ratio: 1;
   height: auto;
-  border-radius: var(--radius-sm);
-  border: 2px solid transparent;
+  border-radius: 50%;
+  border: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
   cursor: grab;
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
+  background: #22C55E;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.18);
   user-select: none;
-  transition: box-shadow 0.15s, opacity 0.15s;
+  transition: box-shadow 0.15s, opacity 0.15s, transform 0.12s;
 }
-.mesa-card:active { cursor: grabbing; }
+.mesa-card:hover { transform: scale(1.04); }
+.mesa-card:active { cursor: grabbing; transform: scale(1); }
 
-.mesa-card--libre   { border-color: #22C55E; }
-.mesa-card--ocupada { border-color: #EF4444; background: #fff5f5; }
-.mesa-card--cuenta  { border-color: #f59e0b; background: #fffbeb; }
+.mesa-card--libre   { background: #22C55E; }
+.mesa-card--ocupada { background: #EF4444; }
+.mesa-card--cuenta  { background: #f59e0b; }
 
 .mesa-card--selected {
-  box-shadow: var(--shadow-md);
-  outline: 3px solid var(--primary);
-  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--primary), 0 3px 10px rgba(0,0,0,0.18);
 }
 
 .mesa-card--dragging { opacity: 0.4; }
@@ -315,7 +314,7 @@
 .mesa-numero {
   font-size: 1.4rem;
   font-weight: 800;
-  color: var(--text);
+  color: #fff;
   line-height: 1;
   pointer-events: none;
 }
@@ -815,7 +814,7 @@
   gap: 3px;
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--text-muted);
+  color: rgba(255,255,255,0.85);
   pointer-events: none;
 }
 
