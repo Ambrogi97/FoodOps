@@ -28,10 +28,17 @@ export default function ConfigSalasYMesas() {
   const [showModalMesas, setShowModalMesas] = useState(false)
   const [cantidadMesas, setCantidadMesas]   = useState(1)
 
+  const combinar = (zonasData, mesasData) =>
+    zonasData.map(z => ({ ...z, mesas: mesasData.filter(m => m.zona === z.id) }))
+
   useEffect(() => {
     const cargar = async () => {
       try {
-        const zs = await zonasService.listar()
+        const [zonasData, mesasData] = await Promise.all([
+          zonasService.listar(),
+          mesasService.listar(),
+        ])
+        const zs = combinar(zonasData, mesasData)
         setZonas(zs)
         if (zs.length > 0) setZonaActiva(zs[0].id)
       } catch (e) {
@@ -44,7 +51,11 @@ export default function ConfigSalasYMesas() {
   }, [])
 
   const recargar = async () => {
-    const zs = await zonasService.listar()
+    const [zonasData, mesasData] = await Promise.all([
+      zonasService.listar(),
+      mesasService.listar(),
+    ])
+    const zs = combinar(zonasData, mesasData)
     setZonas(zs)
     if (zonaActiva && !zs.find(z => z.id === zonaActiva)) setZonaActiva(zs[0]?.id ?? null)
   }
