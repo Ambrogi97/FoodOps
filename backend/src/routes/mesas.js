@@ -59,6 +59,15 @@ router.put('/:id', auth, async (req, res) => {
   }
 })
 
+router.delete('/all', auth, async (req, res) => {
+  try {
+    const result = await Mesa.deleteMany({ usuario: req.usuario.id })
+    res.json({ message: `${result.deletedCount} mesas eliminadas` })
+  } catch (e) {
+    res.status(500).json({ message: e.message })
+  }
+})
+
 router.delete('/:id', auth, async (req, res) => {
   try {
     const mesa = await Mesa.findOneAndDelete({ _id: req.params.id, usuario: req.usuario.id })
