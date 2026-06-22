@@ -164,12 +164,42 @@ export const ventasService = {
 
 // ── Gastos ───────────────────────────────────────────────────────────────────
 
-const mapGasto = g => ({ id: g._id, descripcion: g.descripcion, monto: g.monto, categoria: g.categoria, fecha: g.fecha })
+const mapGasto = g => ({
+  id:               g._id,
+  descripcion:      g.descripcion   || '',
+  comentario:       g.comentario    || g.descripcion || '',
+  importe:          g.importe       ?? g.monto ?? 0,
+  monto:            g.monto         ?? 0,
+  proveedor:        g.proveedor     || '',
+  categoria:        g.categoria     || '',
+  categoriaId:      g.categoriaId   ? String(g.categoriaId) : null,
+  estadoPago:       g.estadoPago    || 'pagado',
+  medioPago:        g.medioPago     || '',
+  fecha:            g.fecha,
+  fechaVencimiento: g.fechaVencimiento || null,
+})
 
 export const gastosService = {
-  listar:  async () => (await requestCacheado('/api/gastos')).map(mapGasto),
-  crear:   async (data) => { _invalidar('/api/gastos'); return mapGasto(await request('/api/gastos', { method: 'POST', body: JSON.stringify(data) })) },
-  eliminar: async (id) => { _invalidar('/api/gastos'); return request(`/api/gastos/${id}`, { method: 'DELETE' }) },
+  listar:     async ()         => { _invalidar('/api/gastos'); return (await request('/api/gastos')).map(mapGasto) },
+  crear:      async (data)     => { _invalidar('/api/gastos'); return mapGasto(await request('/api/gastos', { method: 'POST', body: JSON.stringify(data) })) },
+  actualizar: async (id, data) => { _invalidar('/api/gastos'); return mapGasto(await request(`/api/gastos/${id}`, { method: 'PUT', body: JSON.stringify(data) })) },
+  eliminar:   async (id)       => { _invalidar('/api/gastos'); return request(`/api/gastos/${id}`, { method: 'DELETE' }) },
+}
+
+// ── Categorías de Gasto ───────────────────────────────────────────────────────
+const mapCatGasto = c => ({
+  id:                  c._id,
+  nombre:              c.nombre,
+  categoriaFinanciera: c.categoriaFinanciera || 'Gastos administrativos',
+  activo:              c.activo !== false,
+  parent:              c.parent ? String(c.parent) : null,
+})
+
+export const categoriasGastoService = {
+  listar:     async ()         => (await request('/api/categorias-gasto')).map(mapCatGasto),
+  crear:      async (data)     => mapCatGasto(await request('/api/categorias-gasto', { method: 'POST', body: JSON.stringify(data) })),
+  actualizar: async (id, data) => mapCatGasto(await request(`/api/categorias-gasto/${id}`, { method: 'PUT', body: JSON.stringify(data) })),
+  eliminar:   async (id)       => request(`/api/categorias-gasto/${id}`, { method: 'DELETE' }),
 }
 
 // ── Proveedores ───────────────────────────────────────────────────────────────
