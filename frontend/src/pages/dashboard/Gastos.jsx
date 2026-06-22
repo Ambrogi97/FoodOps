@@ -17,6 +17,9 @@ const parseGDate = str => {
 
 const CATS_FIN  = ['Gastos administrativos', 'Gastos operacionales', 'Compra de mercadería']
 const MEDIOS    = ['Efectivo', 'Tarjeta de débito', 'Tarjeta de crédito', 'Transferencia', 'MercadoPago']
+const MESES     = ['Ene.','Feb.','Mar.','Abr.','May.','Jun.','Jul.','Ago.','Sep.','Oct.','Nov.','Dic.']
+const ANO_ACT   = new Date().getFullYear()
+const ANOS      = Array.from({ length: 10 }, (_, i) => ANO_ACT - 4 + i)
 
 const EMPTY_GASTO = { fecha: hoyInput(), importe: '', proveedor: '', categoriaId: '', comentario: '', estadoPago: 'pagado', medioPago: '', fechaVencimiento: '' }
 const EMPTY_CAT   = { nombre: '', categoriaFinanciera: 'Gastos administrativos', activo: true, parent: '' }
@@ -34,6 +37,9 @@ function TabGastos({ categorias }) {
   const [gastos, setGastos]             = useState([])
   const [cargando, setCargando]         = useState(true)
   const [periodo, setPeriodo]           = useState('mes')
+  const [diaFiltro, setDiaFiltro]       = useState('')
+  const [mesFiltro, setMesFiltro]       = useState('')
+  const [anioFiltro, setAnioFiltro]     = useState('')
   const [filtroEstado, setFiltroEstado] = useState('')
   const [filtroCat, setFiltroCat]       = useState('')
   const [selected, setSelected]         = useState(null)
@@ -50,6 +56,8 @@ function TabGastos({ categorias }) {
   }, [])
 
   const hoy = new Date(); hoy.setHours(0, 0, 0, 0)
+  const modoCustom = !!(diaFiltro || mesFiltro || anioFiltro)
+
   const getRango = () => {
     const man = new Date(hoy.getTime() + 86_400_000)
     if (periodo === 'hoy')    return { desde: hoy, hasta: man }
@@ -59,11 +67,25 @@ function TabGastos({ categorias }) {
   }
   const { desde, hasta } = getRango()
 
+  const handlePill  = p   => { setPeriodo(p); setDiaFiltro(''); setMesFiltro(''); setAnioFiltro(''); setSelected(null) }
+  const handleFecha = (tipo, val) => {
+    if (tipo === 'dia') setDiaFiltro(val)
+    if (tipo === 'mes') setMesFiltro(val)
+    if (tipo === 'ano') setAnioFiltro(val)
+    setPeriodo('')
+  }
+
   const filtrados = gastos.filter(g => {
     const f = parseGDate(g.fecha)
     if (!f) return false
-    if (desde && f < desde) return false
-    if (hasta && f >= hasta) return false
+    if (modoCustom) {
+      if (diaFiltro  && f.getDate()         !== Number(diaFiltro))  return false
+      if (mesFiltro  && f.getMonth() + 1    !== Number(mesFiltro))  return false
+      if (anioFiltro && f.getFullYear()     !== Number(anioFiltro)) return false
+    } else {
+      if (desde && f < desde) return false
+      if (hasta && f >= hasta) return false
+    }
     if (filtroEstado && g.estadoPago !== filtroEstado) return false
     if (filtroCat && g.categoriaId !== filtroCat) return false
     return true
@@ -126,27 +148,48 @@ function TabGastos({ categorias }) {
 
         {/* Filtros */}
         <div className="gastos-filtros">
-          <div className="gastos-periodo-pills">
-            {[['hoy','Hoy'],['semana','Esta semana'],['mes','Este mes'],['','Todos']].map(([v, l]) => (
-              <button key={v} className={`gastos-pill${periodo === v ? ' gastos-pill--active' : ''}`}
-                onClick={() => { setPeriodo(v); setSelected(null) }}>{l}</button>
-            ))}
+          <div className="gastos-filtros-row1">
+            <div className="gastos-periodo-pills">
+              {[['hoy','Hoy'],['semana','Esta semana'],['mes','Este mes'],['','Todos']].map(([v, l]) => (
+                <button key={v} className={`gastos-pill${!modoCustom && periodo === v ? ' gastos-pill--active' : ''}`}
+                  onClick={() => handlePill(v)}>{l}</button>
+              ))}
+            </div>
+            <div className="gastos-date-row">
+              <select className={`gastos-select--date${diaFiltro ? ' gastos-select--active' : ''}`}
+                value={diaFiltro} onChange={e => handleFecha('dia', e.target.value)}>
+                <option value="">Día</option>
+                {Array.from({ length: 31 }, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+              <select className={`gastos-select--date${mesFiltro ? ' gastos-select--active' : ''}`}
+                value={mesFiltro} onChange={e => handleFecha('mes', e.target.value)}>
+                <option value="">Mes</option>
+                {MESES.map((m, i) => <option key={i+1} value={i+1}>{m}</option>)}
+              </select>
+              <select className={`gastos-select--date${anioFiltro ? ' gastos-select--active' : ''}`}
+                value={anioFiltro} onChange={e => handleFecha('ano', e.target.value)}>
+                <option value="">Año</option>
+                {ANOS.map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
           </div>
-          <div className="gastos-selects">
-            <select className="gastos-select" value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}>
-              <option value="">Estado del pago</option>
-              <option value="pagado">Pagado</option>
-              <option value="pendiente">Pendiente</option>
-              <option value="vencido">Vencido</option>
-            </select>
-            <select className="gastos-select" value={filtroCat} onChange={e => setFiltroCat(e.target.value)}>
-              <option value="">Categoría</option>
-              {categorias.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-            </select>
+          <div className="gastos-filtros-row2">
+            <div className="gastos-selects">
+              <select className="gastos-select" value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}>
+                <option value="">Estado del pago</option>
+                <option value="pagado">Pagado</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="vencido">Vencido</option>
+              </select>
+              <select className="gastos-select" value={filtroCat} onChange={e => setFiltroCat(e.target.value)}>
+                <option value="">Categoría</option>
+                {categorias.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+              </select>
+            </div>
+            <button className="gastos-btn-nuevo" onClick={abrirCrear}>
+              <Plus size={14} /> Nuevo gasto
+            </button>
           </div>
-          <button className="gastos-btn-nuevo" onClick={abrirCrear}>
-            <Plus size={14} /> Nuevo gasto
-          </button>
         </div>
 
         {/* Stats */}

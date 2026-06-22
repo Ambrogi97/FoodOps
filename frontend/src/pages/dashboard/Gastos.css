@@ -55,13 +55,26 @@
 /* ── Filtros ─────────────────────────────────────────────────────────────── */
 .gastos-filtros {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 6px;
   padding: 10px 16px;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
-  flex-wrap: wrap;
   flex-shrink: 0;
+}
+
+.gastos-filtros-row1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.gastos-filtros-row2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .gastos-periodo-pills {
@@ -82,6 +95,21 @@
 .gastos-pill:hover { border-color: #f97316; color: #f97316; }
 .gastos-pill--active { background: #f97316; border-color: #f97316; color: #fff; font-weight: 600; }
 
+.gastos-date-row { display: flex; gap: 4px; margin-left: 8px; }
+
+.gastos-select--date {
+  padding: 5px 7px;
+  font-size: 0.78rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.gastos-select--date:focus { outline: none; border-color: #f97316; }
+.gastos-select--active { border-color: #f97316 !important; color: #f97316 !important; font-weight: 600; }
+
 .gastos-selects { display: flex; gap: 6px; }
 
 .gastos-select {
@@ -93,6 +121,8 @@
   color: var(--text);
   cursor: pointer;
 }
+
+.gastos-filtros-row2 .gastos-btn-nuevo { margin-left: auto; }
 
 .gastos-btn-nuevo {
   display: flex;
@@ -106,7 +136,6 @@
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
-  margin-left: auto;
   transition: opacity 0.15s;
 }
 .gastos-btn-nuevo:hover { opacity: 0.88; }
