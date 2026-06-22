@@ -14,13 +14,16 @@ router.get('/', auth, async (req, res) => {
 
 router.post('/', auth, async (req, res) => {
   try {
-    const { nombre, unidad, costo, stockActual } = req.body
+    const { nombre, unidad, costo, stockActual, stockMinimo, merma, controlStock, categoria } = req.body
     if (!nombre?.trim() || !unidad) return res.status(400).json({ message: 'Faltan campos requeridos' })
     const ingrediente = await Ingrediente.create({
-      nombre: nombre.trim(),
-      unidad,
-      costo:       Number(costo)       || 0,
-      stockActual: Number(stockActual) || 0,
+      nombre: nombre.trim(), unidad,
+      costo:        Number(costo)        || 0,
+      stockActual:  Number(stockActual)  || 0,
+      stockMinimo:  Number(stockMinimo)  || 0,
+      merma:        Number(merma)        || 0,
+      controlStock: controlStock         || false,
+      categoria:    categoria            || 'Varios',
       usuario: req.usuario.id,
     })
     res.status(201).json(ingrediente)
@@ -31,11 +34,18 @@ router.post('/', auth, async (req, res) => {
 
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { nombre, unidad, costo } = req.body
+    const { nombre, unidad, costo, stockActual, stockMinimo, merma, controlStock, categoria } = req.body
     const ingrediente = await Ingrediente.findOneAndUpdate(
       { _id: req.params.id, usuario: req.usuario.id },
-      { nombre: nombre?.trim(), unidad, costo: Number(costo) || 0 },
-      { returnDocument: 'after' }
+      {
+        nombre: nombre?.trim(), unidad, costo: Number(costo) || 0,
+        stockActual:  stockActual  != null ? Number(stockActual)  : undefined,
+        stockMinimo:  stockMinimo  != null ? Number(stockMinimo)  : undefined,
+        merma:        merma        != null ? Number(merma)        : undefined,
+        controlStock: controlStock != null ? controlStock         : undefined,
+        categoria:    categoria    != null ? categoria            : undefined,
+      },
+      { new: true }
     )
     if (!ingrediente) return res.status(404).json({ message: 'Ingrediente no encontrado' })
     res.json(ingrediente)

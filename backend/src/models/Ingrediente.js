@@ -6,6 +6,9 @@ const ingredienteSchema = new mongoose.Schema({
   costo:        { type: Number, default: 0, min: 0 },
   stockActual:  { type: Number, default: 0 },
   stockMinimo:  { type: Number, default: 0 },
+  merma:        { type: Number, default: 0 },
+  controlStock: { type: Boolean, default: false },
+  categoria:    { type: String, default: 'Varios', trim: true },
   usuario:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 }, { timestamps: true })
 

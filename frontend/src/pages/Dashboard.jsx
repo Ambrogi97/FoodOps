@@ -2,18 +2,16 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getSession, clearSession, categoriasService, productosService, pedidosOnlineService } from '../services/api'
 import {
-  Armchair, Receipt, UtensilsCrossed, FlaskConical, Package,
-  Truck, DollarSign, BarChart2, Calculator, Smartphone, LogOut, ShieldCheck, Settings, Monitor,
+  UtensilsCrossed, Truck, DollarSign, BarChart2, Calculator,
+  Smartphone, LogOut, ShieldCheck, Settings, Monitor,
 } from 'lucide-react'
 import Logo from '../components/Logo'
 import Mesas from './dashboard/Mesas'
 import Restaurante from './dashboard/Restaurante'
 import MonitorCocina from './dashboard/MonitorCocina'
 import Productos from './dashboard/Productos'
-import Ingredientes from './dashboard/Ingredientes'
 import Ventas from './dashboard/Ventas'
 import Gastos from './dashboard/Gastos'
-import Stock from './dashboard/Stock'
 import Proveedores from './dashboard/Proveedores'
 import Reportes from './dashboard/Reportes'
 import CartaOnline from './dashboard/CartaOnline'
@@ -22,12 +20,10 @@ import Configuracion from './dashboard/Configuracion'
 import './Dashboard.css'
 
 const NAV_ITEMS = [
-  { id: 'restaurante',     label: 'Restaurante',      Icon: UtensilsCrossed },
-  { id: 'monitor-cocina',  label: 'Monitor de Cocina', Icon: Monitor },
-  { id: 'productos',    label: 'Productos',     Icon: UtensilsCrossed },
-  { id: 'ingredientes', label: 'Ingredientes',  Icon: FlaskConical },
-  { id: 'stock',        label: 'Stock',         Icon: Package },
-  { id: 'proveedores',  label: 'Proveedores',   Icon: Truck },
+  { id: 'restaurante',    label: 'Restaurante',       Icon: UtensilsCrossed },
+  { id: 'monitor-cocina', label: 'Monitor de Cocina', Icon: Monitor },
+  { id: 'productos',      label: 'Productos',         Icon: UtensilsCrossed },
+  { id: 'proveedores',    label: 'Proveedores',       Icon: Truck },
   { id: 'ventas',       label: 'Ventas',        Icon: DollarSign },
   { id: 'reportes',     label: 'Reportes',      Icon: BarChart2 },
   { id: 'gastos',       label: 'Gastos',        Icon: Calculator },
@@ -176,14 +172,7 @@ export default function Dashboard() {
 
           {active === 'restaurante'    && <Restaurante productos={productos} categorias={categorias} onIrAConfiguracion={irAConfiguracion} />}
           {active === 'monitor-cocina' && <MonitorCocina />}
-          {active === 'productos'   && (
-            <Productos
-              productos={productos} setProductos={setProductos}
-              categorias={categorias} setCategorias={setCategorias}
-            />
-          )}
-          {active === 'ingredientes' && <Ingredientes />}
-          {active === 'stock'        && <Stock />}
+          {active === 'productos'   && <Productos />}
           {active === 'proveedores'  && <Proveedores />}
           {active === 'ventas'       && <Ventas />}
           {active === 'gastos'       && <Gastos />}

@@ -78,9 +78,36 @@ export const clearSession = () => {
 
 // ── Mappers ─────────────────────────────────────────────────────────────────
 
-const mapCat  = c => ({ id: c._id, nombre: c.nombre })
-const mapProd = p => ({ id: p._id, nombre: p.nombre, categoriaId: p.categoria, precio: p.precio, costo: p.costo, activo: p.activo, imagen: p.imagen || '', descripcion: p.descripcion || '' })
-const mapIng  = i => ({ id: i._id, nombre: i.nombre, unidad: i.unidad, costo: i.costo, stockActual: i.stockActual ?? 0, stockMinimo: i.stockMinimo ?? 0 })
+const mapCat  = c => ({
+  id: c._id, nombre: c.nombre,
+  areaImpresion:     c.areaImpresion     || '',
+  tiempoPrepDefecto: c.tiempoPrepDefecto || 0,
+})
+const mapProd = p => ({
+  id: p._id, nombre: p.nombre, categoriaId: p.categoria ? String(p.categoria) : '',
+  precio: p.precio, costo: p.costo || 0, activo: p.activo !== false,
+  imagen: p.imagen || '', descripcion: p.descripcion || '',
+  codigo:             p.codigo             || null,
+  areaImpresion:      p.areaImpresion      || '',
+  controlStock:       p.controlStock       || false,
+  venderSinStock:     p.venderSinStock     || false,
+  permitirVenderSolo: p.permitirVenderSolo !== false,
+  tiempoPrepMin:      p.tiempoPrepMin      || null,
+  stockActual:        p.stockActual        ?? 0,
+  receta: (p.receta || []).map(r => ({
+    ingredienteId: r.ingredienteId ? String(r.ingredienteId) : '',
+    cantNeta:      r.cantNeta  || 0,
+    unidad:        r.unidad    || '',
+  })),
+})
+const mapIng  = i => ({
+  id: i._id, nombre: i.nombre, unidad: i.unidad, costo: i.costo || 0,
+  stockActual:  i.stockActual  ?? 0,
+  stockMinimo:  i.stockMinimo  ?? 0,
+  merma:        i.merma        ?? 0,
+  controlStock: i.controlStock || false,
+  categoria:    i.categoria    || 'Varios',
+})
 const mapZona = z => ({ id: z._id, label: z.label, removible: z.removible })
 const mapMesa = m => ({ id: m._id, numero: m.numero, zona: m.zona, estado: m.estado, col: m.col, row: m.row, hora: m.hora || null, personas: m.personas || null, items: m.items || [] })
 const mapVenta = v => ({
@@ -108,7 +135,7 @@ export const categoriasService = {
 // ── Productos ────────────────────────────────────────────────────────────────
 
 export const productosService = {
-  listar:     async () => (await requestCacheado('/api/productos')).map(mapProd),
+  listar:     async () => { _invalidar('/api/productos'); return (await request('/api/productos')).map(mapProd) },
   crear:      async (data) => { _invalidar('/api/productos'); return mapProd(await request('/api/productos', { method: 'POST', body: JSON.stringify(data) })) },
   actualizar: async (id, data) => { _invalidar('/api/productos'); return mapProd(await request(`/api/productos/${id}`, { method: 'PUT', body: JSON.stringify(data) })) },
   eliminar:   async (id) => { _invalidar('/api/productos'); return request(`/api/productos/${id}`, { method: 'DELETE' }) },
@@ -240,6 +267,14 @@ export const stockService = {
   actualizarMinimo:    async (id, stockMinimo) => { _invalidar('/api/stock'); return request(`/api/stock/${id}/minimo`,  { method: 'PUT', body: JSON.stringify({ stockMinimo }) }) },
   actualizarUnidad:    async (id, unidad)      => { _invalidar('/api/stock'); return request(`/api/stock/${id}/unidad`, { method: 'PUT', body: JSON.stringify({ unidad }) }) },
   listarMovimientos:   async (id) => request(`/api/stock/${id}/movimientos`),
+  actualizarIngrediente: async (id, data) => {
+    _invalidar('/api/ingredientes', '/api/stock')
+    return mapIng(await request(`/api/ingredientes/${id}`, { method: 'PUT', body: JSON.stringify(data) }))
+  },
+  actualizarProductoStock: async (id, stockActual) => {
+    _invalidar('/api/productos')
+    return mapProd(await request(`/api/productos/${id}/stock`, { method: 'PUT', body: JSON.stringify({ stockActual }) }))
+  },
 }
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
