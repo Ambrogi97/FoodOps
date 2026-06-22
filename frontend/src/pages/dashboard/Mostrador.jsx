@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { mostradorService } from '../../services/api'
-import { Plus, Search, ChevronLeft, X, Minus, ShoppingBag } from 'lucide-react'
+import { mostradorService, descuentosService } from '../../services/api'
+import { Plus, Search, ChevronLeft, X, Minus, ShoppingBag, Tag } from 'lucide-react'
 import './Mostrador.css'
 
 const fmt = (d) => {
@@ -29,6 +29,9 @@ export default function Mostrador({ productos = [] }) {
   const [metodoPago, setMetodoPago]         = useState('Efectivo')
   const [guardando, setGuardando]           = useState(false)
   const [confirmEliminar, setConfirmEliminar] = useState(false)
+  const [descuentosActivos, setDescuentosActivos] = useState([])
+  const [descuentoSel, setDescuentoSel]           = useState(null)
+  const [montoDescManual, setMontoDescManual]      = useState('')
 
   const cargar = useCallback(async (mostrarCarga = false) => {
     if (mostrarCarga) setCargando(true)
@@ -49,6 +52,14 @@ export default function Mostrador({ productos = [] }) {
     return () => clearInterval(iv)
   }, [cargar])
 
+  useEffect(() => {
+    descuentosService.listar()
+      .then(data => setDescuentosActivos(data.filter(d => d.estado === 'activo')))
+      .catch(() => {})
+  }, [])
+
+  const resetDescuento = () => { setDescuentoSel(null); setMontoDescManual('') }
+
   const abrirNuevo = () => {
     setPanelPedido(null)
     setCreando(true)
@@ -57,6 +68,7 @@ export default function Mostrador({ productos = [] }) {
     setSearchProd('')
     setCerrando(false)
     setMetodoPago('Efectivo')
+    resetDescuento()
   }
 
   const abrirPedido = (p) => {
@@ -69,6 +81,7 @@ export default function Mostrador({ productos = [] }) {
     setSearchProd('')
     setCerrando(false)
     setMetodoPago('Efectivo')
+    resetDescuento()
   }
 
   const cerrarPanel = () => {
@@ -76,6 +89,7 @@ export default function Mostrador({ productos = [] }) {
     setCreando(false)
     setCerrando(false)
     setConfirmEliminar(false)
+    resetDescuento()
   }
 
   const agregarItem = (prod) => {
@@ -97,11 +111,26 @@ export default function Mostrador({ productos = [] }) {
 
   const totalTemp = itemsTemp.reduce((s, i) => s + (i.precio || 0) * i.cantidad, 0)
 
+  const montoDesc = (() => {
+    if (!descuentoSel) return 0
+    if (descuentoSel.tipo === 'porcentaje') return totalTemp * (descuentoSel.valor / 100)
+    if (descuentoSel.tipo === 'fijo')       return Math.min(descuentoSel.valor, totalTemp)
+    return Math.min(parseFloat(montoDescManual) || 0, totalTemp)
+  })()
+  const totalFinal = Math.max(0, totalTemp - montoDesc)
+
+  const handleDescuento = (id) => {
+    if (!id) { resetDescuento(); return }
+    const d = descuentosActivos.find(x => x.id === id)
+    setDescuentoSel(d || null)
+    setMontoDescManual('')
+  }
+
   const guardar = async () => {
     if (itemsTemp.length === 0) return
     setGuardando(true)
     try {
-      const body = { items: itemsTemp, total: totalTemp, cliente, estado: 'en_curso' }
+      const body = { items: itemsTemp, total: totalFinal, cliente, estado: 'en_curso' }
       if (creando) {
         const nuevo = await mostradorService.crear(body)
         setEnCurso(prev => [...prev, nuevo])
@@ -124,7 +153,7 @@ export default function Mostrador({ productos = [] }) {
     setGuardando(true)
     try {
       const upd = await mostradorService.actualizar(panelPedido._id, {
-        items: itemsTemp, total: totalTemp, cliente, estado: 'cerrada', metodoPago,
+        items: itemsTemp, total: totalFinal, cliente, estado: 'cerrada', metodoPago,
       })
       setEnCurso(prev => prev.filter(p => p._id !== upd._id))
       setCerradas(prev => [upd, ...prev].slice(0, 5))
@@ -350,10 +379,58 @@ export default function Mostrador({ productos = [] }) {
                     <span className="most-item-precio">{fmtPrecio((it.precio || 0) * it.cantidad)}</span>
                   </div>
                 ))}
-                <div className="most-items-total">
-                  <span>Total</span>
-                  <strong>{fmtPrecio(totalTemp)}</strong>
-                </div>
+
+                {/* Selector de descuento */}
+                {!esCerrado && descuentosActivos.length > 0 && (
+                  <div className="most-descuento-row">
+                    <Tag size={13} className="most-descuento-icon" />
+                    <select
+                      className="most-descuento-select"
+                      value={descuentoSel?.id || ''}
+                      onChange={e => handleDescuento(e.target.value)}
+                    >
+                      <option value="">Aplicar descuento...</option>
+                      {descuentosActivos.map(d => (
+                        <option key={d.id} value={d.id}>
+                          {d.nombre}{d.tipo === 'porcentaje' ? ` (${d.valor}%)` : d.tipo === 'fijo' ? ` ($${d.valor})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                    {descuentoSel?.tipo === 'sin_importe' && (
+                      <input
+                        className="most-descuento-monto"
+                        type="number"
+                        min="0"
+                        placeholder="$"
+                        value={montoDescManual}
+                        onChange={e => setMontoDescManual(e.target.value)}
+                      />
+                    )}
+                  </div>
+                )}
+
+                {/* Desglose cuando hay descuento */}
+                {descuentoSel && montoDesc > 0 ? (
+                  <>
+                    <div className="most-items-subtotal">
+                      <span>Subtotal</span>
+                      <span>{fmtPrecio(totalTemp)}</span>
+                    </div>
+                    <div className="most-items-descuento">
+                      <span>Descuento ({descuentoSel.nombre})</span>
+                      <span>−{fmtPrecio(montoDesc)}</span>
+                    </div>
+                    <div className="most-items-total">
+                      <span>Total</span>
+                      <strong>{fmtPrecio(totalFinal)}</strong>
+                    </div>
+                  </>
+                ) : (
+                  <div className="most-items-total">
+                    <span>Total</span>
+                    <strong>{fmtPrecio(totalTemp)}</strong>
+                  </div>
+                )}
               </div>
             )}
 
@@ -391,7 +468,7 @@ export default function Mostrador({ productos = [] }) {
                 </div>
                 <div className="most-cobro-total">
                   <span>Total a cobrar</span>
-                  <strong>{fmtPrecio(totalTemp)}</strong>
+                  <strong>{fmtPrecio(totalFinal)}</strong>
                 </div>
                 <div className="most-cobro-actions">
                   <button className="most-btn-cancel" onClick={() => setCerrando(false)}>Cancelar</button>
