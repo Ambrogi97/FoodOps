@@ -1,36 +1,65 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { categoriasService, productosService, ingredientesService, stockService } from '../../services/api'
-import { ChevronLeft, Plus, Trash2, Edit2, X, Search, Star } from 'lucide-react'
+import { ChevronLeft, Plus, Trash2, Edit2, X, Search, Star, Camera } from 'lucide-react'
 import './Productos.css'
 
 // ── Utils ──────────────────────────────────────────────────────────────────
 const fmtPrecio = n => `$${Number(n || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 const fmtPct    = n => `${Number(n || 0).toFixed(1)}%`
 
-const UNIDADES       = ['kg', 'g', 'L', 'mL', 'unid.', 'porción', 'cc']
-const AREAS_IMPRESION = ['', 'Barra', 'Cocina']
+const UNIDADES = ['kg', 'g', 'L', 'mL', 'unid.', 'porción', 'cc']
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+const uploadImagen = async (file) => {
+  const token = localStorage.getItem('token')
+  const fd = new FormData()
+  fd.append('imagen', file)
+  const res = await fetch(`${API_URL}/api/uploads/producto`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: fd,
+  })
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.message || 'Error al subir imagen')
+  return json.url
+}
 
 // ── FormProducto ──────────────────────────────────────────────────────────
 function FormProducto({ producto, categorias, ingredientes, onGuardar, onCancelar, onEliminar }) {
   const esNuevo = !producto
   const [form, setForm] = useState({
-    nombre:             producto?.nombre             || '',
-    categoriaId:        producto?.categoriaId        || '',
-    precio:             producto?.precio             || '',
-    descripcion:        producto?.descripcion        || '',
-    areaImpresion:      producto?.areaImpresion      || '',
-    activo:             producto?.activo             !== false,
-    permitirVenderSolo: producto?.permitirVenderSolo !== false,
-    controlStock:       producto?.controlStock       || false,
-    venderSinStock:     producto?.venderSinStock     || false,
-    tiempoPrepMin:      producto?.tiempoPrepMin      || '',
+    nombre:       producto?.nombre       || '',
+    categoriaId:  producto?.categoriaId  || '',
+    precio:       producto?.precio       || '',
+    descripcion:  producto?.descripcion  || '',
+    activo:       producto?.activo       !== false,
+    controlStock: producto?.controlStock || false,
+    tiempoPrepMin: producto?.tiempoPrepMin || '',
   })
+  const [imagen, setImagen]           = useState(producto?.imagen || '')
+  const [imgPreview, setImgPreview]   = useState(producto?.imagen || '')
+  const [subiendo, setSubiendo]       = useState(false)
+  const imgInputRef                   = useRef()
   const [receta, setReceta]           = useState(producto?.receta || [])
   const [guardando, setGuardando]     = useState(false)
   const [confirmElim, setConfirmElim] = useState(false)
   const [errores, setErrores]         = useState({})
 
   const setF = (k, v) => setForm(p => ({ ...p, [k]: v }))
+
+  const handleImagen = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImgPreview(URL.createObjectURL(file))
+    setSubiendo(true)
+    try {
+      const url = await uploadImagen(file)
+      setImagen(url)
+    } catch (err) {
+      console.error(err)
+      setImgPreview(imagen)
+    } finally { setSubiendo(false) }
+  }
 
   // Costo calculado desde receta
   const costoReceta = receta.reduce((total, row) => {
@@ -58,18 +87,16 @@ function FormProducto({ producto, categorias, ingredientes, onGuardar, onCancela
     setGuardando(true)
     try {
       const payload = {
-        nombre:             form.nombre.trim(),
-        categoria:          form.categoriaId,
-        precio:             Number(form.precio),
-        costo:              costoReceta > 0 ? costoReceta : (producto?.costo || 0),
-        descripcion:        form.descripcion,
-        areaImpresion:      form.areaImpresion,
-        activo:             form.activo,
-        permitirVenderSolo: form.permitirVenderSolo,
-        controlStock:       form.controlStock,
-        venderSinStock:     form.venderSinStock,
-        tiempoPrepMin:      form.tiempoPrepMin ? Number(form.tiempoPrepMin) : null,
-        receta:             receta.filter(r => r.ingredienteId && r.cantNeta),
+        nombre:       form.nombre.trim(),
+        categoria:    form.categoriaId,
+        precio:       Number(form.precio),
+        costo:        costoReceta > 0 ? costoReceta : (producto?.costo || 0),
+        descripcion:  form.descripcion,
+        imagen:       imagen,
+        activo:       form.activo,
+        controlStock: form.controlStock,
+        tiempoPrepMin: form.tiempoPrepMin ? Number(form.tiempoPrepMin) : null,
+        receta:       receta.filter(r => r.ingredienteId && r.cantNeta),
       }
       const prod = esNuevo
         ? await productosService.crear(payload)
@@ -105,6 +132,23 @@ function FormProducto({ producto, categorias, ingredientes, onGuardar, onCancela
 
           <div className="pf-section-title">Detalles</div>
 
+          {/* Imagen */}
+          <div className="pf-img-wrap">
+            <div className="pf-img-preview" onClick={() => imgInputRef.current?.click()}>
+              {imgPreview
+                ? <img src={imgPreview} alt="producto" className="pf-img-thumb" />
+                : <span className="pf-img-placeholder"><Camera size={22} /><span>Agregar imagen</span></span>
+              }
+              {subiendo && <div className="pf-img-overlay">Subiendo...</div>}
+            </div>
+            {imgPreview && (
+              <button className="pf-img-remove" onClick={() => { setImagen(''); setImgPreview('') }}>
+                <X size={13} /> Quitar
+              </button>
+            )}
+            <input ref={imgInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImagen} />
+          </div>
+
           <div className="pf-field">
             <label>Nombre *</label>
             <input className={`pf-input${errores.nombre ? ' pf-input--err' : ''}`}
@@ -131,21 +175,13 @@ function FormProducto({ producto, categorias, ingredientes, onGuardar, onCancela
               {errores.precio && <span className="pf-err-msg">× Campo requerido</span>}
             </div>
           </div>
-          <div className="pf-row2">
-            <div className="pf-field">
-              <label>Costo</label>
-              <div className="pf-prefix-wrap">
-                <span className="pf-prefix">$</span>
-                <input type="number" min="0" readOnly className="pf-input pf-input--prefixed pf-input--readonly"
-                  value={costoReceta > 0 ? costoReceta.toFixed(2) : (producto?.costo || '')}
-                  placeholder="0" />
-              </div>
-            </div>
-            <div className="pf-field">
-              <label>Área de impresión</label>
-              <select className="pf-input" value={form.areaImpresion} onChange={e => setF('areaImpresion', e.target.value)}>
-                {AREAS_IMPRESION.map(a => <option key={a} value={a}>{a || 'Sin área'}</option>)}
-              </select>
+          <div className="pf-field" style={{ maxWidth: 180 }}>
+            <label>Costo</label>
+            <div className="pf-prefix-wrap">
+              <span className="pf-prefix">$</span>
+              <input type="number" min="0" readOnly className="pf-input pf-input--prefixed pf-input--readonly"
+                value={costoReceta > 0 ? costoReceta.toFixed(2) : (producto?.costo || '')}
+                placeholder="0" />
             </div>
           </div>
           <div className="pf-field">
@@ -159,23 +195,11 @@ function FormProducto({ producto, categorias, ingredientes, onGuardar, onCancela
             <input type="checkbox" checked={form.activo} onChange={e => setF('activo', e.target.checked)} />
           </div>
 
-          <div className="pf-section-title" style={{ marginTop: 12 }}>Venta</div>
-          <div className="pf-check-row">
-            <label>Permitir vender solo</label>
-            <input type="checkbox" checked={form.permitirVenderSolo} onChange={e => setF('permitirVenderSolo', e.target.checked)} />
-          </div>
-
           <div className="pf-section-title" style={{ marginTop: 12 }}>Control de Stock</div>
           <div className="pf-check-row">
             <label>Controlar stock</label>
             <input type="checkbox" checked={form.controlStock} onChange={e => setF('controlStock', e.target.checked)} />
           </div>
-          {form.controlStock && (
-            <div className="pf-check-row">
-              <label>Vender sin stock</label>
-              <input type="checkbox" checked={form.venderSinStock} onChange={e => setF('venderSinStock', e.target.checked)} />
-            </div>
-          )}
 
           <div className="pf-section-title" style={{ marginTop: 12 }}>Monitor de cocina (KDS)</div>
           <div className="pf-field">

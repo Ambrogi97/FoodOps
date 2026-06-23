@@ -371,6 +371,75 @@
   accent-color: #f97316;
 }
 
+/* ── Image upload widget ─────────────────────────────────────────────────── */
+.pf-img-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.pf-img-preview {
+  width: 88px;
+  height: 88px;
+  border-radius: 8px;
+  border: 2px dashed var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+  background: var(--bg-hover);
+  transition: border-color .15s;
+}
+
+.pf-img-preview:hover { border-color: #f97316; }
+
+.pf-img-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pf-img-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  text-align: center;
+  padding: 8px;
+}
+
+.pf-img-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  color: #fff;
+  font-size: 0.72rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pf-img-remove {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.pf-img-remove:hover { border-color: #dc2626; color: #dc2626; }
+
 /* Receta table */
 .pf-receta-hint {
   font-size: 0.8rem;
