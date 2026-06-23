@@ -100,17 +100,26 @@ function SeccionUsuarios() {
 
   const load = () => {
     setLoading(true)
-    adminService.listarUsuarios()
-      .then(d => { setItems(d); setLoading(false) })
-      .catch(() => {
-        if (me) {
-          setItems([{
-            _id: me.id, nombre: me.nombre, email: me.email,
-            role: me.role, createdAt: new Date().toISOString(),
-          }])
-        }
-        setLoading(false)
-      })
+    if (me?.role === 'admin') {
+      adminService.listarUsuarios()
+        .then(d => { setItems(d); setLoading(false) })
+        .catch(() => {
+          showCurrentUser()
+          setLoading(false)
+        })
+    } else {
+      showCurrentUser()
+      setLoading(false)
+    }
+  }
+
+  const showCurrentUser = () => {
+    if (me) {
+      setItems([{
+        _id: me.id, nombre: me.nombre, email: me.email,
+        role: me.role, createdAt: new Date().toISOString(),
+      }])
+    }
   }
 
   useEffect(load, [])
