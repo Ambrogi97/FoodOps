@@ -16,15 +16,11 @@ function TabClientes({ clientes, setClientes }) {
   const [busqueda, setBusqueda]       = useState('')
   const [soloActivos, setSoloActivos] = useState(true)
   const [filtOrigen, setFiltOrigen]   = useState('')
-  const [filtGrupo, setFiltGrupo]     = useState('')
   const [panel, setPanel]             = useState(null) // null | 'crear' | cliente
-
-  const grupos = [...new Set(clientes.map(c => c.grupo).filter(Boolean))].sort()
 
   const filtrados = clientes.filter(c => {
     if (soloActivos && !c.activo) return false
     if (filtOrigen && c.origen !== filtOrigen) return false
-    if (filtGrupo && c.grupo !== filtGrupo) return false
     if (busqueda) {
       const q = busqueda.toLowerCase()
       if (!c.nombre.toLowerCase().includes(q) && !c.telefono.includes(q) && !c.email.toLowerCase().includes(q)) return false
@@ -73,12 +69,8 @@ function TabClientes({ clientes, setClientes }) {
             <option value="">Origen</option>
             {ORIGENES.map(o => <option key={o} value={o}>{o}</option>)}
           </select>
-          <select className="cli-select" value={filtGrupo} onChange={e => setFiltGrupo(e.target.value)}>
-            <option value="">Grupo</option>
-            {grupos.map(g => <option key={g} value={g}>{g}</option>)}
-          </select>
-          {(filtOrigen || filtGrupo) && (
-            <button className="cli-clear-btn" onClick={() => { setFiltOrigen(''); setFiltGrupo('') }} title="Limpiar filtros">
+          {filtOrigen && (
+            <button className="cli-clear-btn" onClick={() => setFiltOrigen('')} title="Limpiar filtros">
               <X size={13} />
             </button>
           )}
@@ -93,13 +85,12 @@ function TabClientes({ clientes, setClientes }) {
                 <th>Nombre</th>
                 <th>Teléfono</th>
                 <th>Origen</th>
-                <th>Grupo</th>
                 <th>Activo</th>
               </tr>
             </thead>
             <tbody>
               {filtrados.length === 0 ? (
-                <tr><td colSpan={5} className="cli-table-empty">No hay clientes</td></tr>
+                <tr><td colSpan={4} className="cli-table-empty">No hay clientes</td></tr>
               ) : filtrados.map(c => (
                 <tr key={c.id}
                   className={`cli-row${panel?.id === c.id ? ' cli-row--active' : ''}`}
@@ -107,7 +98,6 @@ function TabClientes({ clientes, setClientes }) {
                   <td className="cli-td-bold">{c.nombre}</td>
                   <td className="cli-td-muted">{c.telefono || '—'}</td>
                   <td><span className={`cli-badge cli-badge--${c.origen.toLowerCase()}`}>{c.origen}</span></td>
-                  <td className="cli-td-muted">{c.grupo || '—'}</td>
                   <td>{c.activo ? <span className="cli-dot cli-dot--on" /> : <span className="cli-dot cli-dot--off" />}</td>
                 </tr>
               ))}
@@ -172,7 +162,6 @@ function DetalleCliente({ cliente, onEditar, onEliminar, onCerrar }) {
             ['Número tributario',  cliente.numeroTributario || '—'],
             ['Fecha de nacimiento',cliente.fechaNacimiento ? fmtFecha(cliente.fechaNacimiento) : '—'],
             ['Dirección',          cliente.direccion || '—'],
-            ['Grupo',              cliente.grupo || '—'],
             ['Comentario',         cliente.comentario || '—'],
           ].map(([k, v]) => (
             <div key={k} className="cli-meta-row">
@@ -202,7 +191,6 @@ function FormCliente({ cliente, onGuardar, onCancelar }) {
     direccion:        cliente?.direccion        || '',
     comentario:       cliente?.comentario       || '',
     origen:           cliente?.origen           || 'Local',
-    grupo:            cliente?.grupo            || '',
     activo:           cliente?.activo           !== false,
   })
   const [guardando, setGuardando] = useState(false)
@@ -256,17 +244,11 @@ function FormCliente({ cliente, onGuardar, onCancelar }) {
             <label>Dirección</label>
             <input className="cli-input" value={form.direccion} onChange={e => setF('direccion', e.target.value)} />
           </div>
-          <div className="cli-row2">
-            <div className="cli-field">
-              <label>Origen</label>
-              <select className="cli-input" value={form.origen} onChange={e => setF('origen', e.target.value)}>
-                {ORIGENES.map(o => <option key={o} value={o}>{o}</option>)}
-              </select>
-            </div>
-            <div className="cli-field">
-              <label>Grupo</label>
-              <input className="cli-input" placeholder="VIP, Regular..." value={form.grupo} onChange={e => setF('grupo', e.target.value)} />
-            </div>
+          <div className="cli-field">
+            <label>Origen</label>
+            <select className="cli-input" value={form.origen} onChange={e => setF('origen', e.target.value)}>
+              {ORIGENES.map(o => <option key={o} value={o}>{o}</option>)}
+            </select>
           </div>
           <div className="cli-field">
             <label>Comentario</label>
