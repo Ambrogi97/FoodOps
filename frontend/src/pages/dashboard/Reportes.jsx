@@ -51,7 +51,7 @@ function BarChartSVG({ data, color = 'var(--primary)', h = 150 }) {
   const PAD = { t: 8, b: 26, l: 4, r: 4 }
   const ih  = h - PAD.t - PAD.b
   return (
-    <svg viewBox={`0 0 ${W + PAD.l + PAD.r} ${h}`} className="rep-svg" preserveAspectRatio="none">
+    <svg viewBox={`0 0 ${W + PAD.l + PAD.r} ${h}`} className="rep-svg" preserveAspectRatio="xMidYMid meet">
       {data.map((d, i) => {
         const bh = (d.v / max) * ih
         const x  = PAD.l + i * 44 + 4
@@ -79,7 +79,7 @@ function EvolucionSVG({ data, h = 180 }) {
   const fmtK = k => k.split('/').slice(0, 2).join('/')
   const pts  = data.map((d, i) => `${cx(i)},${PAD.t + ih - (d.count / maxC) * ih}`).join(' ')
   return (
-    <svg viewBox={`0 0 ${W} ${h}`} className="rep-svg" preserveAspectRatio="none">
+    <svg viewBox={`0 0 ${W} ${h}`} className="rep-svg" preserveAspectRatio="xMidYMid meet">
       {data.map((d, i) => {
         const bh = (d.monto / maxM) * ih
         const bw = (W / n) * 0.6
@@ -105,28 +105,46 @@ function LineChartSVG({ series, labels, h = 200 }) {
   const minV = Math.min(...allV, 0)
   const maxV = Math.max(...allV, 1)
   const n    = labels.length
-  const W    = Math.max(n * 48, 200)
-  const PAD  = { t: 12, b: 30, l: 4, r: 4 }
+  const W    = 600
+  const H    = h
+  const PAD  = { t: 12, b: 28, l: 64, r: 16 }
   const iw   = W - PAD.l - PAD.r
-  const ih   = h - PAD.t - PAD.b
+  const ih   = H - PAD.t - PAD.b
   const toX  = i => PAD.l + (n > 1 ? i * (iw / (n - 1)) : iw / 2)
   const toY  = v => PAD.t + ih - ((v - minV) / (maxV - minV || 1)) * ih
   const fmtL = l => l.split('/').slice(0, 2).join('/')
+  const fmtY = v => `$${Math.abs(Math.round(v)).toLocaleString('es-AR')}`
+  const GRIDS = 4
+  const gridVals = Array.from({ length: GRIDS + 1 }, (_, i) => minV + ((maxV - minV) / GRIDS) * i)
+  const anchor = i => i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'
   return (
-    <svg viewBox={`0 0 ${W} ${h}`} className="rep-svg" preserveAspectRatio="none">
+    <svg viewBox={`0 0 ${W} ${H}`} className="rep-svg" preserveAspectRatio="xMidYMid meet">
+      {/* Grid lines + Y labels */}
+      {gridVals.map((v, i) => (
+        <g key={i}>
+          <line x1={PAD.l} y1={toY(v)} x2={W - PAD.r} y2={toY(v)} stroke="#e2e8f0" strokeWidth={1} />
+          <text x={PAD.l - 6} y={toY(v) + 4} textAnchor="end" fontSize={9} fill="#94a3b8">{fmtY(v)}</text>
+        </g>
+      ))}
+      {/* Zero line if negative values exist */}
+      {minV < 0 && (
+        <line x1={PAD.l} y1={toY(0)} x2={W - PAD.r} y2={toY(0)} stroke="#cbd5e1" strokeWidth={1.5} strokeDasharray="4 2" />
+      )}
+      {/* Series */}
       {series.map(s => {
         const pts     = s.data.map((v, i) => `${toX(i)},${toY(v)}`).join(' ')
         const areaPts = [`${toX(0)},${toY(minV)}`, ...s.data.map((v, i) => `${toX(i)},${toY(v)}`), `${toX(s.data.length - 1)},${toY(minV)}`].join(' ')
         return (
           <g key={s.name}>
-            {s.area && <polygon points={areaPts} fill={s.color} opacity={0.1} />}
+            {s.area && <polygon points={areaPts} fill={s.color} opacity={0.12} />}
             <polyline points={pts} fill="none" stroke={s.color} strokeWidth={2} />
-            {s.data.map((v, i) => <circle key={i} cx={toX(i)} cy={toY(v)} r={3} fill={s.color} />)}
+            {s.data.map((v, i) => <circle key={i} cx={toX(i)} cy={toY(v)} r={3.5} fill={s.color} />)}
           </g>
         )
       })}
+      {/* X labels */}
       {labels.map((l, i) => (
-        <text key={i} x={toX(i)} y={h - 8} textAnchor="middle" fontSize={9} fill="#94a3b8">{fmtL(l)}</text>
+        <text key={i} x={toX(i)} y={H - 8} textAnchor={anchor(i)} fontSize={9} fill="#94a3b8">{fmtL(l)}</text>
       ))}
     </svg>
   )
