@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getSession, clearSession, categoriasService, productosService, pedidosOnlineService } from '../services/api'
 import {
-  UtensilsCrossed, Package, Truck, DollarSign, TrendingUp, BarChart2, Calculator,
+  UtensilsCrossed, Package, Truck, Users, DollarSign, TrendingUp, BarChart2, Calculator,
   Smartphone, LogOut, ShieldCheck, Settings, Monitor,
 } from 'lucide-react'
 import Logo from '../components/Logo'
@@ -10,6 +10,7 @@ import Mesas from './dashboard/Mesas'
 import Restaurante from './dashboard/Restaurante'
 import MonitorCocina from './dashboard/MonitorCocina'
 import Productos from './dashboard/Productos'
+import Clientes from './dashboard/Clientes'
 import Ventas from './dashboard/Ventas'
 import Finanzas from './dashboard/Finanzas'
 import Gastos from './dashboard/Gastos'
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { id: 'monitor-cocina', label: 'Monitor de Cocina', Icon: Monitor },
   { id: 'productos',      label: 'Productos',         Icon: Package },
   { id: 'proveedores',    label: 'Proveedores',       Icon: Truck },
+  { id: 'clientes',       label: 'Clientes',          Icon: Users },
   { id: 'ventas',         label: 'Ventas',            Icon: DollarSign },
   { id: 'finanzas',       label: 'Finanzas',          Icon: TrendingUp },
   { id: 'reportes',       label: 'Reportes',          Icon: BarChart2 },
@@ -176,6 +178,7 @@ export default function Dashboard() {
           {active === 'monitor-cocina' && <MonitorCocina />}
           {active === 'productos'   && <Productos />}
           {active === 'proveedores'  && <Proveedores />}
+          {active === 'clientes'     && <Clientes />}
           {active === 'ventas'       && <Ventas />}
           {active === 'finanzas'     && <Finanzas />}
           {active === 'gastos'       && <Gastos />}

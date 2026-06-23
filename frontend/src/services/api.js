@@ -240,6 +240,52 @@ export const proveedoresService = {
   eliminar:   async (id) => { _invalidar('/api/proveedores'); return request(`/api/proveedores/${id}`, { method: 'DELETE' }) },
 }
 
+// ── Clientes ──────────────────────────────────────────────────────────────────
+
+const mapCliente = c => ({
+  id:               c._id,
+  nombre:           c.nombre,
+  email:            c.email            || '',
+  telefono:         c.telefono         || '',
+  numeroTributario: c.numeroTributario || '',
+  fechaNacimiento:  c.fechaNacimiento  || null,
+  direccion:        c.direccion        || '',
+  comentario:       c.comentario       || '',
+  origen:           c.origen           || 'Local',
+  grupo:            c.grupo            || '',
+  activo:           c.activo           !== false,
+  createdAt:        c.createdAt,
+})
+
+export const clientesService = {
+  listar:     async () => { _invalidar('/api/clientes'); return (await request('/api/clientes')).map(mapCliente) },
+  crear:      async (data) => { _invalidar('/api/clientes'); return mapCliente(await request('/api/clientes', { method: 'POST', body: JSON.stringify(data) })) },
+  actualizar: async (id, data) => { _invalidar('/api/clientes'); return mapCliente(await request(`/api/clientes/${id}`, { method: 'PUT', body: JSON.stringify(data) })) },
+  eliminar:   async (id) => { _invalidar('/api/clientes'); return request(`/api/clientes/${id}`, { method: 'DELETE' }) },
+}
+
+// ── Cuentas Corrientes ────────────────────────────────────────────────────────
+
+const mapTx = t => ({
+  id:         t._id,
+  clienteId:  t.clienteId?._id ? String(t.clienteId._id) : String(t.clienteId || ''),
+  clienteNombre: t.clienteId?.nombre || '',
+  tipo:       t.tipo       || 'cargo',
+  monto:      t.monto      || 0,
+  medioPago:  t.medioPago  || '',
+  caja:       t.caja       || 'Principal',
+  fechaPago:  t.fechaPago  || null,
+  comentario: t.comentario || '',
+  createdAt:  t.createdAt,
+})
+
+export const cuentasCorrientesService = {
+  listar:             async () => (await request('/api/cuentas-corrientes')).map(mapTx),
+  listarPorCliente:   async (clienteId) => (await request(`/api/cuentas-corrientes/cliente/${clienteId}`)).map(mapTx),
+  crear:              async (data) => { _invalidar('/api/cuentas-corrientes'); return mapTx(await request('/api/cuentas-corrientes', { method: 'POST', body: JSON.stringify(data) })) },
+  eliminar:           async (id) => { _invalidar('/api/cuentas-corrientes'); return request(`/api/cuentas-corrientes/${id}`, { method: 'DELETE' }) },
+}
+
 // ── Pedidos Online ────────────────────────────────────────────────────────────
 
 const mapPedidoOnline = p => ({
