@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow: visible;
+  overflow: hidden;
   gap: 0;
 }
 
@@ -22,8 +22,6 @@
   border-bottom: 1px solid var(--border);
   background: var(--bg-card);
   flex-shrink: 0;
-  position: relative;
-  z-index: 20;
 }
 
 .fin-field {
@@ -40,16 +38,9 @@
   letter-spacing: 0.04em;
 }
 
-/* Período dropdown */
-.fin-drop-wrap {
-  position: relative;
-}
-
-.fin-drop-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 12px;
+/* Período select */
+.fin-select {
+  padding: 7px 32px 7px 12px;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--bg);
@@ -58,32 +49,10 @@
   cursor: pointer;
   min-width: 168px;
   font-weight: 500;
+  appearance: auto;
 }
 
-.fin-drop-btn:hover { border-color: #f97316; }
-
-.fin-drop-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  z-index: 1000;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.18);
-  min-width: 180px;
-  overflow: hidden;
-}
-
-.fin-drop-opt {
-  padding: 9px 14px;
-  font-size: 0.84rem;
-  cursor: pointer;
-  transition: background .12s;
-}
-
-.fin-drop-opt:hover { background: var(--bg-hover); }
-.fin-drop-opt--active { color: #f97316; font-weight: 700; }
+.fin-select:focus { outline: none; border-color: #f97316; }
 
 .fin-input-month {
   padding: 7px 10px;

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { ventasService, gastosService, categoriasGastoService } from '../../services/api'
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import './Finanzas.css'
 
 const MESES_ABREV = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
@@ -48,7 +48,6 @@ export default function Finanzas() {
   const [catGastos, setCatGastos]   = useState([])
   const [cargando, setCargando]     = useState(true)
   const [expandidos, setExpandidos] = useState(new Set())
-  const [dropOpen, setDropOpen]     = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -134,7 +133,7 @@ export default function Finanzas() {
 
   const toggleExpand = id => setExpandidos(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s })
 
-  const selPeriodo = p => { setPeriodo(p); setDropOpen(false); if (p !== 'Personalizado') { setDesdeC(''); setHastaC('') } }
+  const selPeriodo = p => { setPeriodo(p); if (p !== 'Personalizado') { setDesdeC(''); setHastaC('') } }
 
   if (cargando) return <div className="fin-loading">Cargando...</div>
 
@@ -149,25 +148,15 @@ export default function Finanzas() {
   ]
 
   return (
-    <div className="fin-page" onClick={() => dropOpen && setDropOpen(false)}>
+    <div className="fin-page">
 
       {/* ── Filtros ─────────────────────────────────────────────────────────── */}
       <div className="fin-filtros">
         <div className="fin-field">
           <label className="fin-label">Período</label>
-          <div className="fin-drop-wrap" onClick={e => e.stopPropagation()}>
-            <button className="fin-drop-btn" onClick={() => setDropOpen(v => !v)}>
-              {periodo} <ChevronDown size={14} />
-            </button>
-            {dropOpen && (
-              <div className="fin-drop-menu">
-                {PERIODOS.map(p => (
-                  <div key={p} className={`fin-drop-opt${periodo === p ? ' fin-drop-opt--active' : ''}`}
-                    onClick={() => selPeriodo(p)}>{p}</div>
-                ))}
-              </div>
-            )}
-          </div>
+          <select className="fin-select" value={periodo} onChange={e => selPeriodo(e.target.value)}>
+            {PERIODOS.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
         </div>
         {periodo === 'Personalizado' && (
           <>
