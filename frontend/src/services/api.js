@@ -423,6 +423,13 @@ export const cuentasCorrientesProveedoresService = {
   eliminar:          async (id)   => { _invalidar('/api/cuentas-corrientes-proveedores'); return request(`/api/cuentas-corrientes-proveedores/${id}`, { method: 'DELETE' }) },
 }
 
+// ── Perfil (usuario actual) ───────────────────────────────────────────────────
+
+export const perfilService = {
+  getMe:    async ()       => request('/auth/me'),
+  updateMe: async (data)   => request('/auth/me', { method: 'PUT', body: JSON.stringify(data) }),
+}
+
 // ── Mostrador ────────────────────────────────────────────────────────────────
 export const mostradorService = {
   listar:     async ()        => request('/api/mostrador'),

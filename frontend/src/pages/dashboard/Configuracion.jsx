@@ -5,7 +5,7 @@ import {
 } from 'lucide-react'
 import TiendaOnline from './TiendaOnline'
 import ConfigSalasYMesas from './ConfigSalasYMesas'
-import { getSession, adminService, authService } from '../../services/api'
+import { getSession, adminService, authService, perfilService } from '../../services/api'
 import './Configuracion.css'
 
 /* ── Top tabs ─────────────────────────────────────────────────────── */
@@ -100,26 +100,12 @@ function SeccionUsuarios() {
 
   const load = () => {
     setLoading(true)
-    if (me?.role === 'admin') {
-      adminService.listarUsuarios()
-        .then(d => { setItems(d); setLoading(false) })
-        .catch(() => {
-          showCurrentUser()
-          setLoading(false)
-        })
-    } else {
-      showCurrentUser()
-      setLoading(false)
-    }
-  }
-
-  const showCurrentUser = () => {
-    if (me) {
-      setItems([{
-        _id: me.id, nombre: me.nombre, email: me.email,
-        role: me.role, createdAt: new Date().toISOString(),
-      }])
-    }
+    perfilService.getMe()
+      .then(u => { setItems([u]); setLoading(false) })
+      .catch(() => {
+        if (me) setItems([{ _id: me.id, nombre: me.nombre, email: me.email, role: me.role }])
+        setLoading(false)
+      })
   }
 
   useEffect(load, [])
