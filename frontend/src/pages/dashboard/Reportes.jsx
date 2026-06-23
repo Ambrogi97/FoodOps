@@ -595,15 +595,15 @@ export default function Reportes() {
 
   return (
     <div className="rep-page">
-      <nav className="rep-sidebar">
+      <div className="rep-tabs-bar">
         {SECCIONES.map(s => (
           <button
             key={s}
-            className={`rep-nav-btn ${seccion === s ? 'rep-nav-btn--active' : ''}`}
+            className={`rep-tab-btn ${seccion === s ? 'rep-tab-btn--active' : ''}`}
             onClick={() => setSeccion(s)}
           >{s}</button>
         ))}
-      </nav>
+      </div>
 
       <div className="rep-content">
         <div className="rep-topbar">
