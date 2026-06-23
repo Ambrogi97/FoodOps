@@ -7,7 +7,14 @@ const INTERVALO = 10_000
 
 const parseHora = (horaStr) => {
   if (!horaStr) return null
-  try { return new Date(horaStr.replace(' ', 'T')) } catch { return null }
+  try {
+    // Format from backend: "DD/MM/YYYY HH:MM"
+    const [datePart, timePart] = horaStr.split(' ')
+    if (!datePart || !timePart) return null
+    const [day, month, year] = datePart.split('/')
+    const [hours, minutes]   = timePart.split(':')
+    return new Date(+year, +month - 1, +day, +hours, +minutes, 0)
+  } catch { return null }
 }
 
 const calcTimer = (horaDate) => {
@@ -227,7 +234,7 @@ export default function MonitorCocina() {
             {mesasMostradas.map(mesa => {
               const cs       = getCardState(mesa)
               const horaDate = parseHora(mesa.hora)
-              const horaHHMM = mesa.hora ? mesa.hora.split(' ')[1]?.slice(0, 5) : ''
+              const horaHHMM = mesa.hora ? mesa.hora.split(' ')[1] ?? '' : ''
               const hayPend  = mesa.items.some(i => getEst(mesa.id, i.nombre) === 'pendiente')
               const hayPrep  = mesa.items.some(i => getEst(mesa.id, i.nombre) === 'preparando')
 
