@@ -231,7 +231,19 @@ export const categoriasGastoService = {
 
 // ── Proveedores ───────────────────────────────────────────────────────────────
 
-const mapProveedor = p => ({ id: p._id, nombre: p.nombre, rubro: p.rubro || '', telefono: p.telefono || '', email: p.email || '', notas: p.notas || '' })
+const mapProveedor = p => ({
+  id:       p._id,
+  nombre:   p.nombre,
+  rubro:    p.rubro    || '',
+  telefono: p.telefono || '',
+  email:    p.email    || '',
+  notas:    p.notas    || '',
+  activo:   p.activo   !== false,
+  calle:    p.calle    || '',
+  numero:   p.numero   || '',
+  piso:     p.piso     || '',
+  ciudad:   p.ciudad   || '',
+})
 
 export const proveedoresService = {
   listar:     async () => (await requestCacheado('/api/proveedores')).map(mapProveedor),
@@ -388,6 +400,27 @@ export const descuentosService = {
   crear:      async (data)     => mapDescuento(await request('/api/descuentos', { method: 'POST', body: JSON.stringify(data) })),
   actualizar: async (id, data) => mapDescuento(await request(`/api/descuentos/${id}`, { method: 'PUT', body: JSON.stringify(data) })),
   eliminar:   async (id)       => request(`/api/descuentos/${id}`, { method: 'DELETE' }),
+}
+
+// ── Cuentas Corrientes Proveedores ────────────────────────────────────────────
+
+const mapTxProv = t => ({
+  id:               t._id,
+  proveedorId:      t.proveedorId?._id ? String(t.proveedorId._id) : String(t.proveedorId || ''),
+  proveedorNombre:  t.proveedorId?.nombre || '',
+  tipo:             t.tipo       || 'cargo',
+  monto:            t.monto      || 0,
+  medioPago:        t.medioPago  || '',
+  fechaPago:        t.fechaPago  || null,
+  comentario:       t.comentario || '',
+  createdAt:        t.createdAt,
+})
+
+export const cuentasCorrientesProveedoresService = {
+  listar:            async () => (await request('/api/cuentas-corrientes-proveedores')).map(mapTxProv),
+  listarPorProveedor: async (id) => (await request(`/api/cuentas-corrientes-proveedores/proveedor/${id}`)).map(mapTxProv),
+  crear:             async (data) => { _invalidar('/api/cuentas-corrientes-proveedores'); return mapTxProv(await request('/api/cuentas-corrientes-proveedores', { method: 'POST', body: JSON.stringify(data) })) },
+  eliminar:          async (id)   => { _invalidar('/api/cuentas-corrientes-proveedores'); return request(`/api/cuentas-corrientes-proveedores/${id}`, { method: 'DELETE' }) },
 }
 
 // ── Mostrador ────────────────────────────────────────────────────────────────

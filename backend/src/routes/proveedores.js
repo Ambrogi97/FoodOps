@@ -14,7 +14,7 @@ router.get('/', auth, async (req, res) => {
 
 router.post('/', auth, async (req, res) => {
   try {
-    const { nombre, rubro, telefono, email, notas } = req.body
+    const { nombre, rubro, telefono, email, notas, activo, calle, numero, piso, ciudad } = req.body
     if (!nombre?.trim()) return res.status(400).json({ message: 'El nombre es requerido' })
     const proveedor = await Proveedor.create({
       nombre:   nombre.trim(),
@@ -22,6 +22,11 @@ router.post('/', auth, async (req, res) => {
       telefono: telefono?.trim() || '',
       email:    email?.trim()    || '',
       notas:    notas?.trim()    || '',
+      activo:   activo !== false,
+      calle:    calle?.trim()    || '',
+      numero:   numero?.trim()   || '',
+      piso:     piso?.trim()     || '',
+      ciudad:   ciudad?.trim()   || '',
       usuario:  req.usuario.id,
     })
     res.status(201).json(proveedor)
@@ -32,11 +37,22 @@ router.post('/', auth, async (req, res) => {
 
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { nombre, rubro, telefono, email, notas } = req.body
+    const { nombre, rubro, telefono, email, notas, activo, calle, numero, piso, ciudad } = req.body
     if (!nombre?.trim()) return res.status(400).json({ message: 'El nombre es requerido' })
     const proveedor = await Proveedor.findOneAndUpdate(
       { _id: req.params.id, usuario: req.usuario.id },
-      { nombre: nombre.trim(), rubro: rubro?.trim() || '', telefono: telefono?.trim() || '', email: email?.trim() || '', notas: notas?.trim() || '' },
+      {
+        nombre:   nombre.trim(),
+        rubro:    rubro?.trim()    || '',
+        telefono: telefono?.trim() || '',
+        email:    email?.trim()    || '',
+        notas:    notas?.trim()    || '',
+        activo:   activo !== false,
+        calle:    calle?.trim()    || '',
+        numero:   numero?.trim()   || '',
+        piso:     piso?.trim()     || '',
+        ciudad:   ciudad?.trim()   || '',
+      },
       { returnDocument: 'after' }
     )
     if (!proveedor) return res.status(404).json({ message: 'Proveedor no encontrado' })

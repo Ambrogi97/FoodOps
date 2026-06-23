@@ -6,6 +6,11 @@ const proveedorSchema = new mongoose.Schema({
   telefono: { type: String, default: '' },
   email:    { type: String, default: '' },
   notas:    { type: String, default: '' },
+  activo:   { type: Boolean, default: true },
+  calle:    { type: String, default: '' },
+  numero:   { type: String, default: '' },
+  piso:     { type: String, default: '' },
+  ciudad:   { type: String, default: '' },
   usuario:  { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 }, { timestamps: true })
 
