@@ -538,18 +538,12 @@ export default function Clientes() {
   return (
     <div className="cli-page">
       <div className="cli-tabs-bar">
-        {[['clientes','Clientes'],['cuentas','Cuentas Corrientes'],['campanas','Campañas']].map(([v, l]) => (
+        {[['clientes','Clientes'],['cuentas','Cuentas Corrientes']].map(([v, l]) => (
           <button key={v} className={`cli-tab-btn${tab === v ? ' cli-tab-btn--active' : ''}`} onClick={() => setTab(v)}>{l}</button>
         ))}
       </div>
       {tab === 'clientes' && <TabClientes clientes={clientes} setClientes={setClientes} />}
       {tab === 'cuentas'  && <TabCuentas  clientes={clientes} />}
-      {tab === 'campanas' && (
-        <div className="cli-pronto">
-          <span className="cli-pronto-badge">Beta</span>
-          <p>Campañas de marketing — próximamente</p>
-        </div>
-      )}
     </div>
   )
 }
