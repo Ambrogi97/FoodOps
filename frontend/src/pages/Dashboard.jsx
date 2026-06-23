@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getSession, clearSession, categoriasService, productosService, pedidosOnlineService } from '../services/api'
 import {
-  UtensilsCrossed, Truck, DollarSign, BarChart2, Calculator,
+  UtensilsCrossed, Package, Truck, DollarSign, TrendingUp, BarChart2, Calculator,
   Smartphone, LogOut, ShieldCheck, Settings, Monitor,
 } from 'lucide-react'
 import Logo from '../components/Logo'
@@ -11,6 +11,7 @@ import Restaurante from './dashboard/Restaurante'
 import MonitorCocina from './dashboard/MonitorCocina'
 import Productos from './dashboard/Productos'
 import Ventas from './dashboard/Ventas'
+import Finanzas from './dashboard/Finanzas'
 import Gastos from './dashboard/Gastos'
 import Proveedores from './dashboard/Proveedores'
 import Reportes from './dashboard/Reportes'
@@ -22,11 +23,12 @@ import './Dashboard.css'
 const NAV_ITEMS = [
   { id: 'restaurante',    label: 'Restaurante',       Icon: UtensilsCrossed },
   { id: 'monitor-cocina', label: 'Monitor de Cocina', Icon: Monitor },
-  { id: 'productos',      label: 'Productos',         Icon: UtensilsCrossed },
+  { id: 'productos',      label: 'Productos',         Icon: Package },
   { id: 'proveedores',    label: 'Proveedores',       Icon: Truck },
-  { id: 'ventas',       label: 'Ventas',        Icon: DollarSign },
-  { id: 'reportes',     label: 'Reportes',      Icon: BarChart2 },
-  { id: 'gastos',       label: 'Gastos',        Icon: Calculator },
+  { id: 'ventas',         label: 'Ventas',            Icon: DollarSign },
+  { id: 'finanzas',       label: 'Finanzas',          Icon: TrendingUp },
+  { id: 'reportes',       label: 'Reportes',          Icon: BarChart2 },
+  { id: 'gastos',         label: 'Gastos',            Icon: Calculator },
   { id: 'carta',         label: 'Carta Online',   Icon: Smartphone },
   { id: 'configuracion', label: 'Configuración',  Icon: Settings },
 ]
@@ -175,6 +177,7 @@ export default function Dashboard() {
           {active === 'productos'   && <Productos />}
           {active === 'proveedores'  && <Proveedores />}
           {active === 'ventas'       && <Ventas />}
+          {active === 'finanzas'     && <Finanzas />}
           {active === 'gastos'       && <Gastos />}
           {active === 'reportes'     && <Reportes />}
           {active === 'carta'         && <CartaOnline />}
