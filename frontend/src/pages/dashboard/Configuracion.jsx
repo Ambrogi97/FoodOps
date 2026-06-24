@@ -34,32 +34,42 @@ const PERMISOS_GRUPOS = [
   {
     grupo: 'RESTAURANTE',
     permisos: [
-      'Cerrar ventas', 'Cobrar mesa', 'Cobrar por ítem',
-      'Imprimir control de Mesa', 'Asignar camarero',
-      'Crear adiciones', 'Cancelar adiciones',
-      'Listar descuentos', 'Crear descuentos', 'Cancelar descuentos',
+      'Cerrar venta de mesa',
+      'Imprimir ticket de mesa',
+      'Adicionar ítems a mesa',
+      'Cancelar ítems de mesa',
+      'Listar descuentos',
+      'Crear descuentos',
+      'Editar descuentos',
+      'Eliminar descuentos',
     ],
   },
   {
     grupo: 'DELIVERY',
     permisos: [
-      'Listar', 'Actualizar', 'Crear',
-      'Abrir cajón de dinero', 'Crear costos de envío',
-      'Cancelar costos de envío', 'Solicitar entregas',
+      'Listar pedidos',
+      'Crear pedido',
+      'Actualizar pedido',
+      'Eliminar pedido',
     ],
   },
   {
     grupo: 'VENTAS',
     permisos: [
-      'Listar', 'Actualizar', 'Eliminar',
-      'Exportar', 'Ver resúmen', 'Mover productos entre ventas',
+      'Listar ventas',
+      'Ver resumen y estadísticas',
     ],
   },
   {
     grupo: 'PRODUCTOS',
     permisos: [
-      'Listar', 'Actualizar', 'Modificar precio',
-      'Activar / desactivar', 'Crear', 'Eliminar', 'Exportar / importar', 'Ver costo',
+      'Listar productos',
+      'Crear producto',
+      'Actualizar producto',
+      'Eliminar producto',
+      'Ver costo del producto',
+      'Gestionar stock',
+      'Gestionar ingredientes',
     ],
   },
 ]
