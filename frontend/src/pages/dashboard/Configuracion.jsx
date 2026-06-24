@@ -24,6 +24,22 @@ const SECCIONES = [
 
 const PERMISOS_GRUPOS = [
   {
+    grupo: 'MÓDULOS',
+    permisos: [
+      'Ver Restaurante',
+      'Ver Monitor de Cocina',
+      'Ver Productos',
+      'Ver Proveedores',
+      'Ver Clientes',
+      'Ver Ventas',
+      'Ver Finanzas',
+      'Ver Reportes',
+      'Ver Gastos',
+      'Ver Carta Online',
+      'Ver Configuración',
+    ],
+  },
+  {
     grupo: 'RESTAURANTE',
     permisos: [
       'Cerrar venta de mesa',
