@@ -317,12 +317,23 @@ function SeccionUsuarios() {
 
 /* ── SeccionRoles ─────────────────────────────────────────────────── */
 function SeccionRoles() {
-  const [roles, setRoles]   = useState(ROLES_INIT)
-  const [sel, setSel]       = useState(null)
-  const [panel, setPanel]   = useState(null)   // null | 'detalle' | 'nuevo' | 'editar'
-  const [form, setForm]     = useState({ nombre: '', basadoEn: '', esCamarero: false, esRepartidor: false })
-  const [perms, setPerms]   = useState({})     // { 'permiso-key': bool }
-  const [saving, setSaving] = useState(false)
+  const [roles, setRoles]     = useState(ROLES_INIT)
+  const [conteos, setConteos] = useState({})
+  const [sel, setSel]         = useState(null)
+  const [panel, setPanel]     = useState(null)   // null | 'detalle' | 'nuevo' | 'editar'
+  const [form, setForm]       = useState({ nombre: '', basadoEn: '', esCamarero: false, esRepartidor: false })
+  const [perms, setPerms]     = useState({})     // { 'permiso-key': bool }
+  const [saving, setSaving]   = useState(false)
+
+  useEffect(() => {
+    usuariosService.listar()
+      .then(lista => {
+        const c = {}
+        lista.forEach(u => { c[u.role] = (c[u.role] || 0) + 1 })
+        setConteos(c)
+      })
+      .catch(() => {})
+  }, [])
 
   const openDetalle = r => {
     setSel(r)
@@ -375,7 +386,7 @@ function SeccionRoles() {
                   onClick={() => openDetalle(r)}
                 >
                   <td className="cfg-td-bold">{r.nombre}</td>
-                  <td className="cfg-td-muted">-</td>
+                  <td className="cfg-td-muted">{conteos[r.id] ?? 0}</td>
                 </tr>
               ))}
             </tbody>
