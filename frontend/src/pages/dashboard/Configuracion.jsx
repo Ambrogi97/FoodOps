@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   ShoppingBag, ShieldCheck, Users, CreditCard, Sliders,
-  Plus, X, Edit2, ChevronLeft, Check,
+  Plus, X, ChevronLeft, Check,
 } from 'lucide-react'
 import TiendaOnline from './TiendaOnline'
 import ConfigSalasYMesas from './ConfigSalasYMesas'
@@ -407,52 +407,7 @@ function SeccionRoles() {
           <>
             <div className="cfg-detail-hdr cfg-detail-hdr--orange">
               <span className="cfg-detail-title">{sel.nombre.toUpperCase()}</span>
-              <button className="cfg-icon-btn cfg-icon-btn--white" onClick={() => setPanel('editar')}>
-                <Edit2 size={14} />
-              </button>
-            </div>
-            <div className="cfg-detail-body">
-              <div className="cfg-meta-row">
-                <span className="cfg-meta-key">Es camarero</span>
-                <span className="cfg-meta-val">{sel.esCamarero ? 'Sí' : 'No'}</span>
-              </div>
-              <div className="cfg-meta-row">
-                <span className="cfg-meta-key">Es repartidor</span>
-                <span className="cfg-meta-val">{sel.esRepartidor ? 'Sí' : 'No'}</span>
-              </div>
-
-              <div className="cfg-permisos-sep">PERMISOS</div>
-
-              {PERMISOS_GRUPOS.map(g => (
-                <div key={g.grupo} className="cfg-permisos-grupo">
-                  <p className="cfg-permisos-titulo">{g.grupo}</p>
-                  {g.permisos.map(p => {
-                    const key = `${sel.id}:${g.grupo}:${p}`
-                    return (
-                      <div key={p} className="cfg-permiso-row">
-                        <span className={`cfg-permiso-check${perms[key] ? ' cfg-permiso-check--on' : ' cfg-permiso-check--off'}`}>
-                          {perms[key] ? <Check size={10} /> : <X size={10} />}
-                        </span>
-                        <span>{p}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              ))}
-            </div>
-            {!['admin'].includes(sel.id) && (
-              <div className="cfg-detail-ftr">
-                <button className="cfg-btn-danger" onClick={() => handleDelete(sel.id)}>Eliminar</button>
-              </div>
-            )}
-          </>
-        )}
-
-        {panel === 'editar' && sel && (
-          <>
-            <div className="cfg-detail-hdr cfg-detail-hdr--orange">
-              <span className="cfg-detail-title">{sel.nombre.toUpperCase()}</span>
-              <button className="cfg-icon-btn cfg-icon-btn--white" onClick={() => setPanel('detalle')}>
+              <button className="cfg-icon-btn cfg-icon-btn--white" onClick={() => setPanel(null)}>
                 <X size={16} />
               </button>
             </div>
@@ -464,22 +419,6 @@ function SeccionRoles() {
                     className="cfg-input"
                     value={sel.nombre}
                     onChange={e => setSel(s => ({ ...s, nombre: e.target.value }))}
-                  />
-                </div>
-                <div className="cfg-check-row">
-                  <label>Es camarero</label>
-                  <input
-                    type="checkbox"
-                    checked={sel.esCamarero}
-                    onChange={e => setSel(s => ({ ...s, esCamarero: e.target.checked }))}
-                  />
-                </div>
-                <div className="cfg-check-row">
-                  <label>Es repartidor</label>
-                  <input
-                    type="checkbox"
-                    checked={sel.esRepartidor}
-                    onChange={e => setSel(s => ({ ...s, esRepartidor: e.target.checked }))}
                   />
                 </div>
 
@@ -504,17 +443,14 @@ function SeccionRoles() {
               </div>
             </div>
             <div className="cfg-detail-ftr">
-              <button className="cfg-btn-cancel" onClick={() => setPanel('detalle')}>Cancelar</button>
+              {!['admin'].includes(sel.id) && (
+                <button className="cfg-btn-danger" onClick={() => handleDelete(sel.id)}>Eliminar</button>
+              )}
               <button
                 className="cfg-btn-save"
-                disabled={saving}
-                onClick={() => {
-                  setSaving(true)
-                  setRoles(prev => prev.map(r => r.id === sel.id ? sel : r))
-                  setTimeout(() => { setSaving(false); setPanel('detalle') }, 300)
-                }}
+                onClick={() => setRoles(prev => prev.map(r => r.id === sel.id ? sel : r))}
               >
-                Guardar cambios
+                Guardar
               </button>
             </div>
           </>
