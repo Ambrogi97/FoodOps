@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import {
-  ShoppingBag, ShieldCheck, Users, CreditCard, Sliders,
+  ShoppingBag, ShieldCheck, Users,
   Plus, X, ChevronLeft, Check,
 } from 'lucide-react'
 import TiendaOnline from './TiendaOnline'
@@ -16,11 +16,9 @@ const TOP_TABS = [
 
 /* ── Sidebar sections ─────────────────────────────────────────────── */
 const SECCIONES = [
-  { id: 'tienda',      label: 'Tienda Online',    Icon: ShoppingBag },
-  { id: 'usuarios',    label: 'Usuarios',          Icon: Users },
-  { id: 'roles',       label: 'Roles de usuario',  Icon: ShieldCheck },
-  { id: 'mediosPago',  label: 'Medios de Pago',    Icon: CreditCard },
-  { id: 'preferencias', label: 'Preferencias',     Icon: Sliders },
+  { id: 'tienda',    label: 'Tienda Online',   Icon: ShoppingBag },
+  { id: 'usuarios',  label: 'Usuarios',         Icon: Users },
+  { id: 'roles',     label: 'Roles de usuario', Icon: ShieldCheck },
 ]
 
 /* ── Static data for Roles ────────────────────────────────────────── */
@@ -72,16 +70,6 @@ const PERMISOS_GRUPOS = [
       'Gestionar ingredientes',
     ],
   },
-]
-
-/* ── Static data for Medios de Pago ──────────────────────────────── */
-const MEDIOS_INIT = [
-  { id: 'efectivo',      label: 'Efectivo',       activo: true  },
-  { id: 'debito',        label: 'Débito',          activo: true  },
-  { id: 'credito',       label: 'Crédito',         activo: true  },
-  { id: 'mercadopago',   label: 'MercadoPago',     activo: false },
-  { id: 'transferencia', label: 'Transferencia',   activo: false },
-  { id: 'qr',            label: 'QR',              activo: false },
 ]
 
 /* ── Helpers ──────────────────────────────────────────────────────── */
@@ -524,73 +512,6 @@ function SeccionRoles() {
   )
 }
 
-/* ── SeccionMediosPago ────────────────────────────────────────────── */
-function SeccionMediosPago() {
-  const [medios, setMedios] = useState(MEDIOS_INIT)
-  const toggle = id => setMedios(prev => prev.map(m => m.id === id ? { ...m, activo: !m.activo } : m))
-
-  return (
-    <div className="cfg-form-section">
-      <h2 className="cfg-section-heading">MEDIOS DE PAGO</h2>
-      <p className="cfg-section-desc">Configurá los medios de pago disponibles en tu local.</p>
-      <div className="cfg-medios-list">
-        {medios.map(m => (
-          <div key={m.id} className="cfg-medio-row">
-            <span className="cfg-medio-label">{m.label}</span>
-            <label className="cfg-toggle">
-              <input type="checkbox" checked={m.activo} onChange={() => toggle(m.id)} />
-              <span className="cfg-toggle-track">
-                <span className="cfg-toggle-thumb" />
-              </span>
-            </label>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/* ── SeccionPreferencias ──────────────────────────────────────────── */
-function SeccionPreferencias() {
-  const [prefs, setPrefs] = useState({
-    imprimirAlCerrar: true,
-    pedirConfirmacion: true,
-    mostrarCostos: false,
-    modoOscuro: false,
-  })
-  const toggle = k => setPrefs(p => ({ ...p, [k]: !p[k] }))
-
-  const items = [
-    { key: 'imprimirAlCerrar',   label: 'Imprimir ticket al cerrar mesa',         desc: 'Se imprime automáticamente al cerrar una venta' },
-    { key: 'pedirConfirmacion',  label: 'Pedir confirmación al eliminar',          desc: 'Solicitar confirmación antes de eliminar ítems' },
-    { key: 'mostrarCostos',      label: 'Mostrar costos en el menú',               desc: 'Visible solo para usuarios administradores' },
-    { key: 'modoOscuro',         label: 'Modo oscuro',                             desc: 'Cambiar apariencia del sistema' },
-  ]
-
-  return (
-    <div className="cfg-form-section">
-      <h2 className="cfg-section-heading">PREFERENCIAS</h2>
-      <p className="cfg-section-desc">Ajustes generales del sistema.</p>
-      <div className="cfg-medios-list">
-        {items.map(it => (
-          <div key={it.key} className="cfg-medio-row cfg-medio-row--tall">
-            <div>
-              <p className="cfg-medio-label">{it.label}</p>
-              <p className="cfg-medio-subdesc">{it.desc}</p>
-            </div>
-            <label className="cfg-toggle">
-              <input type="checkbox" checked={prefs[it.key]} onChange={() => toggle(it.key)} />
-              <span className="cfg-toggle-track">
-                <span className="cfg-toggle-thumb" />
-              </span>
-            </label>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 /* ── Main component ───────────────────────────────────────────────── */
 const SPLIT_SECS = new Set(['usuarios', 'roles'])
 
@@ -635,11 +556,9 @@ export default function Configuracion({ tabInicial = 'general' }) {
           </nav>
 
           <div className={`config-content${isSplit ? ' config-content--flush' : ''}`}>
-            {activa === 'tienda'       && <TiendaOnline />}
-            {activa === 'usuarios'     && <SeccionUsuarios />}
-            {activa === 'roles'        && <SeccionRoles />}
-            {activa === 'mediosPago'   && <SeccionMediosPago />}
-            {activa === 'preferencias' && <SeccionPreferencias />}
+            {activa === 'tienda'    && <TiendaOnline />}
+            {activa === 'usuarios'  && <SeccionUsuarios />}
+            {activa === 'roles'     && <SeccionRoles />}
           </div>
         </div>
       )}
