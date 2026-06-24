@@ -430,6 +430,14 @@ export const perfilService = {
   updateMe: async (data)   => request('/auth/me', { method: 'PUT', body: JSON.stringify(data) }),
 }
 
+// ── Usuarios del restaurante ──────────────────────────────────────────────────
+
+export const usuariosService = {
+  listar:   async ()       => request('/api/usuarios'),
+  crear:    async (data)   => request('/api/usuarios', { method: 'POST', body: JSON.stringify(data) }),
+  eliminar: async (id)     => request(`/api/usuarios/${id}`, { method: 'DELETE' }),
+}
+
 // ── Mostrador ────────────────────────────────────────────────────────────────
 export const mostradorService = {
   listar:     async ()        => request('/api/mostrador'),

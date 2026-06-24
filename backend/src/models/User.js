@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema({
   restaurante: { type: String, required: true, trim: true },
   plan: { type: String, enum: ['basico', 'profesional', 'premium'], default: 'basico' },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  cuentaPadreId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
 }, { timestamps: true })
 
 userSchema.pre('save', async function () {

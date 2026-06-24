@@ -5,7 +5,7 @@ import {
 } from 'lucide-react'
 import TiendaOnline from './TiendaOnline'
 import ConfigSalasYMesas from './ConfigSalasYMesas'
-import { getSession, adminService, authService, perfilService } from '../../services/api'
+import { getSession, usuariosService } from '../../services/api'
 import './Configuracion.css'
 
 /* ── Top tabs ─────────────────────────────────────────────────────── */
@@ -100,12 +100,9 @@ function SeccionUsuarios() {
 
   const load = () => {
     setLoading(true)
-    perfilService.getMe()
-      .then(u => { setItems([u]); setLoading(false) })
-      .catch(() => {
-        if (me) setItems([{ _id: me.id, nombre: me.nombre, email: me.email, role: me.role }])
-        setLoading(false)
-      })
+    usuariosService.listar()
+      .then(lista => { setItems(lista); setLoading(false) })
+      .catch(() => { setItems([]); setLoading(false) })
   }
 
   useEffect(load, [])
@@ -123,11 +120,10 @@ function SeccionUsuarios() {
     if (form.password !== form.confirm) { setErr('Las contraseñas no coinciden'); return }
     setSaving(true); setErr('')
     try {
-      await authService.register({
+      await usuariosService.crear({
         nombre: form.nombre,
         email: form.email,
         password: form.password,
-        restaurante: me?.restaurante || 'Local',
         role: form.role,
       })
       load()
@@ -142,7 +138,7 @@ function SeccionUsuarios() {
   const handleDelete = async id => {
     if (!window.confirm('¿Eliminar este usuario?')) return
     try {
-      await adminService.eliminarUsuario(id)
+      await usuariosService.eliminar(id)
       load(); setPanel(null); setSel(null)
     } catch (e) {
       alert(e.message)
