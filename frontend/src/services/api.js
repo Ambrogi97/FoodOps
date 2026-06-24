@@ -21,7 +21,7 @@ const request = async (path, options = {}) => {
       ...(options.headers || {}),
     },
   })
-  if (res.status === 401 || res.status === 403) {
+  if (res.status === 401) {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     window.location.href = '/login'
