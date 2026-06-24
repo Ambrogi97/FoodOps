@@ -93,7 +93,7 @@ function SeccionUsuarios() {
   const [loading, setLoading] = useState(true)
   const [sel, setSel]         = useState(null)
   const [panel, setPanel]     = useState(null)   // null | 'detalle' | 'nuevo'
-  const [form, setForm]       = useState({ email: '', nombre: '', password: '', confirm: '', role: 'user' })
+  const [form, setForm]       = useState({ email: '', nombre: '', password: '', confirm: '', role: 'camarero' })
   const [saving, setSaving]   = useState(false)
   const [err, setErr]         = useState('')
   const { user: me }          = getSession()
@@ -108,7 +108,7 @@ function SeccionUsuarios() {
   useEffect(load, [])
 
   const openNuevo = () => {
-    setForm({ email: '', nombre: '', password: '', confirm: '', role: 'user' })
+    setForm({ email: '', nombre: '', password: '', confirm: '', role: 'camarero' })
     setErr('')
     setSel(null)
     setPanel('nuevo')
@@ -145,7 +145,8 @@ function SeccionUsuarios() {
     }
   }
 
-  const rolLabel = r => r === 'admin' ? 'Admin' : 'Usuario'
+  const ROL_LABELS = { admin: 'Admin', encargado: 'Encargado', camarero: 'Camarero', repartidor: 'Repartidor' }
+  const rolLabel = r => ROL_LABELS[r] || r
 
   return (
     <div className="cfg-split">
@@ -279,7 +280,9 @@ function SeccionUsuarios() {
                     value={form.role}
                     onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
                   >
-                    <option value="user">Usuario</option>
+                    <option value="camarero">Camarero</option>
+                    <option value="repartidor">Repartidor</option>
+                    <option value="encargado">Encargado</option>
                     <option value="admin">Admin</option>
                   </select>
                 </div>

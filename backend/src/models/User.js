@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   restaurante: { type: String, required: true, trim: true },
   plan: { type: String, enum: ['basico', 'profesional', 'premium'], default: 'basico' },
-  role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  role: { type: String, enum: ['admin', 'encargado', 'camarero', 'repartidor'], default: 'camarero' },
   cuentaPadreId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
 }, { timestamps: true })
 

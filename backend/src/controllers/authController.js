@@ -18,7 +18,7 @@ const register = async (req, res) => {
       return res.status(400).json({ message: 'El email ya está registrado' })
     }
 
-    const user = await User.create({ nombre, email, password, restaurante, plan })
+    const user = await User.create({ nombre, email, password, restaurante, plan, role: 'admin' })
     const token = generateToken(user._id, user.role)
 
     res.status(201).json({

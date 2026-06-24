@@ -32,7 +32,7 @@ router.post('/', auth, async (req, res) => {
     const existe = await User.findOne({ email })
     if (existe) return res.status(400).json({ message: 'El email ya está registrado' })
 
-    const safeRole = ['user', 'admin'].includes(role) ? role : 'user'
+    const safeRole = ['admin', 'encargado', 'camarero', 'repartidor'].includes(role) ? role : 'camarero'
 
     const nuevo = await User.create({
       nombre,
