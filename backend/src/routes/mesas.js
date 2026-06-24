@@ -5,7 +5,7 @@ const Mesa    = require('../models/Mesa')
 
 router.get('/', auth, async (req, res) => {
   try {
-    const mesas = await Mesa.find({ usuario: req.usuario.id }).sort('numero')
+    const mesas = await Mesa.find({ usuario: req.propietarioId }).sort('numero')
     res.json(mesas)
   } catch (e) {
     res.status(500).json({ message: e.message })
@@ -18,7 +18,7 @@ router.post('/bulk', auth, async (req, res) => {
     if (!Array.isArray(mesas) || mesas.length === 0) {
       return res.status(400).json({ message: 'Se requiere un array de mesas' })
     }
-    const docs = mesas.map(m => ({ ...m, usuario: req.usuario.id }))
+    const docs = mesas.map(m => ({ ...m, usuario: req.propietarioId }))
     const result = await Mesa.insertMany(docs)
     res.status(201).json(result)
   } catch (e) {
@@ -29,7 +29,7 @@ router.post('/bulk', auth, async (req, res) => {
 router.post('/', auth, async (req, res) => {
   try {
     const { numero, zona, col, row } = req.body
-    const mesa = await Mesa.create({ numero, zona, col, row, usuario: req.usuario.id })
+    const mesa = await Mesa.create({ numero, zona, col, row, usuario: req.propietarioId })
     res.status(201).json(mesa)
   } catch (e) {
     res.status(500).json({ message: e.message })
@@ -48,7 +48,7 @@ router.put('/:id', auth, async (req, res) => {
     if (items    !== undefined) update.items    = items
     if (personas !== undefined) update.personas = personas
     const mesa = await Mesa.findOneAndUpdate(
-      { _id: req.params.id, usuario: req.usuario.id },
+      { _id: req.params.id, usuario: req.propietarioId },
       update,
       { new: true }
     )
@@ -61,7 +61,7 @@ router.put('/:id', auth, async (req, res) => {
 
 router.delete('/all', auth, async (req, res) => {
   try {
-    const result = await Mesa.deleteMany({ usuario: req.usuario.id })
+    const result = await Mesa.deleteMany({ usuario: req.propietarioId })
     res.json({ message: `${result.deletedCount} mesas eliminadas` })
   } catch (e) {
     res.status(500).json({ message: e.message })
@@ -70,10 +70,10 @@ router.delete('/all', auth, async (req, res) => {
 
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const mesa = await Mesa.findOneAndDelete({ _id: req.params.id, usuario: req.usuario.id })
+    const mesa = await Mesa.findOneAndDelete({ _id: req.params.id, usuario: req.propietarioId })
     if (!mesa) return res.status(404).json({ message: 'Mesa no encontrada' })
     await Mesa.updateMany(
-      { usuario: req.usuario.id, numero: { $gt: mesa.numero } },
+      { usuario: req.propietarioId, numero: { $gt: mesa.numero } },
       { $inc: { numero: -1 } }
     )
     res.json({ message: 'Mesa eliminada' })

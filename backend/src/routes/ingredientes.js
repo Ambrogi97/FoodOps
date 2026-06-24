@@ -5,7 +5,7 @@ const Ingrediente = require('../models/Ingrediente')
 
 router.get('/', auth, async (req, res) => {
   try {
-    const ingredientes = await Ingrediente.find({ usuario: req.usuario.id }).sort('nombre')
+    const ingredientes = await Ingrediente.find({ usuario: req.propietarioId }).sort('nombre')
     res.json(ingredientes)
   } catch (e) {
     res.status(500).json({ message: e.message })
@@ -24,7 +24,7 @@ router.post('/', auth, async (req, res) => {
       merma:        Number(merma)        || 0,
       controlStock: controlStock         || false,
       categoria:    categoria            || 'Varios',
-      usuario: req.usuario.id,
+      usuario: req.propietarioId,
     })
     res.status(201).json(ingrediente)
   } catch (e) {
@@ -36,7 +36,7 @@ router.put('/:id', auth, async (req, res) => {
   try {
     const { nombre, unidad, costo, stockActual, stockMinimo, merma, controlStock, categoria } = req.body
     const ingrediente = await Ingrediente.findOneAndUpdate(
-      { _id: req.params.id, usuario: req.usuario.id },
+      { _id: req.params.id, usuario: req.propietarioId },
       {
         nombre: nombre?.trim(), unidad, costo: Number(costo) || 0,
         stockActual:  stockActual  != null ? Number(stockActual)  : undefined,
@@ -56,7 +56,7 @@ router.put('/:id', auth, async (req, res) => {
 
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const ingrediente = await Ingrediente.findOneAndDelete({ _id: req.params.id, usuario: req.usuario.id })
+    const ingrediente = await Ingrediente.findOneAndDelete({ _id: req.params.id, usuario: req.propietarioId })
     if (!ingrediente) return res.status(404).json({ message: 'Ingrediente no encontrado' })
     res.json({ message: 'Ingrediente eliminado' })
   } catch (e) {

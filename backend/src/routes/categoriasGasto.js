@@ -5,7 +5,7 @@ const CategoriaGasto = require('../models/CategoriaGasto')
 
 router.get('/', auth, async (req, res) => {
   try {
-    const cats = await CategoriaGasto.find({ usuario: req.usuario.id }).sort('nombre')
+    const cats = await CategoriaGasto.find({ usuario: req.propietarioId }).sort('nombre')
     res.json(cats)
   } catch (e) {
     res.status(500).json({ message: e.message })
@@ -21,7 +21,7 @@ router.post('/', auth, async (req, res) => {
       categoriaFinanciera: categoriaFinanciera || 'Gastos administrativos',
       activo: activo !== false,
       parent: parent || null,
-      usuario: req.usuario.id,
+      usuario: req.propietarioId,
     })
     res.status(201).json(cat)
   } catch (e) {
@@ -33,7 +33,7 @@ router.put('/:id', auth, async (req, res) => {
   try {
     const { nombre, categoriaFinanciera, activo, parent } = req.body
     const cat = await CategoriaGasto.findOneAndUpdate(
-      { _id: req.params.id, usuario: req.usuario.id },
+      { _id: req.params.id, usuario: req.propietarioId },
       { nombre: nombre?.trim(), categoriaFinanciera, activo, parent: parent || null },
       { new: true }
     )
@@ -46,7 +46,7 @@ router.put('/:id', auth, async (req, res) => {
 
 router.delete('/:id', auth, async (req, res) => {
   try {
-    await CategoriaGasto.findOneAndDelete({ _id: req.params.id, usuario: req.usuario.id })
+    await CategoriaGasto.findOneAndDelete({ _id: req.params.id, usuario: req.propietarioId })
     res.json({ ok: true })
   } catch (e) {
     res.status(500).json({ message: e.message })

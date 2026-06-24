@@ -6,7 +6,7 @@ const CuentaCorrienteProveedor = require('../models/CuentaCorrienteProveedor')
 router.get('/', auth, async (req, res) => {
   try {
     const txs = await CuentaCorrienteProveedor
-      .find({ usuario: req.usuario.id })
+      .find({ usuario: req.propietarioId })
       .sort('-createdAt')
       .populate('proveedorId', 'nombre')
     res.json(txs)
@@ -16,7 +16,7 @@ router.get('/', auth, async (req, res) => {
 router.get('/proveedor/:proveedorId', auth, async (req, res) => {
   try {
     const txs = await CuentaCorrienteProveedor
-      .find({ proveedorId: req.params.proveedorId, usuario: req.usuario.id })
+      .find({ proveedorId: req.params.proveedorId, usuario: req.propietarioId })
       .sort('-createdAt')
     res.json(txs)
   } catch (e) { res.status(500).json({ message: e.message }) }
@@ -33,7 +33,7 @@ router.post('/', auth, async (req, res) => {
       medioPago:  medioPago  || '',
       fechaPago:  fechaPago  || null,
       comentario: comentario || '',
-      usuario: req.usuario.id,
+      usuario: req.propietarioId,
     })
     res.status(201).json(tx)
   } catch (e) { res.status(500).json({ message: e.message }) }
@@ -41,7 +41,7 @@ router.post('/', auth, async (req, res) => {
 
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const tx = await CuentaCorrienteProveedor.findOneAndDelete({ _id: req.params.id, usuario: req.usuario.id })
+    const tx = await CuentaCorrienteProveedor.findOneAndDelete({ _id: req.params.id, usuario: req.propietarioId })
     if (!tx) return res.status(404).json({ message: 'Transacción no encontrada' })
     res.json({ message: 'Transacción eliminada' })
   } catch (e) { res.status(500).json({ message: e.message }) }

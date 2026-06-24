@@ -5,7 +5,7 @@ const PedidoOnline  = require('../models/PedidoOnline')
 
 router.get('/', auth, async (req, res) => {
   try {
-    const pedidos = await PedidoOnline.find({ usuario: req.usuario.id })
+    const pedidos = await PedidoOnline.find({ usuario: req.propietarioId })
       .sort({ createdAt: -1 })
       .limit(100)
     res.json(pedidos)
@@ -18,7 +18,7 @@ router.put('/:id/estado', auth, async (req, res) => {
   try {
     const { estado } = req.body
     const pedido = await PedidoOnline.findOneAndUpdate(
-      { _id: req.params.id, usuario: req.usuario.id },
+      { _id: req.params.id, usuario: req.propietarioId },
       { estado },
       { returnDocument: 'after' }
     )

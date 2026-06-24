@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken')
 const User = require('../models/User')
 
-const generateToken = (userId, role) => {
-  return jwt.sign({ id: userId, role }, process.env.JWT_SECRET, { expiresIn: '7d' })
+const generateToken = (userId, role, cuentaPadreId = null) => {
+  return jwt.sign({ id: userId, role, cuentaPadreId }, process.env.JWT_SECRET, { expiresIn: '7d' })
 }
 
 const register = async (req, res) => {
@@ -19,7 +19,7 @@ const register = async (req, res) => {
     }
 
     const user = await User.create({ nombre, email, password, restaurante, plan, role: 'admin' })
-    const token = generateToken(user._id, user.role)
+    const token = generateToken(user._id, user.role, null)
 
     res.status(201).json({
       token,
@@ -49,7 +49,7 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Credenciales inválidas' })
     }
 
-    const token = generateToken(user._id, user.role)
+    const token = generateToken(user._id, user.role, user.cuentaPadreId ?? null)
 
     res.json({
       token,

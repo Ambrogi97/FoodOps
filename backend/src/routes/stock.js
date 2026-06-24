@@ -7,7 +7,7 @@ const MovimientoStock = require('../models/MovimientoStock')
 // Listar ingredientes con info de stock
 router.get('/', auth, async (req, res) => {
   try {
-    const ingredientes = await Ingrediente.find({ usuario: req.usuario.id }).sort('nombre')
+    const ingredientes = await Ingrediente.find({ usuario: req.propietarioId }).sort('nombre')
     res.json(ingredientes)
   } catch (e) {
     res.status(500).json({ message: e.message })
@@ -20,7 +20,7 @@ router.post('/:id/movimiento', auth, async (req, res) => {
     const { tipo, cantidad, descripcion, fecha } = req.body
     if (!tipo || !cantidad || !fecha) return res.status(400).json({ message: 'Faltan campos requeridos' })
 
-    const ingrediente = await Ingrediente.findOne({ _id: req.params.id, usuario: req.usuario.id })
+    const ingrediente = await Ingrediente.findOne({ _id: req.params.id, usuario: req.propietarioId })
     if (!ingrediente) return res.status(404).json({ message: 'Ingrediente no encontrado' })
 
     const delta = tipo === 'entrada' ? Number(cantidad) : -Number(cantidad)
@@ -33,7 +33,7 @@ router.post('/:id/movimiento', auth, async (req, res) => {
       cantidad:    Number(cantidad),
       descripcion: descripcion?.trim() || '',
       fecha,
-      usuario:     req.usuario.id,
+      usuario:     req.propietarioId,
     })
 
     res.status(201).json({ ingrediente, movimiento })
@@ -47,7 +47,7 @@ router.put('/:id/minimo', auth, async (req, res) => {
   try {
     const { stockMinimo } = req.body
     const ingrediente = await Ingrediente.findOneAndUpdate(
-      { _id: req.params.id, usuario: req.usuario.id },
+      { _id: req.params.id, usuario: req.propietarioId },
       { stockMinimo: Number(stockMinimo) || 0 },
       { new: true }
     )
@@ -64,7 +64,7 @@ router.put('/:id/unidad', auth, async (req, res) => {
     const { unidad } = req.body
     if (!unidad?.trim()) return res.status(400).json({ message: 'La unidad no puede estar vacía' })
     const ingrediente = await Ingrediente.findOneAndUpdate(
-      { _id: req.params.id, usuario: req.usuario.id },
+      { _id: req.params.id, usuario: req.propietarioId },
       { unidad: unidad.trim() },
       { new: true }
     )
@@ -78,7 +78,7 @@ router.put('/:id/unidad', auth, async (req, res) => {
 // Historial de movimientos de un ingrediente
 router.get('/:id/movimientos', auth, async (req, res) => {
   try {
-    const movimientos = await MovimientoStock.find({ ingrediente: req.params.id, usuario: req.usuario.id })
+    const movimientos = await MovimientoStock.find({ ingrediente: req.params.id, usuario: req.propietarioId })
       .sort('-createdAt')
       .limit(30)
     res.json(movimientos)

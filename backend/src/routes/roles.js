@@ -43,8 +43,8 @@ async function inicializarRoles(propietarioId) {
 // GET /api/roles
 router.get('/', auth, async (req, res) => {
   try {
-    await inicializarRoles(req.usuario.id)
-    const roles = await Role.find({ propietarioId: req.usuario.id }).sort({ createdAt: 1 })
+    await inicializarRoles(req.propietarioId)
+    const roles = await Role.find({ propietarioId: req.propietarioId }).sort({ createdAt: 1 })
     res.json(roles)
   } catch (e) {
     console.error(e)
@@ -58,9 +58,9 @@ router.post('/', auth, async (req, res) => {
     const { nombre, permisos } = req.body
     if (!nombre?.trim()) return res.status(400).json({ message: 'El nombre es obligatorio' })
     const key = nombre.trim().toLowerCase().replace(/\s+/g, '_')
-    const existe = await Role.findOne({ propietarioId: req.usuario.id, key })
+    const existe = await Role.findOne({ propietarioId: req.propietarioId, key })
     if (existe) return res.status(400).json({ message: 'Ya existe un rol con ese nombre' })
-    const role = await Role.create({ propietarioId: req.usuario.id, nombre: nombre.trim(), key, permisos: permisos || [] })
+    const role = await Role.create({ propietarioId: req.propietarioId, nombre: nombre.trim(), key, permisos: permisos || [] })
     res.status(201).json(role)
   } catch (e) {
     console.error(e)
@@ -71,7 +71,7 @@ router.post('/', auth, async (req, res) => {
 // PUT /api/roles/:id
 router.put('/:id', auth, async (req, res) => {
   try {
-    const role = await Role.findOne({ _id: req.params.id, propietarioId: req.usuario.id })
+    const role = await Role.findOne({ _id: req.params.id, propietarioId: req.propietarioId })
     if (!role) return res.status(404).json({ message: 'Rol no encontrado' })
     const { nombre, permisos } = req.body
     if (nombre) role.nombre = nombre.trim()
@@ -87,7 +87,7 @@ router.put('/:id', auth, async (req, res) => {
 // DELETE /api/roles/:id
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const role = await Role.findOne({ _id: req.params.id, propietarioId: req.usuario.id })
+    const role = await Role.findOne({ _id: req.params.id, propietarioId: req.propietarioId })
     if (!role) return res.status(404).json({ message: 'Rol no encontrado' })
     if (role.esFijo) return res.status(400).json({ message: 'No se puede eliminar un rol del sistema' })
     await role.deleteOne()

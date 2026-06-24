@@ -6,7 +6,7 @@ const Producto  = require('../models/Producto')
 
 router.get('/', auth, async (req, res) => {
   try {
-    const categorias = await Categoria.find({ usuario: req.usuario.id }).sort('nombre')
+    const categorias = await Categoria.find({ usuario: req.propietarioId }).sort('nombre')
     res.json(categorias)
   } catch (e) {
     res.status(500).json({ message: e.message })
@@ -21,7 +21,7 @@ router.post('/', auth, async (req, res) => {
       nombre: nombre.trim(),
       areaImpresion:     areaImpresion     || '',
       tiempoPrepDefecto: tiempoPrepDefecto || 0,
-      usuario: req.usuario.id,
+      usuario: req.propietarioId,
     })
     res.status(201).json(categoria)
   } catch (e) {
@@ -34,7 +34,7 @@ router.put('/:id', auth, async (req, res) => {
     const { nombre, areaImpresion, tiempoPrepDefecto } = req.body
     if (!nombre?.trim()) return res.status(400).json({ message: 'El nombre es requerido' })
     const categoria = await Categoria.findOneAndUpdate(
-      { _id: req.params.id, usuario: req.usuario.id },
+      { _id: req.params.id, usuario: req.propietarioId },
       { nombre: nombre.trim(), areaImpresion: areaImpresion ?? '', tiempoPrepDefecto: tiempoPrepDefecto || 0 },
       { new: true }
     )
@@ -47,9 +47,9 @@ router.put('/:id', auth, async (req, res) => {
 
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const categoria = await Categoria.findOneAndDelete({ _id: req.params.id, usuario: req.usuario.id })
+    const categoria = await Categoria.findOneAndDelete({ _id: req.params.id, usuario: req.propietarioId })
     if (!categoria) return res.status(404).json({ message: 'Categoría no encontrada' })
-    await Producto.deleteMany({ categoria: req.params.id, usuario: req.usuario.id })
+    await Producto.deleteMany({ categoria: req.params.id, usuario: req.propietarioId })
     res.json({ message: 'Categoría eliminada' })
   } catch (e) {
     res.status(500).json({ message: e.message })

@@ -17,9 +17,9 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 *
 
 router.get('/tienda', auth, async (req, res) => {
   try {
-    let config = await ConfigTienda.findOne({ usuario: req.usuario.id })
+    let config = await ConfigTienda.findOne({ usuario: req.propietarioId })
     if (!config) {
-      config = await ConfigTienda.create({ usuario: req.usuario.id, habilitado: false, horarios: DIAS_DEFAULT })
+      config = await ConfigTienda.create({ usuario: req.propietarioId, habilitado: false, horarios: DIAS_DEFAULT })
     }
     res.json(config)
   } catch (e) {
@@ -36,7 +36,7 @@ router.put('/tienda', auth, async (req, res) => {
     if (retiro      !== undefined) update.retiro      = retiro
     if (colorFondo  !== undefined) update.colorFondo  = colorFondo
     const config = await ConfigTienda.findOneAndUpdate(
-      { usuario: req.usuario.id },
+      { usuario: req.propietarioId },
       { $set: update },
       { new: true, upsert: true }
     )
@@ -51,11 +51,11 @@ router.put('/tienda', auth, async (req, res) => {
 router.post('/tienda/logo', auth, upload.single('logo'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'No se recibió archivo' })
-    const config = await ConfigTienda.findOne({ usuario: req.usuario.id })
+    const config = await ConfigTienda.findOne({ usuario: req.propietarioId })
     if (config?.logo) await deleteByUrl(config.logo)
     const url = await uploadBuffer(req.file.buffer, 'logo')
     const updated = await ConfigTienda.findOneAndUpdate(
-      { usuario: req.usuario.id },
+      { usuario: req.propietarioId },
       { $set: { logo: url } },
       { new: true, upsert: true }
     )
@@ -67,9 +67,9 @@ router.post('/tienda/logo', auth, upload.single('logo'), async (req, res) => {
 
 router.delete('/tienda/logo', auth, async (req, res) => {
   try {
-    const config = await ConfigTienda.findOne({ usuario: req.usuario.id })
+    const config = await ConfigTienda.findOne({ usuario: req.propietarioId })
     if (config?.logo) await deleteByUrl(config.logo)
-    await ConfigTienda.findOneAndUpdate({ usuario: req.usuario.id }, { $set: { logo: null } })
+    await ConfigTienda.findOneAndUpdate({ usuario: req.propietarioId }, { $set: { logo: null } })
     res.json({ ok: true })
   } catch (e) {
     res.status(500).json({ message: e.message })
@@ -81,11 +81,11 @@ router.delete('/tienda/logo', auth, async (req, res) => {
 router.post('/tienda/portada', auth, upload.single('portada'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'No se recibió archivo' })
-    const config = await ConfigTienda.findOne({ usuario: req.usuario.id })
+    const config = await ConfigTienda.findOne({ usuario: req.propietarioId })
     if (config?.portada) await deleteByUrl(config.portada)
     const url = await uploadBuffer(req.file.buffer, 'portada')
     const updated = await ConfigTienda.findOneAndUpdate(
-      { usuario: req.usuario.id },
+      { usuario: req.propietarioId },
       { $set: { portada: url } },
       { new: true, upsert: true }
     )
@@ -97,9 +97,9 @@ router.post('/tienda/portada', auth, upload.single('portada'), async (req, res) 
 
 router.delete('/tienda/portada', auth, async (req, res) => {
   try {
-    const config = await ConfigTienda.findOne({ usuario: req.usuario.id })
+    const config = await ConfigTienda.findOne({ usuario: req.propietarioId })
     if (config?.portada) await deleteByUrl(config.portada)
-    await ConfigTienda.findOneAndUpdate({ usuario: req.usuario.id }, { $set: { portada: null } })
+    await ConfigTienda.findOneAndUpdate({ usuario: req.propietarioId }, { $set: { portada: null } })
     res.json({ ok: true })
   } catch (e) {
     res.status(500).json({ message: e.message })

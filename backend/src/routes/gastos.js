@@ -5,7 +5,7 @@ const Gasto   = require('../models/Gasto')
 
 router.get('/', auth, async (req, res) => {
   try {
-    const gastos = await Gasto.find({ usuario: req.usuario.id }).sort('-createdAt')
+    const gastos = await Gasto.find({ usuario: req.propietarioId }).sort('-createdAt')
     res.json(gastos)
   } catch (e) {
     res.status(500).json({ message: e.message })
@@ -24,7 +24,7 @@ router.post('/', auth, async (req, res) => {
       categoriaId: categoriaId || null, estadoPago: estadoPago || 'pagado',
       medioPago: medioPago || '', fecha,
       fechaVencimiento: fechaVencimiento || null,
-      usuario: req.usuario.id,
+      usuario: req.propietarioId,
     })
     res.status(201).json(gasto)
   } catch (e) {
@@ -38,7 +38,7 @@ router.put('/:id', auth, async (req, res) => {
     const efectivo = importe ?? monto ?? 0
     const texto    = comentario || descripcion || ''
     const gasto = await Gasto.findOneAndUpdate(
-      { _id: req.params.id, usuario: req.usuario.id },
+      { _id: req.params.id, usuario: req.propietarioId },
       {
         descripcion: texto, monto: efectivo, categoria: categoria || '',
         comentario: texto, importe: efectivo, proveedor: proveedor || '',
@@ -57,7 +57,7 @@ router.put('/:id', auth, async (req, res) => {
 
 router.delete('/:id', auth, async (req, res) => {
   try {
-    await Gasto.findOneAndDelete({ _id: req.params.id, usuario: req.usuario.id })
+    await Gasto.findOneAndDelete({ _id: req.params.id, usuario: req.propietarioId })
     res.json({ ok: true })
   } catch (e) {
     res.status(500).json({ message: e.message })
