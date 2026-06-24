@@ -441,10 +441,11 @@ export const usuariosService = {
 // ── Roles del restaurante ─────────────────────────────────────────────────────
 
 export const rolesService = {
-  listar:    async ()         => request('/api/roles'),
-  crear:     async (data)     => request('/api/roles', { method: 'POST', body: JSON.stringify(data) }),
-  actualizar: async (id, data) => request(`/api/roles/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  eliminar:  async (id)       => request(`/api/roles/${id}`, { method: 'DELETE' }),
+  listar:      async ()          => request('/api/roles'),
+  misPermisos: async ()          => request('/api/roles/mis-permisos'),
+  crear:       async (data)      => request('/api/roles', { method: 'POST', body: JSON.stringify(data) }),
+  actualizar:  async (id, data)  => request(`/api/roles/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  eliminar:    async (id)        => request(`/api/roles/${id}`, { method: 'DELETE' }),
 }
 
 // ── Mostrador ────────────────────────────────────────────────────────────────

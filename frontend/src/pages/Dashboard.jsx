@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getSession, clearSession, categoriasService, productosService, pedidosOnlineService } from '../services/api'
+import { getSession, clearSession, categoriasService, productosService, pedidosOnlineService, rolesService } from '../services/api'
 import {
   UtensilsCrossed, Package, Truck, Users, DollarSign, TrendingUp, BarChart2, Calculator,
   Smartphone, LogOut, ShieldCheck, Settings, Monitor,
@@ -42,6 +42,7 @@ export default function Dashboard() {
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const isAdmin = user?.role === 'admin'
   const [menuOpen, setMenuOpen]               = useState(false)
+  const [permisosData, setPermisosData]       = useState(null) // null = cargando
   const [productos, setProductos]             = useState([])
   const [categorias, setCategorias]           = useState([])
   const [pedidosCounts, setPedidosCounts]     = useState({ pendiente: 0, preparando: 0, listo: 0 })
@@ -51,6 +52,21 @@ export default function Dashboard() {
     setConfigTab(tab)
     setActive('configuracion')
   }
+
+  useEffect(() => {
+    rolesService.misPermisos()
+      .then(data => {
+        setPermisosData(data)
+        // Si la sección activa no está permitida, ir a la primera disponible
+        if (!data.esOwner) {
+          const visible = NAV_ITEMS.filter(i => data.permisos.includes(`Ver ${i.label}`))
+          if (visible.length > 0 && !visible.find(i => i.id === 'restaurante')) {
+            setActive(visible[0].id)
+          }
+        }
+      })
+      .catch(() => setPermisosData({ esOwner: true, permisos: [] }))
+  }, [])
 
   useEffect(() => {
     const cargar = async () => {
@@ -90,6 +106,16 @@ export default function Dashboard() {
     return null
   }
 
+  const puedeVer = (label) => {
+    if (!permisosData) return false
+    if (permisosData.esOwner) return true
+    return permisosData.permisos.includes(`Ver ${label}`)
+  }
+
+  const navVisible = permisosData
+    ? NAV_ITEMS.filter(item => puedeVer(item.label))
+    : []
+
   const handleLogout = () => {
     clearSession()
     navigate('/login')
@@ -118,7 +144,7 @@ export default function Dashboard() {
               <span className="dash-nav-label">Admin</span>
             </button>
           )}
-          {NAV_ITEMS.map(item => {
+          {navVisible.map(item => {
             const totalActivos = item.id === 'carta'
               ? pedidosCounts.pendiente + pedidosCounts.preparando + pedidosCounts.listo
               : 0
@@ -173,21 +199,32 @@ export default function Dashboard() {
 
         {/* Content */}
         <main className="dash-content">
-
-          {active === 'restaurante'    && <Restaurante productos={productos} categorias={categorias} onIrAConfiguracion={irAConfiguracion} />}
-          {active === 'monitor-cocina' && <MonitorCocina />}
-          {active === 'productos'   && <Productos />}
-          {active === 'proveedores'  && <Proveedores />}
-          {active === 'clientes'     && <Clientes />}
-          {active === 'ventas'       && <Ventas />}
-          {active === 'finanzas'     && <Finanzas />}
-          {active === 'gastos'       && <Gastos />}
-          {active === 'reportes'     && <Reportes />}
-          {active === 'carta'         && <CartaOnline />}
-          {active === 'configuracion' && <Configuracion tabInicial={configTab} />}
-          {active === 'admin'         && isAdmin && <Admin />}
-
-
+          {!permisosData ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)' }}>
+              Cargando...
+            </div>
+          ) : !puedeVer(NAV_ITEMS.find(i => i.id === active)?.label ?? '') && active !== 'admin' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 8, color: 'var(--text-muted)' }}>
+              <ShieldCheck size={36} color="#94a3b8" />
+              <p style={{ margin: 0, fontWeight: 600 }}>Sin acceso</p>
+              <p style={{ margin: 0, fontSize: '0.85rem' }}>Tu rol no tiene permiso para ver esta sección.</p>
+            </div>
+          ) : (
+            <>
+              {active === 'restaurante'    && <Restaurante productos={productos} categorias={categorias} onIrAConfiguracion={irAConfiguracion} />}
+              {active === 'monitor-cocina' && <MonitorCocina />}
+              {active === 'productos'      && <Productos />}
+              {active === 'proveedores'    && <Proveedores />}
+              {active === 'clientes'       && <Clientes />}
+              {active === 'ventas'         && <Ventas />}
+              {active === 'finanzas'       && <Finanzas />}
+              {active === 'gastos'         && <Gastos />}
+              {active === 'reportes'       && <Reportes />}
+              {active === 'carta'          && <CartaOnline />}
+              {active === 'configuracion'  && <Configuracion tabInicial={configTab} />}
+              {active === 'admin'          && isAdmin && <Admin />}
+            </>
+          )}
         </main>
       </div>
 

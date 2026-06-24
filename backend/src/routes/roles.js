@@ -1,8 +1,27 @@
 const express = require('express')
 const auth    = require('../middleware/auth')
 const Role    = require('../models/Role')
+const User    = require('../models/User')
 
 const router = express.Router()
+
+// GET /api/roles/mis-permisos — devuelve los permisos del usuario logueado según su rol
+router.get('/mis-permisos', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.usuario.id, 'role cuentaPadreId')
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
+
+    // El dueño (sin cuentaPadreId) tiene acceso total
+    if (!user.cuentaPadreId) return res.json({ esOwner: true, permisos: [] })
+
+    // Sub-usuario: buscar permisos de su rol en la cuenta del dueño
+    const role = await Role.findOne({ propietarioId: user.cuentaPadreId, key: user.role })
+    res.json({ esOwner: false, permisos: role?.permisos || [] })
+  } catch (e) {
+    console.error(e)
+    res.status(500).json({ message: 'Error al obtener permisos' })
+  }
+})
 
 const ROLES_FIJOS = [
   { key: 'admin',      nombre: 'Admin',      esFijo: true },
