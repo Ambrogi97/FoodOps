@@ -438,6 +438,15 @@ export const usuariosService = {
   eliminar: async (id)     => request(`/api/usuarios/${id}`, { method: 'DELETE' }),
 }
 
+// ── Roles del restaurante ─────────────────────────────────────────────────────
+
+export const rolesService = {
+  listar:    async ()         => request('/api/roles'),
+  crear:     async (data)     => request('/api/roles', { method: 'POST', body: JSON.stringify(data) }),
+  actualizar: async (id, data) => request(`/api/roles/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  eliminar:  async (id)       => request(`/api/roles/${id}`, { method: 'DELETE' }),
+}
+
 // ── Mostrador ────────────────────────────────────────────────────────────────
 export const mostradorService = {
   listar:     async ()        => request('/api/mostrador'),

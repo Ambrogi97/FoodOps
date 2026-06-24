@@ -5,7 +5,7 @@ import {
 } from 'lucide-react'
 import TiendaOnline from './TiendaOnline'
 import ConfigSalasYMesas from './ConfigSalasYMesas'
-import { getSession, usuariosService } from '../../services/api'
+import { getSession, usuariosService, rolesService } from '../../services/api'
 import './Configuracion.css'
 
 /* ── Top tabs ─────────────────────────────────────────────────────── */
@@ -21,12 +21,6 @@ const SECCIONES = [
   { id: 'roles',     label: 'Roles de usuario', Icon: ShieldCheck },
 ]
 
-/* ── Static data for Roles ────────────────────────────────────────── */
-const ROLES_INIT = [
-  { id: 'camarero',  nombre: 'Camarero',  esCamarero: true,  esRepartidor: false },
-  { id: 'encargado', nombre: 'Encargado', esCamarero: false, esRepartidor: false },
-  { id: 'admin',     nombre: 'Admin',     esCamarero: false, esRepartidor: false },
-]
 
 const PERMISOS_GRUPOS = [
   {
@@ -315,15 +309,16 @@ function SeccionUsuarios() {
 
 /* ── SeccionRoles ─────────────────────────────────────────────────── */
 function SeccionRoles() {
-  const [roles, setRoles]     = useState(ROLES_INIT)
+  const [roles, setRoles]     = useState([])
   const [conteos, setConteos] = useState({})
   const [sel, setSel]         = useState(null)
-  const [panel, setPanel]     = useState(null)   // null | 'detalle' | 'nuevo' | 'editar'
-  const [form, setForm]       = useState({ nombre: '', basadoEn: '', esCamarero: false, esRepartidor: false })
-  const [perms, setPerms]     = useState({})     // { 'permiso-key': bool }
+  const [panel, setPanel]     = useState(null)   // null | 'detalle' | 'nuevo'
+  const [form, setForm]       = useState({ nombre: '' })
   const [saving, setSaving]   = useState(false)
+  const [err, setErr]         = useState('')
 
-  useEffect(() => {
+  const load = () => {
+    rolesService.listar().then(setRoles).catch(() => {})
     usuariosService.listar()
       .then(lista => {
         const c = {}
@@ -331,34 +326,47 @@ function SeccionRoles() {
         setConteos(c)
       })
       .catch(() => {})
-  }, [])
-
-  const openDetalle = r => {
-    setSel(r)
-    setPerms({})
-    setPanel('detalle')
   }
 
-  const openNuevo = () => {
-    setForm({ nombre: '', basadoEn: '', esCamarero: false, esRepartidor: false })
-    setSel(null)
-    setPanel('nuevo')
+  useEffect(load, [])
+
+  const openDetalle = r => { setSel({ ...r }); setPanel('detalle') }
+
+  const togglePerm = p => {
+    setSel(s => {
+      const tiene = s.permisos.includes(p)
+      return { ...s, permisos: tiene ? s.permisos.filter(x => x !== p) : [...s.permisos, p] }
+    })
   }
 
-  const togglePerm = key => setPerms(p => ({ ...p, [key]: !p[key] }))
+  const handleSave = async () => {
+    setSaving(true); setErr('')
+    try {
+      const updated = await rolesService.actualizar(sel._id, { nombre: sel.nombre, permisos: sel.permisos })
+      setRoles(prev => prev.map(r => r._id === updated._id ? updated : r))
+      setSel(updated)
+    } catch (e) { setErr(e.message) }
+    finally { setSaving(false) }
+  }
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!form.nombre.trim()) return
-    setRoles(prev => [
-      ...prev,
-      { id: Date.now().toString(), nombre: form.nombre.trim(), esCamarero: form.esCamarero, esRepartidor: form.esRepartidor },
-    ])
-    setPanel(null)
+    setSaving(true); setErr('')
+    try {
+      const nuevo = await rolesService.crear({ nombre: form.nombre.trim() })
+      setRoles(prev => [...prev, nuevo])
+      setPanel(null)
+    } catch (e) { setErr(e.message) }
+    finally { setSaving(false) }
   }
 
-  const handleDelete = id => {
-    setRoles(prev => prev.filter(r => r.id !== id))
-    setPanel(null); setSel(null)
+  const handleDelete = async id => {
+    if (!window.confirm('¿Eliminar este rol?')) return
+    try {
+      await rolesService.eliminar(id)
+      setRoles(prev => prev.filter(r => r._id !== id))
+      setPanel(null); setSel(null)
+    } catch (e) { alert(e.message) }
   }
 
   return (
@@ -367,7 +375,7 @@ function SeccionRoles() {
       <div className="cfg-main">
         <div className="cfg-toolbar">
           <h2 className="cfg-title">ROLES DE USUARIO</h2>
-          <button className="cfg-btn-dark" onClick={openNuevo}>
+          <button className="cfg-btn-dark" onClick={() => { setForm({ nombre: '' }); setErr(''); setSel(null); setPanel('nuevo') }}>
             <Plus size={14} /> Nuevo Rol
           </button>
         </div>
@@ -379,12 +387,12 @@ function SeccionRoles() {
             <tbody>
               {roles.map(r => (
                 <tr
-                  key={r.id}
-                  className={`cfg-row${sel?.id === r.id ? ' cfg-row--active' : ''}`}
+                  key={r._id}
+                  className={`cfg-row${sel?._id === r._id ? ' cfg-row--active' : ''}`}
                   onClick={() => openDetalle(r)}
                 >
                   <td className="cfg-td-bold">{r.nombre}</td>
-                  <td className="cfg-td-muted">{conteos[r.id] ?? 0}</td>
+                  <td className="cfg-td-muted">{conteos[r.key] ?? 0}</td>
                 </tr>
               ))}
             </tbody>
@@ -426,11 +434,11 @@ function SeccionRoles() {
                   <div key={g.grupo} className="cfg-permisos-grupo">
                     <p className="cfg-permisos-titulo">{g.grupo}</p>
                     {g.permisos.map(p => {
-                      const key = `${sel.id}:${g.grupo}:${p}`
+                      const activo = sel.permisos.includes(p)
                       return (
-                        <div key={p} className="cfg-permiso-row cfg-permiso-row--click" onClick={() => togglePerm(key)}>
-                          <span className={`cfg-permiso-check${perms[key] ? ' cfg-permiso-check--on' : ' cfg-permiso-check--off'}`}>
-                            {perms[key] ? <Check size={10} /> : <X size={10} />}
+                        <div key={p} className="cfg-permiso-row cfg-permiso-row--click" onClick={() => togglePerm(p)}>
+                          <span className={`cfg-permiso-check${activo ? ' cfg-permiso-check--on' : ' cfg-permiso-check--off'}`}>
+                            {activo ? <Check size={10} /> : <X size={10} />}
                           </span>
                           <span>{p}</span>
                         </div>
@@ -438,17 +446,15 @@ function SeccionRoles() {
                     })}
                   </div>
                 ))}
+                {err && <p className="cfg-err">{err}</p>}
               </div>
             </div>
             <div className="cfg-detail-ftr">
-              {!['admin'].includes(sel.id) && (
-                <button className="cfg-btn-danger" onClick={() => handleDelete(sel.id)}>Eliminar</button>
+              {!sel.esFijo && (
+                <button className="cfg-btn-danger" onClick={() => handleDelete(sel._id)}>Eliminar</button>
               )}
-              <button
-                className="cfg-btn-save"
-                onClick={() => setRoles(prev => prev.map(r => r.id === sel.id ? sel : r))}
-              >
-                Guardar
+              <button className="cfg-btn-save" disabled={saving} onClick={handleSave}>
+                {saving ? 'Guardando...' : 'Guardar'}
               </button>
             </div>
           </>
@@ -465,45 +471,21 @@ function SeccionRoles() {
             <div className="cfg-detail-body">
               <div className="cfg-form">
                 <div className="cfg-field">
-                  <label>Nombre</label>
+                  <label>Nombre *</label>
                   <input
                     className="cfg-input"
                     value={form.nombre}
                     onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
                   />
                 </div>
-                <div className="cfg-field">
-                  <label>Basado en</label>
-                  <select
-                    className="cfg-input"
-                    value={form.basadoEn}
-                    onChange={e => setForm(f => ({ ...f, basadoEn: e.target.value }))}
-                  >
-                    <option value="">(Ninguno)</option>
-                    {roles.map(r => <option key={r.id} value={r.id}>{r.nombre}</option>)}
-                  </select>
-                </div>
-                <div className="cfg-check-row">
-                  <label>Es camarero</label>
-                  <input
-                    type="checkbox"
-                    checked={form.esCamarero}
-                    onChange={e => setForm(f => ({ ...f, esCamarero: e.target.checked }))}
-                  />
-                </div>
-                <div className="cfg-check-row">
-                  <label>Es repartidor</label>
-                  <input
-                    type="checkbox"
-                    checked={form.esRepartidor}
-                    onChange={e => setForm(f => ({ ...f, esRepartidor: e.target.checked }))}
-                  />
-                </div>
+                {err && <p className="cfg-err">{err}</p>}
               </div>
             </div>
             <div className="cfg-detail-ftr">
               <button className="cfg-btn-cancel" onClick={() => setPanel(null)}>Cancelar</button>
-              <button className="cfg-btn-save" onClick={handleCreate}>Guardar</button>
+              <button className="cfg-btn-save" disabled={saving} onClick={handleCreate}>
+                {saving ? 'Guardando...' : 'Guardar'}
+              </button>
             </div>
           </>
         )}
