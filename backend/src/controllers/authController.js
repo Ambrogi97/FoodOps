@@ -7,7 +7,7 @@ const generateToken = (userId, role) => {
 
 const register = async (req, res) => {
   try {
-    const { nombre, email, password, restaurante, plan, role } = req.body
+    const { nombre, email, password, restaurante, role } = req.body
     const safeRole = ['user', 'admin'].includes(role) ? role : 'user'
 
     if (!nombre || !email || !password || !restaurante) {
@@ -19,7 +19,7 @@ const register = async (req, res) => {
       return res.status(400).json({ message: 'El email ya está registrado' })
     }
 
-    const user = await User.create({ nombre, email, password, restaurante, plan, role: safeRole })
+    const user = await User.create({ nombre, email, password, restaurante, role: safeRole })
     const token = generateToken(user._id, user.role)
 
     res.status(201).json({
