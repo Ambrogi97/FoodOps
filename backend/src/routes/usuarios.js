@@ -4,11 +4,18 @@ const User    = require('../models/User')
 
 const router = express.Router()
 
-// GET /api/usuarios — lista todos los sub-usuarios creados por el usuario actual
+function soloOwner(req, res, next) {
+  if (req.usuario.cuentaPadreId) {
+    return res.status(403).json({ message: 'Solo el propietario puede gestionar usuarios' })
+  }
+  next()
+}
+
+// GET /api/usuarios — lista todos los sub-usuarios del propietario
 router.get('/', auth, async (req, res) => {
   try {
     const usuarios = await User.find(
-      { cuentaPadreId: req.usuario.id },
+      { cuentaPadreId: req.propietarioId },
       '-password'
     ).sort({ createdAt: 1 })
     res.json(usuarios)
@@ -18,8 +25,8 @@ router.get('/', auth, async (req, res) => {
   }
 })
 
-// POST /api/usuarios — crea un sub-usuario bajo el restaurante del usuario actual
-router.post('/', auth, async (req, res) => {
+// POST /api/usuarios — crea un sub-usuario (solo el owner puede hacerlo)
+router.post('/', auth, soloOwner, async (req, res) => {
   try {
     const { nombre, email, password, role } = req.body
     if (!nombre || !email || !password) {
@@ -29,7 +36,7 @@ router.post('/', auth, async (req, res) => {
     const padre = await User.findById(req.usuario.id, 'restaurante')
     if (!padre) return res.status(404).json({ message: 'Usuario no encontrado' })
 
-    const existe = await User.findOne({ email })
+    const existe = await User.findOne({ email: email.toLowerCase() })
     if (existe) return res.status(400).json({ message: 'El email ya está registrado' })
 
     const safeRole = ['admin', 'encargado', 'camarero', 'repartidor'].includes(role) ? role : 'camarero'
@@ -51,8 +58,8 @@ router.post('/', auth, async (req, res) => {
   }
 })
 
-// DELETE /api/usuarios/:id — elimina un sub-usuario que pertenezca al usuario actual
-router.delete('/:id', auth, async (req, res) => {
+// DELETE /api/usuarios/:id — elimina un sub-usuario (solo el owner puede hacerlo)
+router.delete('/:id', auth, soloOwner, async (req, res) => {
   try {
     const usuario = await User.findOne({ _id: req.params.id, cuentaPadreId: req.usuario.id })
     if (!usuario) return res.status(404).json({ message: 'Usuario no encontrado' })

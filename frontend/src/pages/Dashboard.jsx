@@ -65,7 +65,7 @@ export default function Dashboard() {
           }
         }
       })
-      .catch(() => setPermisosData({ esOwner: true, permisos: [] }))
+      .catch(() => setPermisosData({ esOwner: false, permisos: [] }))
   }, [])
 
   useEffect(() => {

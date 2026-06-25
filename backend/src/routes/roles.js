@@ -5,6 +5,13 @@ const User    = require('../models/User')
 
 const router = express.Router()
 
+function soloOwner(req, res, next) {
+  if (req.usuario.cuentaPadreId) {
+    return res.status(403).json({ message: 'Solo el propietario puede gestionar roles' })
+  }
+  next()
+}
+
 // GET /api/roles/mis-permisos — devuelve los permisos del usuario logueado según su rol
 router.get('/mis-permisos', auth, async (req, res) => {
   try {
@@ -53,7 +60,7 @@ router.get('/', auth, async (req, res) => {
 })
 
 // POST /api/roles
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, soloOwner, async (req, res) => {
   try {
     const { nombre, permisos } = req.body
     if (!nombre?.trim()) return res.status(400).json({ message: 'El nombre es obligatorio' })
@@ -69,7 +76,7 @@ router.post('/', auth, async (req, res) => {
 })
 
 // PUT /api/roles/:id
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, soloOwner, async (req, res) => {
   try {
     const role = await Role.findOne({ _id: req.params.id, propietarioId: req.propietarioId })
     if (!role) return res.status(404).json({ message: 'Rol no encontrado' })
@@ -85,7 +92,7 @@ router.put('/:id', auth, async (req, res) => {
 })
 
 // DELETE /api/roles/:id
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, soloOwner, async (req, res) => {
   try {
     const role = await Role.findOne({ _id: req.params.id, propietarioId: req.propietarioId })
     if (!role) return res.status(404).json({ message: 'Rol no encontrado' })
