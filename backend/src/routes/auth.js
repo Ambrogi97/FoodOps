@@ -1,13 +1,22 @@
 const express      = require('express')
 const bcrypt       = require('bcryptjs')
 const crypto       = require('crypto')
-const { Resend }   = require('resend')
+const nodemailer   = require('nodemailer')
 const { register, login } = require('../controllers/authController')
 const auth         = require('../middleware/auth')
 const User         = require('../models/User')
 
 const router = express.Router()
-const resend = new Resend(process.env.RESEND_API_KEY)
+
+const transporter = nodemailer.createTransport({
+  host:   'smtp.gmail.com',
+  port:   587,
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+})
 
 // POST /auth/recuperar — solicita reseteo de contraseña
 router.post('/recuperar', async (req, res) => {
@@ -28,8 +37,8 @@ router.post('/recuperar', async (req, res) => {
 
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${token}`
 
-    await resend.emails.send({
-      from:    'FoodOps <onboarding@resend.dev>',
+    await transporter.sendMail({
+      from:    `"FoodOps" <${process.env.SMTP_USER}>`,
       to:      user.email,
       subject: 'Recuperar contraseña — FoodOps',
       html: `
