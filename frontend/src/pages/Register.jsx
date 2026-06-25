@@ -5,9 +5,8 @@ import Logo from '../components/Logo'
 import './Register.css'
 
 const PLANES = {
-  basico: { nombre: 'Básico', precio: '$4.999/mes' },
-  profesional: { nombre: 'Profesional', precio: '$9.999/mes' },
-  premium: { nombre: 'Premium', precio: '$17.999/mes' },
+  basico:  { nombre: 'Básico',   precio: '$4.999/mes' },
+  premium: { nombre: 'Premium',  precio: '$12.999/mes' },
 }
 
 export default function Register() {
