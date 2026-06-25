@@ -75,6 +75,8 @@
 }
 .dash-nav-item--admin { border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 6px; padding-bottom: 10px; }
 .dash-nav-item--admin.dash-nav-item--active { background: rgba(99,102,241,0.12); color: #6366f1; border-left-color: #6366f1; }
+.dash-nav-item--locked { opacity: 0.55; }
+.dash-nav-lock { flex-shrink: 0; color: var(--text-muted); }
 .dash-nav-icon { font-size: 1.1rem; width: 22px; text-align: center; }
 .dash-nav-label { flex: 1; }
 .dash-nav-badge {
@@ -439,4 +441,48 @@
     flex-wrap: wrap;
     gap: 8px;
   }
+}
+
+/* ── Plan upgrade screen ── */
+.dash-upgrade {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 16px;
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.dash-upgrade-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f59e0b, #e85d2b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.dash-upgrade-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0;
+}
+
+.dash-upgrade-desc {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin: 0;
+  max-width: 380px;
+  line-height: 1.6;
+}
+
+.dash-upgrade-btn {
+  margin-top: 8px;
+  text-decoration: none;
 }

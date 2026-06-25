@@ -33,6 +33,13 @@ router.post('/', auth, soloOwner, async (req, res) => {
       return res.status(400).json({ message: 'Nombre, email y contraseña son obligatorios' })
     }
 
+    if (req.usuario.plan === 'basico') {
+      const count = await User.countDocuments({ cuentaPadreId: req.usuario.id })
+      if (count >= 3) {
+        return res.status(403).json({ message: 'El plan Básico permite un máximo de 3 sub-usuarios. Actualizá a Premium para agregar más.' })
+      }
+    }
+
     const padre = await User.findById(req.usuario.id, 'restaurante')
     if (!padre) return res.status(404).json({ message: 'Usuario no encontrado' })
 

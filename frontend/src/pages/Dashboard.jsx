@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { getSession, clearSession, categoriasService, productosService, pedidosOnlineService, rolesService } from '../services/api'
 import {
   UtensilsCrossed, Package, Truck, Users, DollarSign, TrendingUp, BarChart2, Calculator,
-  Smartphone, LogOut, ShieldCheck, Settings, Monitor,
+  Smartphone, LogOut, ShieldCheck, Settings, Monitor, Lock, Crown,
 } from 'lucide-react'
 import Logo from '../components/Logo'
 import Mesas from './dashboard/Mesas'
@@ -20,6 +20,8 @@ import CartaOnline from './dashboard/CartaOnline'
 import Admin from './dashboard/Admin'
 import Configuracion from './dashboard/Configuracion'
 import './Dashboard.css'
+
+const BASIC_IDS = new Set(['restaurante', 'monitor-cocina', 'productos', 'carta'])
 
 const NAV_ITEMS = [
   { id: 'restaurante',    label: 'Restaurante',       Icon: UtensilsCrossed },
@@ -107,6 +109,9 @@ export default function Dashboard() {
 
   if (!user) return null
 
+  const esPlanBasico = user.plan !== 'premium'
+  const bloqueadoPorPlan = (id) => esPlanBasico && !BASIC_IDS.has(id)
+
   const puedeVer = (label) => {
     if (!permisosData) return false
     if (permisosData.esOwner) return true
@@ -149,17 +154,19 @@ export default function Dashboard() {
             const totalActivos = item.id === 'carta'
               ? pedidosCounts.pendiente + pedidosCounts.preparando + pedidosCounts.listo
               : 0
+            const locked = bloqueadoPorPlan(item.id)
             return (
               <button
                 key={item.id}
-                className={`dash-nav-item ${active === item.id ? 'dash-nav-item--active' : ''}`}
+                className={`dash-nav-item ${active === item.id ? 'dash-nav-item--active' : ''} ${locked ? 'dash-nav-item--locked' : ''}`}
                 onClick={() => { setActive(item.id); setMenuOpen(false) }}
               >
                 <span className="dash-nav-icon"><item.Icon size={18} /></span>
                 <span className="dash-nav-label">{item.label}</span>
-                {totalActivos > 0 && (
-                  <span className="dash-nav-badge">{totalActivos}</span>
-                )}
+                {locked
+                  ? <Lock size={12} className="dash-nav-lock" />
+                  : totalActivos > 0 && <span className="dash-nav-badge">{totalActivos}</span>
+                }
               </button>
             )
           })}
@@ -203,6 +210,18 @@ export default function Dashboard() {
           {!permisosData ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)' }}>
               Cargando...
+            </div>
+          ) : bloqueadoPorPlan(active) ? (
+            <div className="dash-upgrade">
+              <div className="dash-upgrade-icon"><Crown size={40} /></div>
+              <h2 className="dash-upgrade-title">Módulo Premium</h2>
+              <p className="dash-upgrade-desc">
+                Este módulo está disponible en el plan <strong>Premium</strong>.<br />
+                Actualizá tu plan para acceder a {NAV_ITEMS.find(i => i.id === active)?.label}.
+              </p>
+              <a href="mailto:soporte@foodops.app?subject=Quiero actualizar a Premium" className="btn btn--primary dash-upgrade-btn">
+                Contactar para actualizar
+              </a>
             </div>
           ) : !puedeVer(NAV_ITEMS.find(i => i.id === active)?.label ?? '') && active !== 'admin' ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 8, color: 'var(--text-muted)' }}>

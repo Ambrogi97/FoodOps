@@ -96,8 +96,8 @@ async function enviarEmailBienvenida(user) {
   })
 }
 
-const generateToken = (userId, role, cuentaPadreId = null) => {
-  return jwt.sign({ id: userId, role, cuentaPadreId }, process.env.JWT_SECRET, { expiresIn: '7d' })
+const generateToken = (userId, role, cuentaPadreId = null, plan = 'basico') => {
+  return jwt.sign({ id: userId, role, cuentaPadreId, plan }, process.env.JWT_SECRET, { expiresIn: '7d' })
 }
 
 const register = async (req, res) => {
@@ -114,7 +114,7 @@ const register = async (req, res) => {
     }
 
     const user = await User.create({ nombre, email, password, restaurante, plan, role: 'admin' })
-    const token = generateToken(user._id, user.role, null)
+    const token = generateToken(user._id, user.role, null, user.plan)
 
     // Enviar email de bienvenida (no bloqueante — si falla no interrumpe el registro)
     enviarEmailBienvenida(user).catch(e => console.error('Email bienvenida error:', e))
@@ -147,11 +147,18 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Credenciales inválidas' })
     }
 
-    const token = generateToken(user._id, user.role, user.cuentaPadreId ?? null)
+    // Sub-usuarios no tienen plan propio — heredan el del dueño
+    let plan = user.plan
+    if (user.cuentaPadreId) {
+      const owner = await User.findById(user.cuentaPadreId, 'plan')
+      plan = owner?.plan ?? 'basico'
+    }
+
+    const token = generateToken(user._id, user.role, user.cuentaPadreId ?? null, plan)
 
     res.json({
       token,
-      user: { id: user._id, nombre: user.nombre, email: user.email, restaurante: user.restaurante, plan: user.plan, role: user.role }
+      user: { id: user._id, nombre: user.nombre, email: user.email, restaurante: user.restaurante, plan, role: user.role }
     })
   } catch (error) {
     res.status(500).json({ message: 'Error al iniciar sesión' })
