@@ -32,8 +32,16 @@ const PORT = process.env.PORT || 3000
 
 connectDB()
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  process.env.FRONTEND_URL,
+].filter(Boolean)
+
 app.use(cors({
-  origin: true,
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true)
+    callback(new Error('Not allowed by CORS'))
+  },
   credentials: true,
 }))
 app.use(express.json())
@@ -68,17 +76,6 @@ app.get('/', (req, res) => {
   res.json({ message: 'FoodOps API running' })
 })
 
-app.get('/setup-admin', async (req, res) => {
-  try {
-    const bcrypt = require('bcryptjs')
-    const User = require('./models/User')
-    const existe = await User.findOne({ email: 'admin@gmail.com' })
-    if (existe) return res.json({ message: 'Admin ya existe' })
-    const password = await bcrypt.hash('admin', 10)
-    await User.create({ nombre: 'Admin', email: 'admin@gmail.com', password, restaurante: 'FoodOps Admin', plan: 'premium', role: 'admin' })
-    res.json({ message: 'Admin creado: admin@gmail.com / admin' })
-  } catch (e) { res.status(500).json({ message: e.message }) }
-})
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`)

@@ -1,11 +1,20 @@
 const express      = require('express')
 const bcrypt       = require('bcryptjs')
 const crypto       = require('crypto')
+const rateLimit    = require('express-rate-limit')
 const { register, login } = require('../controllers/authController')
 const auth         = require('../middleware/auth')
 const User         = require('../models/User')
 
 const router = express.Router()
+
+const resetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Demasiados intentos. Esperá 15 minutos e intentá de nuevo.' },
+})
 
 async function enviarEmail({ to, subject, html }) {
   const res = await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -28,8 +37,12 @@ async function enviarEmail({ to, subject, html }) {
   }
 }
 
+function hashToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex')
+}
+
 // POST /auth/recuperar — solicita reseteo de contraseña
-router.post('/recuperar', async (req, res) => {
+router.post('/recuperar', resetLimiter, async (req, res) => {
   try {
     const { email } = req.body
     if (!email) return res.status(400).json({ message: 'El email es obligatorio' })
@@ -38,14 +51,14 @@ router.post('/recuperar', async (req, res) => {
     // Siempre responder OK para no revelar si el email existe
     if (!user) return res.json({ message: 'Si el email existe, recibirás un correo.' })
 
-    const token   = crypto.randomBytes(32).toString('hex')
-    const expiry  = new Date(Date.now() + 60 * 60 * 1000) // 1 hora
+    const rawToken = crypto.randomBytes(32).toString('hex')
+    const expiry   = new Date(Date.now() + 60 * 60 * 1000) // 1 hora
 
-    user.resetToken       = token
+    user.resetToken       = hashToken(rawToken)
     user.resetTokenExpiry = expiry
     await user.save({ validateBeforeSave: false })
 
-    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${token}`
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${rawToken}`
 
     await enviarEmail({
       to:      user.email,
@@ -66,14 +79,14 @@ router.post('/recuperar', async (req, res) => {
 })
 
 // POST /auth/reset — restablece la contraseña con el token
-router.post('/reset', async (req, res) => {
+router.post('/reset', resetLimiter, async (req, res) => {
   try {
     const { token, password } = req.body
     if (!token || !password) return res.status(400).json({ message: 'Datos incompletos' })
     if (password.length < 6)  return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres' })
 
     const user = await User.findOne({
-      resetToken:       token,
+      resetToken:       hashToken(token),
       resetTokenExpiry: { $gt: new Date() },
     })
     if (!user) return res.status(400).json({ message: 'El enlace es inválido o ya expiró' })
@@ -95,7 +108,7 @@ router.post('/login', login)
 
 router.get('/me', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.usuario.id, '-password')
+    const user = await User.findById(req.usuario.id, '-password -resetToken -resetTokenExpiry')
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
     res.json(user)
   } catch {
@@ -120,7 +133,7 @@ router.put('/me', auth, async (req, res) => {
     }
 
     await user.save()
-    const { password: _, ...data } = user.toObject()
+    const { password: _, resetToken: __, resetTokenExpiry: ___, ...data } = user.toObject()
     res.json(data)
   } catch {
     res.status(500).json({ message: 'Error al actualizar perfil' })
