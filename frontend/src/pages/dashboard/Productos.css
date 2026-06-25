@@ -692,3 +692,102 @@
   color: #f97316;
   background: color-mix(in srgb, #f97316 5%, transparent);
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  /* Sidebar de categorías se convierte en barra horizontal */
+  .prod-body {
+    flex-direction: column;
+  }
+
+  .prod-sidebar {
+    width: 100%;
+    min-width: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 6px 8px;
+    scrollbar-width: none;
+    max-height: 52px;
+  }
+  .prod-sidebar::-webkit-scrollbar { display: none; }
+
+  .prod-cat-item {
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    padding: 6px 14px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .prod-cat-item--active {
+    border-left-color: transparent;
+    border-bottom-color: #f97316;
+  }
+
+  .prod-table-wrap { overflow-x: auto; }
+
+  .prod-table { min-width: 480px; }
+
+  .prod-toolbar { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
+
+  .prod-search-wrap { max-width: 100%; }
+
+  .prod-btn-nuevo { min-height: 44px; }
+
+  /* Form de producto en mobile */
+  .pf-body { flex-direction: column; }
+
+  .pf-left {
+    max-width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pf-row2 { grid-template-columns: 1fr; }
+
+  .pf-receta-head,
+  .pf-receta-row {
+    grid-template-columns: 2fr 1fr 0.8fr 24px;
+  }
+
+  /* Ocultar columnas no esenciales en pantallas pequeñas */
+  .pf-receta-head > *:nth-child(3),
+  .pf-receta-head > *:nth-child(4),
+  .pf-receta-head > *:nth-child(5),
+  .pf-receta-row  > *:nth-child(3),
+  .pf-receta-row  > *:nth-child(4),
+  .pf-receta-row  > *:nth-child(5) {
+    display: none;
+  }
+
+  .pf-footer {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pf-btn-cancel,
+  .pf-btn-save {
+    width: 100%;
+    min-height: 44px;
+    text-align: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .prod-tabs-bar {
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+  }
+  .prod-tabs-bar::-webkit-scrollbar { display: none; }
+
+  .prod-tab-btn {
+    flex-shrink: 0;
+    padding: 10px 12px;
+    font-size: 0.8rem;
+  }
+}

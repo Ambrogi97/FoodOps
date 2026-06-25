@@ -391,4 +391,31 @@
   .stock-table-wrap { overflow-x: auto; }
   .stock-table { min-width: 520px; }
   .stock-resumen { overflow-x: auto; flex-wrap: nowrap; }
+
+  .stock-resumen-btn { min-height: 44px; }
+
+  .stock-search { width: 100%; box-sizing: border-box; }
+
+  .stock-main { gap: 10px; }
+
+  .stock-modal {
+    width: 95vw;
+    max-width: 95vw;
+    padding: 20px;
+  }
+
+  .stock-modal-actions { flex-direction: column; }
+
+  .stock-btn-secondary {
+    width: 100%;
+    min-height: 44px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .stock-table { min-width: 460px; }
+  .stock-resumen-btn span:not(.stock-resumen-num):not(.stock-resumen-dot) {
+    display: none;
+  }
 }

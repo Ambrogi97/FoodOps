@@ -147,6 +147,24 @@
   .register-row {
     grid-template-columns: 1fr;
   }
+
+  .register-card {
+    padding: 2rem 1.25rem;
+    gap: 1rem;
+  }
+
+  .register-title { font-size: 1.3rem; }
+
+  .register-field input {
+    font-size: 16px; /* prevents iOS auto-zoom */
+    padding: 0.75rem 0.875rem;
+    min-height: 44px;
+  }
+
+  .register-submit .btn {
+    min-height: 48px;
+    font-size: 1rem;
+  }
 }
 
 .register-error { color: #dc2626; font-size: 0.875rem; margin-bottom: 0.75rem; }

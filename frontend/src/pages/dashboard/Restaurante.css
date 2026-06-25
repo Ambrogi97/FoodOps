@@ -49,6 +49,16 @@
   font-size: 1rem;
 }
 
+@media (max-width: 768px) {
+  .restaurante-layout {
+    padding: 0;
+  }
+
+  .restaurante-content {
+    overflow: visible;
+  }
+}
+
 @media (max-width: 640px) {
   .restaurante-tabs {
     width: 100%;
@@ -57,5 +67,5 @@
     scrollbar-width: none;
   }
   .restaurante-tabs::-webkit-scrollbar { display: none; }
-  .restaurante-tab { padding: 8px 14px; font-size: 0.82rem; }
+  .restaurante-tab { padding: 8px 14px; font-size: 0.82rem; min-height: 40px; }
 }

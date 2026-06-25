@@ -463,3 +463,73 @@
   color: var(--text-muted);
   font-size: 0.82rem;
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .gastos-body {
+    flex-direction: column;
+    overflow-y: auto;
+    height: auto;
+  }
+
+  .gastos-left {
+    overflow-y: visible;
+  }
+
+  .gastos-right {
+    width: 100%;
+    height: auto;
+    min-height: 300px;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .gastos-table-wrap { overflow-x: auto; }
+  .gastos-table { min-width: 500px; }
+
+  .gastos-tabs-bar {
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0 12px;
+  }
+  .gastos-tabs-bar::-webkit-scrollbar { display: none; }
+
+  .gastos-tab-btn {
+    flex-shrink: 0;
+    padding: 12px 14px;
+    white-space: nowrap;
+    min-height: 44px;
+  }
+
+  .gastos-filtros { padding: 8px 12px; }
+
+  .gastos-filtros-row1,
+  .gastos-filtros-row2 {
+    gap: 6px;
+  }
+
+  .gastos-btn-nuevo { min-height: 44px; padding: 8px 12px; }
+
+  .gastos-stats-bar { flex-wrap: wrap; gap: 6px; padding: 8px 12px; }
+
+  .gastos-stat { min-width: 80px; }
+
+  .gastos-stat-sep { display: none; }
+
+  .gastos-panel-ftr { flex-wrap: wrap; gap: 6px; }
+
+  .gastos-btn-save,
+  .gastos-btn-cancel,
+  .gastos-btn-edit,
+  .gastos-btn-danger {
+    min-height: 44px;
+  }
+
+  .gastos-form-row2 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .gastos-table { min-width: 440px; }
+  .gastos-periodo-pills { flex-wrap: wrap; gap: 4px; }
+  .gastos-filtros-row1 { flex-direction: column; align-items: flex-start; }
+}

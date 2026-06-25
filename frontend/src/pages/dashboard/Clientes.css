@@ -446,3 +446,68 @@
 .cli-cc-stat--debe  { color: #dc2626; }
 .cli-cc-stat--favor { color: #16a34a; }
 
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .cli-body {
+    flex-direction: column;
+    overflow-y: auto;
+    height: auto;
+  }
+
+  .cli-left {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    overflow-y: visible;
+  }
+
+  .cli-right {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 300px;
+    border-top: 1px solid var(--border);
+  }
+
+  .cli-table-wrap { overflow-x: auto; }
+  .cli-table { min-width: 480px; }
+
+  .cli-toolbar { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
+
+  .cli-btn-nuevo { min-height: 44px; }
+
+  .cli-tabs-bar {
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0 10px;
+  }
+  .cli-tabs-bar::-webkit-scrollbar { display: none; }
+
+  .cli-tab-btn {
+    flex-shrink: 0;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+  }
+
+  .cli-cc-stats { flex-wrap: wrap; }
+
+  .cli-cc-stat {
+    min-width: 120px;
+    padding: 10px 14px;
+  }
+
+  .cli-panel-ftr { flex-wrap: wrap; gap: 8px; }
+
+  .cli-btn-primary,
+  .cli-btn-cancel,
+  .cli-btn-danger {
+    min-height: 44px;
+  }
+
+  .cli-row2 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .cli-filtros { padding: 8px 10px; }
+  .cli-table { min-width: 420px; }
+}
+

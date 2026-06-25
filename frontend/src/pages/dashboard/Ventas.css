@@ -638,4 +638,53 @@
   .ventas-filtros { padding: 10px 12px; }
   .ventas-stats-bar { padding: 10px 12px; }
   .ventas-table-wrap { overflow-x: auto; }
+
+  .ventas-tabs-bar {
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0 12px;
+  }
+  .ventas-tabs-bar::-webkit-scrollbar { display: none; }
+
+  .ventas-tab-btn {
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .ventas-periodo-pills {
+    flex-wrap: nowrap;
+  }
+
+  .ventas-pill {
+    padding: 5px 10px;
+    font-size: 0.78rem;
+  }
+
+  .ventas-masinfo-row span:first-child {
+    min-width: 90px;
+  }
+
+  .desc-toolbar {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .desc-btn-nuevo {
+    min-height: 44px;
+    padding: 10px 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ventas-table { min-width: 480px; }
+
+  .ventas-selects { flex-wrap: wrap; }
+
+  .ventas-stats-item strong { font-size: 1rem; }
+
+  .desc-stats { flex-direction: column; align-items: flex-start; gap: 8px; padding: 10px 12px; }
+  .desc-stat-sep { display: none; }
+  .desc-stat { padding: 0; }
 }

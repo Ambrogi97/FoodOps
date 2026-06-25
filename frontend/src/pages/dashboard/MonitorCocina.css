@@ -345,3 +345,40 @@
 :fullscreen .mc-wrap {
   height: 100vh;
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .mc-toolbar {
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .mc-filtros-btn,
+  .mc-fullscreen-btn {
+    min-height: 44px;
+    padding: 8px 12px;
+    font-size: 0.82rem;
+  }
+
+  .mc-canvas {
+    padding: 12px;
+  }
+
+  .mc-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mc-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mc-filtros-panel {
+    left: 0;
+    right: 0;
+    min-width: auto;
+  }
+}

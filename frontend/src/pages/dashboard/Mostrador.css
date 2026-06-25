@@ -633,5 +633,46 @@
   }
   .most-prods-grid {
     max-height: none;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .most-header { flex-wrap: wrap; gap: 8px; }
+
+  .most-btn-nuevo { min-height: 44px; }
+
+  .most-table { min-width: 420px; }
+
+  .most-section { overflow-x: auto; }
+
+  .most-btn-guardar,
+  .most-btn-cobrar,
+  .most-btn-cancel,
+  .most-btn-confirmar {
+    min-height: 44px;
+  }
+
+  .most-cobro-metodos { flex-wrap: wrap; }
+
+  .most-cobro-btn { min-height: 44px; }
+}
+
+@media (max-width: 480px) {
+  .most-prods-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .most-panel-footer { flex-direction: column; }
+
+  .most-btn-guardar,
+  .most-btn-cobrar {
+    width: 100%;
+  }
+
+  .most-cobro-actions { flex-direction: column; }
+
+  .most-btn-cancel,
+  .most-btn-confirmar {
+    flex: none;
+    width: 100%;
   }
 }

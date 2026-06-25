@@ -117,3 +117,32 @@ button { cursor: pointer; font-family: inherit; border: none; outline: none; }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* ── Global mobile baseline ── */
+@media (max-width: 768px) {
+  /* Prevent iOS input zoom (inputs smaller than 16px trigger zoom) */
+  input, select, textarea {
+    font-size: max(16px, 1em);
+  }
+
+  /* Ensure touch targets are accessible */
+  button {
+    min-height: 44px;
+  }
+
+  /* Tables: horizontal scroll by default on mobile */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 480px) {
+  html { font-size: 15px; }
+
+  .container { padding: 0 16px; }
+
+  .btn { padding: 10px 20px; }
+
+  .btn--lg { padding: 14px 24px; font-size: 0.95rem; }
+}

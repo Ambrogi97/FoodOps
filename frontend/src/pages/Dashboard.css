@@ -392,10 +392,51 @@
   .dash-content { padding: 16px; }
 
   /* Modal a ancho completo */
-  .dash-modal { max-width: calc(100vw - 32px); padding: 28px 20px 22px; }
+  .dash-modal {
+    max-width: calc(100vw - 32px);
+    padding: 28px 20px 22px;
+    width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  /* Panel de dashboard */
+  .dash-panel-header {
+    padding: 14px 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Botones en panel */
+  .dash-btn-primary {
+    min-height: 44px;
+    padding: 10px 16px;
+  }
+
+  /* Modal actions en mobile */
+  .dash-modal-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .dash-modal-btn {
+    min-height: 48px;
+  }
+
+  /* Badge en header más pequeño */
+  .dash-badge { font-size: 0.65rem; padding: 3px 8px; }
 }
 
 @media (max-width: 480px) {
   .dash-header-title { font-size: 1.1rem; }
   .dash-content { padding: 12px; gap: 12px; }
+
+  /* Header actions en mobile muy pequeño */
+  .dash-header-actions { gap: 8px; }
+
+  /* Scroll horizontal en el header si hay muchos botones */
+  .dash-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 }

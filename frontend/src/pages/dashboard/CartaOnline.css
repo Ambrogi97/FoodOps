@@ -202,13 +202,31 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .co-filtros { flex-wrap: wrap; }
+  .co-wrap {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .co-filtros { flex-wrap: wrap; gap: 6px; }
+
+  .co-filtro-btn { min-height: 44px; }
+
   .co-url-row { flex-wrap: wrap; }
   .co-url-text { font-size: 12px; }
+
+  .co-pedidos-header { flex-wrap: wrap; gap: 8px; }
+
+  .co-refresh-btn { min-height: 44px; }
+
+  .co-avanzar-btn { min-height: 44px; }
+
+  .co-card-footer { flex-direction: column; align-items: flex-start; }
 }
 
 @media (max-width: 560px) {
-  .co-link-card { flex-direction: column; }
+  .co-link-card { flex-direction: column; gap: 16px; }
   .co-qr-wrap { flex-direction: row; align-items: center; gap: 16px; }
   .co-qr { width: 100px; height: 100px; }
+
+  .co-wrap { padding: 12px; }
 }

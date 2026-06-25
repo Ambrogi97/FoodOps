@@ -279,3 +279,35 @@
 @media (max-width: 800px) {
   .fin-kpis { grid-template-columns: 1fr 1fr; }
 }
+
+@media (max-width: 768px) {
+  .fin-filtros {
+    flex-wrap: wrap;
+    padding: 10px 14px;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .fin-select {
+    min-width: 140px;
+    width: 100%;
+  }
+
+  .fin-table-wrap {
+    overflow-x: auto;
+  }
+
+  .fin-th-label { min-width: 180px; }
+  .fin-th-mes   { min-width: 90px; }
+  .fin-th-total { min-width: 100px; }
+
+  .fin-kpi-value { font-size: 1.2rem; }
+}
+
+@media (max-width: 480px) {
+  .fin-kpis { grid-template-columns: 1fr; }
+
+  .fin-kpi { padding: 12px 14px; }
+
+  .fin-filtros { padding: 8px 12px; }
+}

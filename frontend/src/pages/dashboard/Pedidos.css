@@ -270,3 +270,45 @@
   background: #22c55e15;
   border-color: #22c55e;
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .ped-layout {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .ped-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .ped-stats {
+    width: 100%;
+    padding: 10px 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .ped-filtros { flex-wrap: wrap; gap: 6px; }
+
+  .ped-filtro-btn { min-height: 44px; padding: 8px 14px; }
+
+  .ped-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+  }
+
+  .ped-item { min-height: 44px; }
+
+  .ped-marcar-todo { min-height: 44px; }
+}
+
+@media (max-width: 480px) {
+  .ped-grid { grid-template-columns: 1fr; }
+
+  .ped-stats { gap: 8px; }
+
+  .ped-stat-sep { display: none; }
+}

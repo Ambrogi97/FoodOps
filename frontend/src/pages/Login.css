@@ -205,3 +205,40 @@
   margin: 0;
   line-height: 1.5;
 }
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 2rem 1.25rem;
+    gap: 1rem;
+  }
+
+  .login-title { font-size: 1.3rem; }
+
+  .login-field input {
+    font-size: 16px; /* prevents iOS auto-zoom */
+    padding: 0.75rem 0.875rem;
+    min-height: 44px;
+  }
+
+  .login-submit .btn {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  .recuperar-modal {
+    padding: 2rem 1.25rem;
+    width: 95vw;
+  }
+
+  .recuperar-input {
+    font-size: 16px;
+    min-height: 44px;
+  }
+
+  .recuperar-btn .btn,
+  .recuperar-btn-cancelar {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+}

@@ -581,6 +581,56 @@
 .cfg-toggle input:checked + .cfg-toggle-track .cfg-toggle-thumb { left: 21px; }
 
 /* Mobile */
+@media (max-width: 768px) {
+  .config-top-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+  }
+  .config-top-tabs::-webkit-scrollbar { display: none; }
+
+  .config-top-tab {
+    padding: 10px 16px;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Split panel apila verticalmente */
+  .cfg-split {
+    flex-direction: column;
+  }
+
+  .cfg-detail {
+    width: 100%;
+    border-top: 1px solid var(--border);
+    min-height: 280px;
+  }
+
+  .cfg-toolbar {
+    padding: 12px 14px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .cfg-btn-dark,
+  .cfg-btn-save,
+  .cfg-btn-cancel,
+  .cfg-btn-danger {
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+  }
+
+  .cfg-table-wrap {
+    overflow-x: auto;
+  }
+
+  .cfg-table {
+    min-width: 420px;
+  }
+}
+
 @media (max-width: 640px) {
   .config-layout {
     flex-direction: column;
@@ -593,7 +643,9 @@
     border-bottom: 1px solid var(--border);
     padding: 4px 8px;
     overflow-x: auto;
+    scrollbar-width: none;
   }
+  .config-nav::-webkit-scrollbar { display: none; }
 
   .config-nav-title {
     display: none;
@@ -615,6 +667,10 @@
   }
 
   .config-content {
-    padding: 20px 16px;
+    padding: 16px 12px;
+  }
+
+  .cfg-form-section {
+    max-width: 100%;
   }
 }

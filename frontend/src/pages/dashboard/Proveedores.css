@@ -535,3 +535,67 @@
 }
 
 .pv-btn-danger:hover { background: #ef444412; border-color: #ef4444; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .pv-body {
+    flex-direction: column;
+    overflow-y: auto;
+    height: auto;
+  }
+
+  .pv-left {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    overflow-y: visible;
+  }
+
+  .pv-right {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 300px;
+  }
+
+  .pv-table-wrap { overflow-x: auto; }
+  .pv-table { min-width: 480px; }
+
+  .pv-toolbar { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
+
+  .pv-btn-nuevo { min-height: 44px; }
+
+  .pv-tabs-bar {
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0 10px;
+  }
+  .pv-tabs-bar::-webkit-scrollbar { display: none; }
+
+  .pv-tab-btn {
+    flex-shrink: 0;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+  }
+
+  .pv-cc-stats { flex-wrap: wrap; }
+
+  .pv-cc-stat {
+    min-width: 120px;
+    padding: 10px 14px;
+  }
+
+  .pv-panel-ftr { flex-wrap: wrap; gap: 8px; }
+
+  .pv-btn-primary,
+  .pv-btn-cancel,
+  .pv-btn-danger {
+    min-height: 44px;
+  }
+
+  .pv-row2 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .pv-table { min-width: 420px; }
+  .pv-toolbar { padding: 8px 10px; }
+}
