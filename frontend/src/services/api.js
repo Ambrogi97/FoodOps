@@ -56,6 +56,28 @@ export const authService = {
     if (!res.ok) throw new Error(json.message || 'Error al iniciar sesión')
     return json
   },
+
+  async recuperar(email) {
+    const res = await fetch(`${API_URL}/auth/recuperar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    })
+    const json = await res.json()
+    if (!res.ok) throw new Error(json.message || 'Error al solicitar recuperación')
+    return json
+  },
+
+  async resetPassword(token, password) {
+    const res = await fetch(`${API_URL}/auth/reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, password }),
+    })
+    const json = await res.json()
+    if (!res.ok) throw new Error(json.message || 'Error al restablecer contraseña')
+    return json
+  },
 }
 
 export const saveSession  = (token, user) => {

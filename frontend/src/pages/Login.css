@@ -105,3 +105,103 @@
 }
 
 .login-error { color: #dc2626; font-size: 0.875rem; margin-bottom: 0.75rem; }
+
+.login-forgot {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.login-forgot-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--primary);
+  font-weight: 500;
+  font-size: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.login-forgot-link:hover { text-decoration: underline; }
+
+/* Modal recuperar contraseña */
+.recuperar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.recuperar-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  text-align: center;
+}
+
+.recuperar-desc {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.recuperar-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.recuperar-input {
+  width: 100%;
+  padding: 0.65rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: 0.625rem;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.recuperar-input:focus { border-color: var(--primary); }
+
+.recuperar-btn {
+  width: 100%;
+}
+
+.recuperar-btn-cancelar {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 0.6rem 1rem;
+  border-radius: 0.625rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.recuperar-btn-cancelar:hover { background: var(--bg); }
+
+.recuperar-ok {
+  color: #16a34a;
+  font-size: 0.95rem;
+  margin: 0;
+  line-height: 1.5;
+}

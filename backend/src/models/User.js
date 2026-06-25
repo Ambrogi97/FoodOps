@@ -8,7 +8,9 @@ const userSchema = new mongoose.Schema({
   restaurante: { type: String, required: true, trim: true },
   plan: { type: String, enum: ['basico', 'profesional', 'premium'], default: 'basico' },
   role: { type: String, enum: ['admin', 'encargado', 'camarero', 'repartidor'], default: 'camarero' },
-  cuentaPadreId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  cuentaPadreId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  resetToken:       { type: String, default: null },
+  resetTokenExpiry: { type: Date,   default: null },
 }, { timestamps: true })
 
 userSchema.pre('save', async function () {
