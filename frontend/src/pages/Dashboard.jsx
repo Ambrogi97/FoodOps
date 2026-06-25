@@ -101,10 +101,11 @@ export default function Dashboard() {
     return () => clearInterval(iv)
   }, [actualizarCounts])
 
-  if (!user) {
-    navigate('/login')
-    return null
-  }
+  useEffect(() => {
+    if (!user) navigate('/login')
+  }, [user, navigate])
+
+  if (!user) return null
 
   const puedeVer = (label) => {
     if (!permisosData) return false
@@ -166,7 +167,7 @@ export default function Dashboard() {
 
         <div className="dash-sidebar-footer">
           <div className="dash-user-info">
-            <div className="dash-user-avatar">{user.nombre[0].toUpperCase()}</div>
+            <div className="dash-user-avatar">{(user.nombre?.[0] ?? '?').toUpperCase()}</div>
             <div className="dash-user-details">
               <span className="dash-user-name">{user.nombre}</span>
               <span className="dash-user-plan">{user.plan}</span>
