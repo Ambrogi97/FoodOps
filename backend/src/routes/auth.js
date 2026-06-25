@@ -1,22 +1,32 @@
 const express      = require('express')
 const bcrypt       = require('bcryptjs')
 const crypto       = require('crypto')
-const nodemailer   = require('nodemailer')
 const { register, login } = require('../controllers/authController')
 const auth         = require('../middleware/auth')
 const User         = require('../models/User')
 
 const router = express.Router()
 
-const transporter = nodemailer.createTransport({
-  host:   'smtp.gmail.com',
-  port:   587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-})
+async function enviarEmail({ to, subject, html }) {
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'accept':       'application/json',
+      'api-key':      process.env.BREVO_API_KEY,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      sender:      { name: 'FoodOps', email: process.env.SMTP_USER },
+      to:          [{ email: to }],
+      subject,
+      htmlContent: html,
+    }),
+  })
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`Brevo error: ${err}`)
+  }
+}
 
 // POST /auth/recuperar — solicita reseteo de contraseña
 router.post('/recuperar', async (req, res) => {
@@ -37,8 +47,7 @@ router.post('/recuperar', async (req, res) => {
 
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${token}`
 
-    await transporter.sendMail({
-      from:    `"FoodOps" <${process.env.SMTP_USER}>`,
+    await enviarEmail({
       to:      user.email,
       subject: 'Recuperar contraseña — FoodOps',
       html: `

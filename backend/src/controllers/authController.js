@@ -1,24 +1,33 @@
-const jwt        = require('jsonwebtoken')
-const nodemailer = require('nodemailer')
-const User       = require('../models/User')
+const jwt  = require('jsonwebtoken')
+const User = require('../models/User')
 
-const transporter = nodemailer.createTransport({
-  host:   'smtp.gmail.com',
-  port:   587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-})
+async function enviarEmail({ to, subject, html }) {
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'accept':       'application/json',
+      'api-key':      process.env.BREVO_API_KEY,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      sender:      { name: 'FoodOps', email: process.env.SMTP_USER },
+      to:          [{ email: to }],
+      subject,
+      htmlContent: html,
+    }),
+  })
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`Brevo error: ${err}`)
+  }
+}
 
 async function enviarEmailBienvenida(user) {
   const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`
-  await transporter.sendMail({
-    from:    `"FoodOps" <${process.env.SMTP_USER}>`,
+  await enviarEmail({
     to:      user.email,
     subject: '¡Bienvenido a FoodOps!',
-    html: `
+    html: /* html */`
 <!DOCTYPE html>
 <html lang="es">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
