@@ -1,21 +1,13 @@
-const jwt        = require('jsonwebtoken')
-const nodemailer  = require('nodemailer')
-const User        = require('../models/User')
+const jwt    = require('jsonwebtoken')
+const { Resend } = require('resend')
+const User   = require('../models/User')
 
-const transporter = nodemailer.createTransport({
-  host:   process.env.SMTP_HOST || 'smtp.gmail.com',
-  port:   parseInt(process.env.SMTP_PORT || '587'),
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-})
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 async function enviarEmailBienvenida(user) {
   const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`
-  await transporter.sendMail({
-    from:    `"FoodOps" <${process.env.SMTP_USER}>`,
+  await resend.emails.send({
+    from:    'FoodOps <onboarding@resend.dev>',
     to:      user.email,
     subject: '¡Bienvenido a FoodOps!',
     html: `
