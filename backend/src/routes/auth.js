@@ -63,12 +63,72 @@ router.post('/recuperar', resetLimiter, async (req, res) => {
     await enviarEmail({
       to:      user.email,
       subject: 'Recuperar contraseña — FoodOps',
-      html: `
-        <p>Hola <strong>${user.nombre}</strong>,</p>
-        <p>Recibimos una solicitud para restablecer tu contraseña.</p>
-        <p><a href="${resetUrl}" style="background:#e85d2b;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none">Restablecer contraseña</a></p>
-        <p>Este enlace expira en 1 hora. Si no lo solicitaste, ignorá este correo.</p>
-      `,
+      html: `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:32px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:560px;width:100%;">
+
+        <!-- Header naranja -->
+        <tr>
+          <td style="background:#e85d2b;padding:28px 0;text-align:center;">
+            <span style="font-size:28px;font-weight:900;color:#ffffff;letter-spacing:-0.5px;">Food<span style="font-weight:400">Ops</span></span>
+            <br><span style="font-size:11px;color:rgba(255,255,255,0.75);letter-spacing:2px;text-transform:uppercase;">SOFTWARE GASTRONÓMICO</span>
+          </td>
+        </tr>
+
+        <!-- Cuerpo -->
+        <tr>
+          <td style="padding:40px 48px 32px;">
+            <div style="text-align:center;margin-bottom:24px;">
+              <div style="display:inline-block;background:#fff5f0;border-radius:50%;width:64px;height:64px;line-height:64px;font-size:28px;">🔑</div>
+            </div>
+
+            <h1 style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1a1a1a;text-align:center;">
+              Recuperá tu contraseña
+            </h1>
+
+            <p style="margin:16px 0 8px;font-size:15px;color:#444;text-align:center;">
+              Hola <strong>${user.nombre}</strong>, recibimos una solicitud para restablecer la contraseña de tu cuenta.
+            </p>
+
+            <p style="margin:0 0 28px;font-size:13px;color:#888;text-align:center;">
+              Si no fuiste vos, podés ignorar este correo con total seguridad.
+            </p>
+
+            <div style="text-align:center;">
+              <a href="${resetUrl}"
+                style="display:inline-block;background:#e85d2b;color:#ffffff;font-size:15px;font-weight:700;
+                       text-decoration:none;padding:14px 40px;border-radius:8px;letter-spacing:0.5px;">
+                Restablecer contraseña
+              </a>
+            </div>
+
+            <p style="margin:28px 0 0;font-size:12px;color:#aaa;text-align:center;">
+              Este enlace expira en <strong>1 hora</strong>.<br>
+              Si el botón no funciona, copiá y pegá este link en tu navegador:<br>
+              <a href="${resetUrl}" style="color:#e85d2b;word-break:break-all;font-size:11px;">${resetUrl}</a>
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding:20px 48px 28px;border-top:1px solid #f0f0f0;">
+            <p style="margin:0;font-size:12px;color:#aaa;text-align:center;line-height:1.6;">
+              ¿Necesitás ayuda? Escribinos a
+              <a href="mailto:soporte@foodops.app" style="color:#e85d2b;text-decoration:none;">soporte@foodops.app</a>
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
     })
 
     res.json({ message: 'Si el email existe, recibirás un correo.' })
