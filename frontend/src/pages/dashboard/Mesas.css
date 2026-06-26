@@ -1013,10 +1013,13 @@
 
 @media (max-width: 768px) {
   .mesas-layout { flex-direction: column; gap: 8px; }
-  .mesas-left { overflow-x: hidden; }
+  .mesas-left { overflow-x: visible; }
   .mesas-tabs { flex-wrap: nowrap; width: max-content; }
   .mesas-grid-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .mesas-grid { width: 100%; }
+  .mesas-grid { width: max-content; min-width: 100%; }
+  .celda { padding: 6px; }
+  .mesa-numero { font-size: 1.1rem; }
+  .mesa-personas-badge { font-size: 0.65rem; }
   .mesas-leyenda-hint { display: none; }
   .mesas-leyenda { flex-wrap: wrap; gap: 8px; }
   .mesas-resumen { width: 100%; justify-content: center; }

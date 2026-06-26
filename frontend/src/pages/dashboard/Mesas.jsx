@@ -478,7 +478,7 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
 
         {/* Grilla */}
         <div className="mesas-grid-wrap" style={{ cursor: draggingId ? 'grabbing' : undefined }}>
-          <div className={`mesas-grid${draggingId ? ' mesas-grid--dragging' : ''}`} style={{ gridTemplateColumns: `repeat(${displayCols}, 1fr)` }}>
+          <div className={`mesas-grid${draggingId ? ' mesas-grid--dragging' : ''}`} style={{ gridTemplateColumns: isMobile ? `repeat(${displayCols}, 58px)` : `repeat(${displayCols}, 1fr)` }}>
             {celdas.map(({ col, row, mesa: m }) => (
               <div
                 key={`${col}-${row}`}
