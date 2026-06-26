@@ -149,7 +149,7 @@ export default function Admin() {
                 <th>Nombre</th>
                 <th>Email</th>
                 <th>Plan</th>
-                <th>Trial</th>
+                <th>Días restantes</th>
                 <th>Registro</th>
                 <th>Admin</th>
                 <th></th>
