@@ -65,8 +65,8 @@ export default function Register() {
             <div className="register-success-icon">✅</div>
             <h2>¡Cuenta creada exitosamente!</h2>
             <p>Tu cuenta fue registrada. Podés iniciar sesión cuando quieras.</p>
-            <button className="btn btn--primary btn--lg" onClick={() => setExitoso(false)}>
-              Cerrar
+            <button className="btn btn--primary btn--lg" onClick={() => navigate('/login')}>
+              Ir al login
             </button>
           </div>
         </div>
