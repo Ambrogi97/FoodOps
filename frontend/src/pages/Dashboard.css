@@ -443,6 +443,36 @@
   }
 }
 
+/* ── Trial banner ── */
+.dash-trial-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fefce8;
+  border-bottom: 1px solid #fde68a;
+  color: #92400e;
+  font-size: 0.83rem;
+  padding: 9px 28px;
+  flex-shrink: 0;
+}
+.dash-trial-banner-cta {
+  margin-left: auto;
+  font-weight: 700;
+  color: #d97706;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+.dash-trial-logout {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-top: 4px;
+  padding: 0;
+}
+
 /* ── Plan upgrade screen ── */
 .dash-upgrade {
   display: flex;

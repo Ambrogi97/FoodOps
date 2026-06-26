@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { getSession, clearSession, categoriasService, productosService, pedidosOnlineService, rolesService } from '../services/api'
 import {
   UtensilsCrossed, Package, Truck, Users, DollarSign, TrendingUp, BarChart2, Calculator,
-  Smartphone, LogOut, ShieldCheck, Settings, Monitor, Lock, Crown,
+  Smartphone, LogOut, ShieldCheck, Settings, Monitor, Lock, Crown, Clock,
 } from 'lucide-react'
 import Logo from '../components/Logo'
 import Mesas from './dashboard/Mesas'
@@ -109,6 +109,12 @@ export default function Dashboard() {
 
   if (!user) return null
 
+  const trialActivo   = user.plan === 'gratuito' && user.trialEndsAt
+  const trialExpirado = trialActivo && new Date(user.trialEndsAt) < new Date()
+  const diasTrial     = trialActivo && !trialExpirado
+    ? Math.ceil((new Date(user.trialEndsAt) - new Date()) / (1000 * 60 * 60 * 24))
+    : 0
+
   const esPlanBasico = user.plan !== 'premium'
   const bloqueadoPorPlan = (id) => esPlanBasico && !BASIC_IDS.has(id)
 
@@ -205,9 +211,35 @@ export default function Dashboard() {
           </div>
         </header>
 
+        {/* Banner trial activo */}
+        {trialActivo && !trialExpirado && (
+          <div className="dash-trial-banner">
+            <Clock size={15} />
+            <span>Tu período de prueba gratuita vence en <strong>{diasTrial} {diasTrial === 1 ? 'día' : 'días'}</strong>.</span>
+            <a href="mailto:soporte@foodops.app?subject=Quiero activar mi plan" className="dash-trial-banner-cta">
+              Activar plan
+            </a>
+          </div>
+        )}
+
         {/* Content */}
         <main className="dash-content">
-          {!permisosData ? (
+          {trialExpirado ? (
+            <div className="dash-upgrade">
+              <div className="dash-upgrade-icon" style={{ background: 'linear-gradient(135deg, #ef4444, #b91c1c)' }}>
+                <Lock size={36} />
+              </div>
+              <h2 className="dash-upgrade-title">Tu prueba gratuita terminó</h2>
+              <p className="dash-upgrade-desc">
+                Los 7 días de prueba de tu cuenta <strong>{user.restaurante}</strong> han vencido.<br />
+                Contactanos para activar tu plan y seguir usando FoodOps.
+              </p>
+              <a href="mailto:soporte@foodops.app?subject=Quiero activar mi plan - {user.restaurante}" className="btn btn--primary dash-upgrade-btn">
+                Contactar para activar
+              </a>
+              <button className="dash-trial-logout" onClick={handleLogout}>Cerrar sesión</button>
+            </div>
+          ) : !permisosData ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)' }}>
               Cargando...
             </div>
