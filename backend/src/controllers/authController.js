@@ -62,7 +62,7 @@ async function enviarEmailBienvenida(user) {
 
             <p style="margin:0 0 24px;font-size:14px;color:#666;text-align:center;">
               Tu restaurante registrado es <strong>${user.restaurante}</strong>.<br>
-              Plan activo: <strong>${user.plan}</strong>.
+              Tenés <strong>7 días de prueba gratuita</strong> con acceso completo.
             </p>
 
             <div style="text-align:center;">
