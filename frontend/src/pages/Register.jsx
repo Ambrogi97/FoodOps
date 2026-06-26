@@ -78,11 +78,9 @@ export default function Register() {
           <span>Food<strong>Ops</strong></span>
         </Link>
 
-        <div className="register-plan-badge">
-          <span className="register-plan-label">Plan seleccionado</span>
-          <span className="register-plan-nombre">{plan.nombre}</span>
-          <span className="register-plan-precio">{plan.precio}</span>
-          <Link to="/#planes" className="register-plan-cambiar">Cambiar plan</Link>
+        <div className="register-plan-badge register-plan-badge--trial">
+          <span className="register-plan-label">🎉 7 días gratis</span>
+          <span className="register-plan-desc">Sin tarjeta de crédito · Acceso completo al plan {plan.nombre}</span>
         </div>
 
         <h1 className="register-title">Creá tu cuenta</h1>

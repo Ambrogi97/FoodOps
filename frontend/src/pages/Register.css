@@ -45,33 +45,23 @@
   flex-wrap: wrap;
 }
 
+.register-plan-badge--trial {
+  background: #f0fdf4;
+  border-color: #86efac;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
 .register-plan-label {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  width: 100%;
-}
-
-.register-plan-nombre {
+  font-size: 0.88rem;
   font-weight: 700;
-  color: var(--primary-dark);
-  font-size: 0.95rem;
+  color: #16a34a;
 }
 
-.register-plan-precio {
-  color: var(--text-muted);
-  font-size: 0.875rem;
-}
-
-.register-plan-cambiar {
-  margin-left: auto;
+.register-plan-desc {
   font-size: 0.8rem;
-  color: var(--primary);
-  font-weight: 500;
-  text-decoration: none;
-}
-
-.register-plan-cambiar:hover {
-  text-decoration: underline;
+  color: #4b7a58;
 }
 
 .register-title {
