@@ -150,16 +150,18 @@ const login = async (req, res) => {
 
     // Sub-usuarios no tienen plan propio — heredan el del dueño
     let plan = user.plan
+    let trialEndsAt = user.trialEndsAt ?? null
     if (user.cuentaPadreId) {
-      const owner = await User.findById(user.cuentaPadreId, 'plan')
-      plan = owner?.plan ?? 'basico'
+      const owner = await User.findById(user.cuentaPadreId, 'plan trialEndsAt')
+      plan        = owner?.plan        ?? 'basico'
+      trialEndsAt = owner?.trialEndsAt ?? null
     }
 
     const token = generateToken(user._id, user.role, user.cuentaPadreId ?? null, plan)
 
     res.json({
       token,
-      user: { id: user._id, nombre: user.nombre, email: user.email, restaurante: user.restaurante, plan, role: user.role, trialEndsAt: user.trialEndsAt ?? null }
+      user: { id: user._id, nombre: user.nombre, email: user.email, restaurante: user.restaurante, plan, role: user.role, trialEndsAt }
     })
   } catch (error) {
     res.status(500).json({ message: 'Error al iniciar sesión' })
