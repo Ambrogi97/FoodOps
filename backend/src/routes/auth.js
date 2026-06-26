@@ -154,7 +154,7 @@ router.post('/reset', resetLimiter, async (req, res) => {
     user.password         = password
     user.resetToken       = null
     user.resetTokenExpiry = null
-    await user.save()
+    await user.save({ validateBeforeSave: false })
 
     res.json({ message: 'Contraseña actualizada correctamente' })
   } catch (e) {
