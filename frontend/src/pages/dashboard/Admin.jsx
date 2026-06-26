@@ -176,10 +176,12 @@ export default function Admin() {
                     </select>
                   </td>
                   <td className="adm-td-trial">
-                    {trial && (
+                    {trial ? (
                       <span className={`adm-trial-badge ${trial === 'Expirado' ? 'adm-trial-badge--exp' : ''}`}>
                         {trial === 'Expirado' ? '⚠ Expirado' : `⏱ ${trial}`}
                       </span>
+                    ) : (
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>—</span>
                     )}
                   </td>
                   <td className="adm-td-fecha">{fmt(u.createdAt)}</td>
