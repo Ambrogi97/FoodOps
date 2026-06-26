@@ -16,6 +16,14 @@ const resetLimiter = rateLimit({
   message: { message: 'Demasiados intentos. Esperá 15 minutos e intentá de nuevo.' },
 })
 
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Demasiados intentos de inicio de sesión. Esperá 15 minutos.' },
+})
+
 async function enviarEmail({ to, subject, html }) {
   const res = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
@@ -164,7 +172,7 @@ router.post('/reset', resetLimiter, async (req, res) => {
 })
 
 router.post('/register', register)
-router.post('/login', login)
+router.post('/login', loginLimiter, login)
 
 router.get('/me', auth, async (req, res) => {
   try {
