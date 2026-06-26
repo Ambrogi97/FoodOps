@@ -6,9 +6,10 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   password: { type: String, required: true },
   restaurante: { type: String, required: true, trim: true },
-  plan: { type: String, enum: ['basico', 'profesional', 'premium'], default: 'basico' },
+  plan: { type: String, enum: ['gratuito', 'basico', 'profesional', 'premium'], default: 'gratuito' },
   role: { type: String, enum: ['admin', 'encargado', 'camarero', 'repartidor'], default: 'camarero' },
   cuentaPadreId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  trialEndsAt:      { type: Date, default: null },
   resetToken:       { type: String, default: null },
   resetTokenExpiry: { type: Date,   default: null },
 }, { timestamps: true })

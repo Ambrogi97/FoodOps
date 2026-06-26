@@ -131,9 +131,26 @@
   background: var(--surface);
   transition: all 0.15s;
 }
+.adm-plan--gratuito    { background: #f0fdf4; color: #16a34a; border-color: #86efac; }
 .adm-plan--basico      { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
 .adm-plan--profesional { background: #eef2ff; color: #4338ca; border-color: #a5b4fc; }
 .adm-plan--premium     { background: #fffbeb; color: #d97706; border-color: #fcd34d; }
+
+.adm-td-trial { white-space: nowrap; }
+.adm-trial-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #86efac;
+}
+.adm-trial-badge--exp {
+  background: #fff5f5;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
 
 /* Role button */
 .adm-role-btn {

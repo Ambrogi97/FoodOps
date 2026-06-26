@@ -10,6 +10,7 @@ const planes = [
     periodo: '/mes',
     desc: 'Para empezar a digitalizar tu restaurante sin complicaciones.',
     destacado: false,
+    badge: '7 días gratis',
     items: [
       'Punto de venta (Restaurante)',
       'Monitor de cocina',
@@ -59,7 +60,7 @@ export default function Planes() {
         <div className="planes__grid">
           {planes.map((p, i) => (
             <div className={`plan-card${p.destacado ? ' plan-card--destacado' : ''}`} key={i}>
-              {p.badge && <div className="plan-card__badge">{p.badge}</div>}
+              {p.badge && <div className={`plan-card__badge${p.destacado ? ' plan-card__badge--popular' : ''}`}>{p.badge}</div>}
               <div className="plan-card__header">
                 <h3 className="plan-card__nombre">{p.nombre}</h3>
                 <div className="plan-card__precio">

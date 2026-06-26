@@ -113,7 +113,8 @@ const register = async (req, res) => {
       return res.status(400).json({ message: 'El email ya está registrado' })
     }
 
-    const user = await User.create({ nombre, email, password, restaurante, plan, role: 'admin' })
+    const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    const user = await User.create({ nombre, email, password, restaurante, plan: 'gratuito', trialEndsAt, role: 'admin' })
     const token = generateToken(user._id, user.role, null, user.plan)
 
     // Enviar email de bienvenida (no bloqueante — si falla no interrumpe el registro)
@@ -121,7 +122,7 @@ const register = async (req, res) => {
 
     res.status(201).json({
       token,
-      user: { id: user._id, nombre: user.nombre, email: user.email, restaurante: user.restaurante, plan: user.plan, role: user.role }
+      user: { id: user._id, nombre: user.nombre, email: user.email, restaurante: user.restaurante, plan: user.plan, role: user.role, trialEndsAt: user.trialEndsAt }
     })
   } catch (error) {
     console.error('Register error:', error)
@@ -158,7 +159,7 @@ const login = async (req, res) => {
 
     res.json({
       token,
-      user: { id: user._id, nombre: user.nombre, email: user.email, restaurante: user.restaurante, plan, role: user.role }
+      user: { id: user._id, nombre: user.nombre, email: user.email, restaurante: user.restaurante, plan, role: user.role, trialEndsAt: user.trialEndsAt ?? null }
     })
   } catch (error) {
     res.status(500).json({ message: 'Error al iniciar sesión' })

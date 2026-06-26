@@ -13,7 +13,7 @@ const Gasto            = require('../models/Gasto')
 const Proveedor        = require('../models/Proveedor')
 const PedidoOnline     = require('../models/PedidoOnline')
 
-const PLANES = ['basico', 'profesional', 'premium']
+const PLANES = ['gratuito', 'basico', 'profesional', 'premium']
 
 // GET /api/admin/usuarios
 router.get('/usuarios', adminAuth, async (req, res) => {

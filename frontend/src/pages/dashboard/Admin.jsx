@@ -1,17 +1,26 @@
 import { useState, useEffect } from 'react'
 import { adminService } from '../../services/api'
-import { Users, ShieldCheck, Crown, Trash2 } from 'lucide-react'
+import { Users, ShieldCheck, Crown, Trash2, Clock } from 'lucide-react'
 import './Admin.css'
 
-const PLANES = ['basico', 'profesional', 'premium']
+const PLANES = ['gratuito', 'basico', 'premium']
 
 const PLAN_COLOR = {
-  basico:       'admin-plan--basico',
-  profesional:  'admin-plan--profesional',
-  premium:      'admin-plan--premium',
+  gratuito:     'adm-plan--gratuito',
+  basico:       'adm-plan--basico',
+  profesional:  'adm-plan--profesional',
+  premium:      'adm-plan--premium',
 }
 
 const fmt = (iso) => new Date(iso).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+
+const diasRestantes = (trialEndsAt) => {
+  if (!trialEndsAt) return null
+  const diff = new Date(trialEndsAt) - new Date()
+  const dias = Math.ceil(diff / (1000 * 60 * 60 * 24))
+  if (dias <= 0) return 'Expirado'
+  return `${dias}d`
+}
 
 export default function Admin() {
   const [usuarios, setUsuarios]           = useState([])
@@ -99,10 +108,10 @@ export default function Admin() {
         </div>
         <div className="adm-stat-sep" />
         <div className="adm-stat">
-          <span className="adm-plan-dot adm-plan-dot--profesional" />
+          <Clock size={18} color="#10b981" />
           <div>
-            <span className="adm-stat-num">{totalPorPlan('profesional')}</span>
-            <span className="adm-stat-label">Profesional</span>
+            <span className="adm-stat-num">{totalPorPlan('gratuito')}</span>
+            <span className="adm-stat-label">En prueba</span>
           </div>
         </div>
         <div className="adm-stat-sep" />
@@ -140,20 +149,23 @@ export default function Admin() {
                 <th>Nombre</th>
                 <th>Email</th>
                 <th>Plan</th>
+                <th>Trial</th>
                 <th>Registro</th>
                 <th>Admin</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              {filtrados.map(u => (
+              {filtrados.map(u => {
+                const trial = u.plan === 'gratuito' ? diasRestantes(u.trialEndsAt) : null
+                return (
                 <tr key={u._id} className={cambiando === u._id ? 'adm-row--loading' : ''}>
                   <td className="adm-td-restaurante">{u.restaurante}</td>
                   <td>{u.nombre}</td>
                   <td className="adm-td-email">{u.email}</td>
                   <td>
                     <select
-                      className={`adm-plan-select ${PLAN_COLOR[u.plan]}`}
+                      className={`adm-plan-select ${PLAN_COLOR[u.plan] ?? ''}`}
                       value={u.plan}
                       disabled={cambiando === u._id}
                       onChange={e => cambiarPlan(u._id, e.target.value)}
@@ -162,6 +174,13 @@ export default function Admin() {
                         <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
                       ))}
                     </select>
+                  </td>
+                  <td className="adm-td-trial">
+                    {trial && (
+                      <span className={`adm-trial-badge ${trial === 'Expirado' ? 'adm-trial-badge--exp' : ''}`}>
+                        {trial === 'Expirado' ? '⚠ Expirado' : `⏱ ${trial}`}
+                      </span>
+                    )}
                   </td>
                   <td className="adm-td-fecha">{fmt(u.createdAt)}</td>
                   <td>
@@ -185,9 +204,10 @@ export default function Admin() {
                     </button>
                   </td>
                 </tr>
-              ))}
+                )
+              })}
               {filtrados.length === 0 && (
-                <tr><td colSpan={7} className="adm-empty-row">Sin resultados</td></tr>
+                <tr><td colSpan={8} className="adm-empty-row">Sin resultados</td></tr>
               )}
             </tbody>
           </table>
