@@ -383,9 +383,27 @@
   pointer-events: none;
 }
 
-/* Derecha: panel detalle — siempre como modal centrado */
+/* Derecha: panel detalle — siempre posicionado, invisible hasta abrir */
 .mesas-right {
-  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.96);
+  width: 90%;
+  max-width: 400px;
+  max-height: 85vh;
+  overflow-y: auto;
+  border-radius: var(--radius-lg);
+  z-index: 150;
+  box-shadow: 0 8px 40px rgba(0,0,0,.28);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0.18s;
 }
 
 .mesas-empty {
@@ -977,29 +995,13 @@
   to   { transform: translateY(0);    opacity: 1; }
 }
 
-/* Modal centrado para el detalle de mesa (todos los tamaños) */
+/* Abierto */
 .mesas-right--open {
-  display: flex !important;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 90%;
-  max-width: 400px;
-  max-height: 85vh;
-  overflow-y: auto;
-  border-radius: var(--radius-lg);
-  z-index: 150;
-  box-shadow: 0 8px 40px rgba(0,0,0,.28);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  flex-direction: column;
-  animation: popIn .18s ease;
-}
-
-@keyframes popIn {
-  from { transform: translate(-50%, -50%) scale(0.95); opacity: 0; }
-  to   { transform: translate(-50%, -50%) scale(1);    opacity: 1; }
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1);
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0s;
 }
 
 /* Backdrop semitransparente detrás del modal */
