@@ -6,7 +6,7 @@ const planes = [
   {
     id: 'basico',
     nombre: 'Básico',
-    precio: '$4.999',
+    precio: '$20.000',
     periodo: '/mes',
     desc: 'Para empezar a digitalizar tu restaurante sin complicaciones.',
     destacado: false,
@@ -25,7 +25,7 @@ const planes = [
   {
     id: 'premium',
     nombre: 'Premium',
-    precio: '$12.999',
+    precio: '$35.000',
     periodo: '/mes',
     desc: 'Operación completa: ventas, finanzas, proveedores y más.',
     destacado: true,
