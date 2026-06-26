@@ -41,7 +41,7 @@ export default function Admin() {
     setCambiando(id)
     try {
       const actualizado = await adminService.cambiarPlan(id, plan)
-      setUsuarios(prev => prev.map(u => u._id === id ? { ...u, plan: actualizado.plan } : u))
+      setUsuarios(prev => prev.map(u => u._id === id ? { ...u, plan: actualizado.plan, trialEndsAt: actualizado.trialEndsAt } : u))
     } catch (e) {
       console.error(e)
     } finally {

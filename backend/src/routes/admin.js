@@ -32,9 +32,15 @@ router.put('/usuarios/:id/plan', adminAuth, async (req, res) => {
     if (!PLANES.includes(plan)) {
       return res.status(400).json({ message: 'Plan inválido' })
     }
+    const update = { plan }
+    if (plan === 'gratuito') {
+      update.trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    } else {
+      update.trialEndsAt = null
+    }
     const user = await User.findByIdAndUpdate(
       req.params.id,
-      { plan },
+      update,
       { new: true, select: '-password' }
     )
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
