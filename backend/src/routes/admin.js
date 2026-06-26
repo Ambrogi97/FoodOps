@@ -48,7 +48,7 @@ router.put('/usuarios/:id/plan', adminAuth, async (req, res) => {
 router.put('/usuarios/:id/role', adminAuth, async (req, res) => {
   try {
     const { role } = req.body
-    if (!['user', 'admin'].includes(role)) {
+    if (!['admin', 'encargado', 'camarero', 'repartidor'].includes(role)) {
       return res.status(400).json({ message: 'Rol inválido' })
     }
     // Prevent removing your own admin role
