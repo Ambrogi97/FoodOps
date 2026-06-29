@@ -301,9 +301,20 @@ export default function Dashboard() {
                 Este módulo está disponible en el plan <strong>Premium</strong>.<br />
                 Actualizá tu plan para acceder a {NAV_ITEMS.find(i => i.id === active)?.label}.
               </p>
-              <a href="mailto:soporte@foodops.app?subject=Quiero actualizar a Premium" className="btn btn--primary dash-upgrade-btn">
-                Contactar para actualizar
-              </a>
+              <button
+                className="dash-plan-btn dash-plan-btn--premium"
+                onClick={() => suscribir('premium')}
+                disabled={!!pagando}
+                style={{ marginTop: 8 }}
+              >
+                {pagando === 'premium' ? 'Redirigiendo...' : (
+                  <>
+                    <span className="dash-plan-btn-nombre">Upgrade a Premium ⭐</span>
+                    <span className="dash-plan-btn-precio">$35.000/mes</span>
+                    <span className="dash-plan-btn-features">Ventas · Finanzas · Stock · Reportes y más</span>
+                  </>
+                )}
+              </button>
             </div>
           ) : !puedeVer(NAV_ITEMS.find(i => i.id === active)?.label ?? '') && active !== 'admin' ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 8, color: 'var(--text-muted)' }}>
