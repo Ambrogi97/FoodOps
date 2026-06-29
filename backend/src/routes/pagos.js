@@ -20,7 +20,7 @@ const PLANES_MP = {
   premium: { monto: 35000, label: 'FoodOps — Plan Premium' },
 }
 
-// POST /api/pagos/suscribir — crea la suscripción y devuelve el link de MP
+// POST /api/pagos/suscribir — crea un plan de suscripción y devuelve el link de MP
 router.post('/suscribir', auth, async (req, res) => {
   try {
     const { plan } = req.body
@@ -30,15 +30,9 @@ router.post('/suscribir', auth, async (req, res) => {
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
 
     const { monto, label } = PLANES_MP[plan]
-
     const backUrl = `${process.env.FRONTEND_URL || 'https://foodops-app.vercel.app'}/dashboard?pago=ok`
 
-    const isTest = process.env.MP_ACCESS_TOKEN?.startsWith('TEST-')
-    const payerEmail = isTest
-      ? (process.env.MP_TEST_BUYER_EMAIL || 'test_user_5575636763079287067@testuser.com')
-      : user.email
-
-    const mpRes = await mpFetch('/preapproval', {
+    const mpRes = await mpFetch('/preapproval_plan', {
       method: 'POST',
       body: JSON.stringify({
         reason:             label,
@@ -49,8 +43,6 @@ router.post('/suscribir', auth, async (req, res) => {
           currency_id:        'ARS',
         },
         back_url:           backUrl,
-        payer_email:        payerEmail,
-        status:             'pending',
         external_reference: `${user._id}|${plan}`,
       }),
     })
@@ -73,11 +65,19 @@ router.post('/webhook', async (req, res) => {
   try {
     const { type, data } = req.body
 
-    if (type === 'preapproval' && data?.id) {
-      const mpRes = await mpFetch(`/preapproval/${data.id}`)
-      const sub   = await mpRes.json()
+    if ((type === 'preapproval' || type === 'subscription_preapproval') && data?.id) {
+      const subRes = await mpFetch(`/preapproval/${data.id}`)
+      const sub    = await subRes.json()
 
-      const [userId, plan] = (sub.external_reference || '').split('|')
+      // Busca external_reference en la suscripción, o en el plan padre si no está
+      let externalRef = sub.external_reference
+      if (!externalRef && sub.preapproval_plan_id) {
+        const planRes  = await mpFetch(`/preapproval_plan/${sub.preapproval_plan_id}`)
+        const planData = await planRes.json()
+        externalRef    = planData.external_reference
+      }
+
+      const [userId, plan] = (externalRef || '').split('|')
       if (!userId || !plan || !PLANES_MP[plan]) return res.sendStatus(200)
 
       if (sub.status === 'authorized') {
@@ -98,7 +98,7 @@ router.post('/webhook', async (req, res) => {
     res.sendStatus(200)
   } catch (e) {
     console.error('Webhook error:', e)
-    res.sendStatus(200) // siempre 200 para que MP no reintente indefinidamente
+    res.sendStatus(200)
   }
 })
 
