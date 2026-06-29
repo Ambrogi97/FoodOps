@@ -174,6 +174,7 @@ export default function Carta() {
           formaPago:       form.formaPago,
           descuento:       descuentoActual,
           notas:           form.notas,
+          frontendOrigin:  window.location.origin,
         }),
       })
       const data = await res.json()

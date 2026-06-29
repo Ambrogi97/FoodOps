@@ -262,7 +262,7 @@ router.post('/:userId/pedido', async (req, res) => {
     const {
       items, tipo, mesaNumero, direccion,
       clienteNombre, clienteEmail, clienteTelefono,
-      notas, formaPago, descuento = 0,
+      notas, formaPago, descuento = 0, frontendOrigin,
     } = req.body
 
     if (!items?.length)  return res.status(400).json({ message: 'El pedido está vacío' })
@@ -294,8 +294,8 @@ router.post('/:userId/pedido', async (req, res) => {
 
     const numero = pedido._id.toString().slice(-6).toUpperCase()
 
-    const frontendUrl  = process.env.FRONTEND_URL || 'http://localhost:5173'
-    const trackingUrl  = `${frontendUrl}/tracking/${pedido._id}`
+    const frontendUrl = frontendOrigin || process.env.FRONTEND_URL || 'http://localhost:5173'
+    const trackingUrl = `${frontendUrl}/tracking/${pedido._id}`
 
     const user = await User.findById(req.params.userId).select('restaurante email')
 
