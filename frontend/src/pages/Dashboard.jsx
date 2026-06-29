@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getSession, clearSession, categoriasService, productosService, pedidosOnlineService, rolesService } from '../services/api'
+import { getSession, clearSession, saveSession, categoriasService, productosService, pedidosOnlineService, rolesService, pagosService, authService } from '../services/api'
 import {
   UtensilsCrossed, Package, Truck, Users, DollarSign, TrendingUp, BarChart2, Calculator,
   Smartphone, LogOut, ShieldCheck, Settings, Monitor, Lock, Crown, Clock,
@@ -49,6 +49,8 @@ export default function Dashboard() {
   const [categorias, setCategorias]           = useState([])
   const [pedidosCounts, setPedidosCounts]     = useState({ pendiente: 0, preparando: 0, listo: 0 })
   const [configTab, setConfigTab]             = useState('general')
+  const [pagando, setPagando]                 = useState(false)
+  const [pagoOk, setPagoOk]                  = useState(false)
 
   const irAConfiguracion = (tab = 'general') => {
     setConfigTab(tab)
@@ -106,6 +108,30 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) navigate('/login')
   }, [user, navigate])
+
+  // Detectar retorno desde Mercado Pago
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('pago') !== 'ok') return
+    setPagoOk(true)
+    window.history.replaceState({}, '', '/dashboard')
+    // Refrescar sesión para obtener plan actualizado
+    authService.getMe().then(data => {
+      saveSession(localStorage.getItem('token'), data)
+      window.location.reload()
+    }).catch(() => {})
+  }, [])
+
+  const suscribir = async (plan) => {
+    setPagando(plan)
+    try {
+      const { init_point } = await pagosService.suscribir(plan)
+      window.location.href = init_point
+    } catch (e) {
+      console.error(e)
+      setPagando(false)
+    }
+  }
 
   if (!user) return null
 
@@ -231,12 +257,36 @@ export default function Dashboard() {
               </div>
               <h2 className="dash-upgrade-title">Tu prueba gratuita terminó</h2>
               <p className="dash-upgrade-desc">
-                Los 7 días de prueba de tu cuenta <strong>{user.restaurante}</strong> han vencido.<br />
-                Contactanos para activar tu plan y seguir usando FoodOps.
+                Elegí un plan para seguir usando FoodOps con <strong>{user.restaurante}</strong>.
               </p>
-              <a href="mailto:soporte@foodops.app?subject=Quiero activar mi plan - {user.restaurante}" className="btn btn--primary dash-upgrade-btn">
-                Contactar para activar
-              </a>
+              <div className="dash-plan-selector">
+                <button
+                  className="dash-plan-btn"
+                  onClick={() => suscribir('basico')}
+                  disabled={!!pagando}
+                >
+                  {pagando === 'basico' ? 'Redirigiendo...' : (
+                    <>
+                      <span className="dash-plan-btn-nombre">Básico</span>
+                      <span className="dash-plan-btn-precio">$20.000/mes</span>
+                      <span className="dash-plan-btn-features">Restaurante · Productos · Carta · Monitor</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  className="dash-plan-btn dash-plan-btn--premium"
+                  onClick={() => suscribir('premium')}
+                  disabled={!!pagando}
+                >
+                  {pagando === 'premium' ? 'Redirigiendo...' : (
+                    <>
+                      <span className="dash-plan-btn-nombre">Premium ⭐</span>
+                      <span className="dash-plan-btn-precio">$35.000/mes</span>
+                      <span className="dash-plan-btn-features">Todo Básico + Ventas · Finanzas · Stock</span>
+                    </>
+                  )}
+                </button>
+              </div>
               <button className="dash-trial-logout" onClick={handleLogout}>Cerrar sesión</button>
             </div>
           ) : !permisosData ? (

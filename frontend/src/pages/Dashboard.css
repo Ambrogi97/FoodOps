@@ -516,3 +516,60 @@
   margin-top: 8px;
   text-decoration: none;
 }
+
+/* ── Selector de planes en pantalla de trial expirado ── */
+.dash-plan-selector {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.dash-plan-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 20px 28px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  transition: all 0.18s;
+  min-width: 180px;
+  text-align: center;
+}
+.dash-plan-btn:hover:not(:disabled) {
+  border-color: var(--primary);
+  box-shadow: 0 4px 16px rgba(232,93,43,0.15);
+  transform: translateY(-2px);
+}
+.dash-plan-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.dash-plan-btn--premium {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+.dash-plan-btn--premium:hover:not(:disabled) {
+  border-color: #d97706;
+  box-shadow: 0 4px 16px rgba(245,158,11,0.2);
+}
+
+.dash-plan-btn-nombre {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.dash-plan-btn-precio {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+.dash-plan-btn--premium .dash-plan-btn-precio { color: #d97706; }
+.dash-plan-btn-features {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  line-height: 1.4;
+}

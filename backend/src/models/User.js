@@ -9,9 +9,11 @@ const userSchema = new mongoose.Schema({
   plan: { type: String, enum: ['gratuito', 'basico', 'profesional', 'premium'], default: 'gratuito' },
   role: { type: String, enum: ['admin', 'encargado', 'camarero', 'repartidor'], default: 'camarero' },
   cuentaPadreId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-  trialEndsAt:      { type: Date, default: null },
-  resetToken:       { type: String, default: null },
-  resetTokenExpiry: { type: Date,   default: null },
+  trialEndsAt:        { type: Date,   default: null },
+  mpSubscriptionId:   { type: String, default: null },
+  subscriptionStatus: { type: String, default: null },
+  resetToken:         { type: String, default: null },
+  resetTokenExpiry:   { type: Date,   default: null },
 }, { timestamps: true })
 
 userSchema.pre('save', async function () {

@@ -357,6 +357,12 @@ export const stockService = {
   },
 }
 
+// ── Pagos ─────────────────────────────────────────────────────────────────────
+
+export const pagosService = {
+  suscribir: async (plan) => request('/api/pagos/suscribir', { method: 'POST', body: JSON.stringify({ plan }) }),
+}
+
 // ── Admin ─────────────────────────────────────────────────────────────────────
 
 export const adminService = {
