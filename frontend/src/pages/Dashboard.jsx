@@ -51,6 +51,7 @@ export default function Dashboard() {
   const [configTab, setConfigTab]             = useState('general')
   const [pagando, setPagando]                 = useState(false)
   const [pagoOk, setPagoOk]                  = useState(false)
+  const [pagoError, setPagoError]             = useState('')
 
   const irAConfiguracion = (tab = 'general') => {
     setConfigTab(tab)
@@ -124,11 +125,14 @@ export default function Dashboard() {
 
   const suscribir = async (plan) => {
     setPagando(plan)
+    setPagoError('')
     try {
       const { init_point } = await pagosService.suscribir(plan)
+      if (!init_point) throw new Error('No se recibió el link de pago')
       window.location.href = init_point
     } catch (e) {
       console.error(e)
+      setPagoError(e.message || 'Error al conectar con Mercado Pago')
       setPagando(false)
     }
   }
@@ -287,6 +291,7 @@ export default function Dashboard() {
                   )}
                 </button>
               </div>
+              {pagoError && <p style={{ color: '#ef4444', fontSize: '0.85rem', margin: 0 }}>{pagoError}</p>}
               <button className="dash-trial-logout" onClick={handleLogout}>Cerrar sesión</button>
             </div>
           ) : !permisosData ? (
@@ -315,6 +320,7 @@ export default function Dashboard() {
                   </>
                 )}
               </button>
+              {pagoError && <p style={{ color: '#ef4444', fontSize: '0.85rem', margin: 0 }}>{pagoError}</p>}
             </div>
           ) : !puedeVer(NAV_ITEMS.find(i => i.id === active)?.label ?? '') && active !== 'admin' ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 8, color: 'var(--text-muted)' }}>
