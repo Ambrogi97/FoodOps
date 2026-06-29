@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { pedidosOnlineService, configService } from '../../services/api'
 import { Armchair, ShoppingBag, User, FileText, RefreshCw, Bike, MapPin, Printer, Mail, Phone, CreditCard, Plus, Trash2, GripVertical } from 'lucide-react'
 import './CartaOnline.css'
@@ -40,10 +40,35 @@ export default function CartaOnline() {
   const [nuevaForma, setNuevaForma]       = useState({ nombre: '', descuento: 0 })
   const [mostrarFormFP, setMostrarFormFP] = useState(false)
 
+  const prevPendientesRef = useRef(-1)
+
+  const sonarNuevoPedido = () => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)()
+      ;[880, 1100, 1320].forEach((freq, i) => {
+        const osc  = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        osc.type = 'sine'
+        osc.frequency.value = freq
+        gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.12)
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.25)
+        osc.start(ctx.currentTime + i * 0.12)
+        osc.stop(ctx.currentTime + i * 0.12 + 0.3)
+      })
+    } catch {}
+  }
+
   const cargar = useCallback(async (mostrarCarga = true) => {
     if (mostrarCarga) setCargando(true)
     try {
       const data = await pedidosOnlineService.listar()
+      const nuevoPendientes = data.filter(p => p.estado === 'pendiente').length
+      if (prevPendientesRef.current !== -1 && nuevoPendientes > prevPendientesRef.current) {
+        sonarNuevoPedido()
+      }
+      prevPendientesRef.current = nuevoPendientes
       setPedidos(data)
     } finally {
       setCargando(false)
