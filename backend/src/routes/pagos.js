@@ -20,7 +20,7 @@ const PLANES_MP = {
   premium: { monto: 35000, label: 'FoodOps — Plan Premium' },
 }
 
-// POST /api/pagos/suscribir — crea un plan de suscripción y devuelve el link de MP
+// POST /api/pagos/suscribir — crea preferencia de pago y devuelve el link de MP
 router.post('/suscribir', auth, async (req, res) => {
   try {
     const { plan } = req.body
@@ -30,27 +30,32 @@ router.post('/suscribir', auth, async (req, res) => {
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
 
     const { monto, label } = PLANES_MP[plan]
-    const backUrl = `${process.env.FRONTEND_URL || 'https://foodops-app.vercel.app'}/dashboard?pago=ok`
+    const frontendUrl = process.env.FRONTEND_URL || 'https://foodops-app.vercel.app'
 
-    const mpRes = await mpFetch('/preapproval_plan', {
+    const mpRes = await mpFetch('/checkout/preferences', {
       method: 'POST',
       body: JSON.stringify({
-        reason:             label,
-        auto_recurring: {
-          frequency:          1,
-          frequency_type:     'months',
-          transaction_amount: monto,
-          currency_id:        'ARS',
+        items: [{
+          title:      label,
+          quantity:   1,
+          unit_price: monto,
+          currency_id: 'ARS',
+        }],
+        back_urls: {
+          success: `${frontendUrl}/dashboard?pago=ok&plan=${plan}`,
+          failure: `${frontendUrl}/dashboard?pago=error`,
+          pending: `${frontendUrl}/dashboard?pago=pendiente`,
         },
-        back_url:           backUrl,
+        auto_return:        'approved',
         external_reference: `${user._id}|${plan}`,
+        notification_url:   `${process.env.BACKEND_URL || 'https://foodops-6acc.onrender.com'}/api/pagos/webhook`,
       }),
     })
 
     const data = await mpRes.json()
     if (!mpRes.ok) {
       console.error('MP error suscribir:', JSON.stringify(data))
-      return res.status(500).json({ message: `Error MP: ${data.message || data.error || JSON.stringify(data)}` })
+      return res.status(500).json({ message: `Error MP: ${data.message || JSON.stringify(data)}` })
     }
 
     res.json({ init_point: data.init_point })
@@ -65,34 +70,26 @@ router.post('/webhook', async (req, res) => {
   try {
     const { type, data } = req.body
 
-    if ((type === 'preapproval' || type === 'subscription_preapproval') && data?.id) {
-      const subRes = await mpFetch(`/preapproval/${data.id}`)
-      const sub    = await subRes.json()
+    if (type === 'payment' && data?.id) {
+      const mpRes  = await mpFetch(`/v1/payments/${data.id}`)
+      const pago   = await mpRes.json()
 
-      // Busca external_reference en la suscripción, o en el plan padre si no está
-      let externalRef = sub.external_reference
-      if (!externalRef && sub.preapproval_plan_id) {
-        const planRes  = await mpFetch(`/preapproval_plan/${sub.preapproval_plan_id}`)
-        const planData = await planRes.json()
-        externalRef    = planData.external_reference
-      }
+      if (pago.status !== 'approved') return res.sendStatus(200)
 
-      const [userId, plan] = (externalRef || '').split('|')
+      const [userId, plan] = (pago.external_reference || '').split('|')
       if (!userId || !plan || !PLANES_MP[plan]) return res.sendStatus(200)
 
-      if (sub.status === 'authorized') {
-        await User.findByIdAndUpdate(userId, {
-          plan,
-          trialEndsAt:        null,
-          mpSubscriptionId:   data.id,
-          subscriptionStatus: 'active',
-        })
-        console.log(`Plan actualizado a ${plan} para usuario ${userId}`)
-      } else if (sub.status === 'cancelled') {
-        await User.findByIdAndUpdate(userId, { subscriptionStatus: 'cancelled' })
-      } else if (sub.status === 'paused') {
-        await User.findByIdAndUpdate(userId, { subscriptionStatus: 'paused' })
-      }
+      // Acceso por 30 días desde el pago
+      const vence = new Date()
+      vence.setDate(vence.getDate() + 30)
+
+      await User.findByIdAndUpdate(userId, {
+        plan,
+        trialEndsAt:        vence,
+        mpSubscriptionId:   String(data.id),
+        subscriptionStatus: 'active',
+      })
+      console.log(`Plan ${plan} activado para usuario ${userId} hasta ${vence.toISOString()}`)
     }
 
     res.sendStatus(200)
