@@ -179,7 +179,7 @@ export default function Carta() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Error al enviar')
       setNumeroPedido(data.numero || '')
-      setTrackingUrl(data.trackingUrl || '')
+      setTrackingUrl(data.id ? `${window.location.origin}/tracking/${data.id}` : '')
       setCarrito([])
       setStep('ok')
     } catch (e) {

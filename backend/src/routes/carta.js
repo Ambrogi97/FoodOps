@@ -111,8 +111,8 @@ function emailConfirmacionPedido({ restaurante, numero, pedido, totalFinal, desc
       <!-- Footer -->
       ${trackingUrl ? `
       <tr>
-        <td style="padding:0 48px 28px;text-align:center;">
-          <a href="${trackingUrl}" style="display:inline-block;background:#e85d2b;color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;padding:13px 32px;border-radius:8px;letter-spacing:0.3px;">
+        <td style="padding:28px 48px 0;text-align:center;">
+          <a href="${trackingUrl}" style="display:inline-block;background:#e85d2b;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;padding:15px 36px;border-radius:8px;letter-spacing:0.3px;">
             Seguir mi pedido →
           </a>
         </td>
