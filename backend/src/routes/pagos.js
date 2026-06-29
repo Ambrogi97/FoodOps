@@ -31,18 +31,19 @@ router.post('/suscribir', auth, async (req, res) => {
 
     const { monto, label } = PLANES_MP[plan]
 
+    const backUrl = `${process.env.FRONTEND_URL || 'https://foodops-app.vercel.app'}/dashboard?pago=ok`
+
     const mpRes = await mpFetch('/preapproval', {
       method: 'POST',
       body: JSON.stringify({
-        reason: label,
+        reason:             label,
         auto_recurring: {
           frequency:          1,
           frequency_type:     'months',
           transaction_amount: monto,
           currency_id:        'ARS',
         },
-        back_url:           `${process.env.FRONTEND_URL}/dashboard?pago=ok`,
-        payer_email:        user.email,
+        back_url:           backUrl,
         status:             'pending',
         external_reference: `${user._id}|${plan}`,
       }),
@@ -50,8 +51,8 @@ router.post('/suscribir', auth, async (req, res) => {
 
     const data = await mpRes.json()
     if (!mpRes.ok) {
-      console.error('MP error suscribir:', data)
-      return res.status(500).json({ message: 'Error al crear suscripción en Mercado Pago' })
+      console.error('MP error suscribir:', JSON.stringify(data))
+      return res.status(500).json({ message: `Error MP: ${data.message || data.error || JSON.stringify(data)}` })
     }
 
     res.json({ init_point: data.init_point })
