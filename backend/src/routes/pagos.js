@@ -1,7 +1,37 @@
 const express = require('express')
 const router  = express.Router()
+const crypto  = require('crypto')
 const auth    = require('../middleware/auth')
 const User    = require('../models/User')
+
+function verificarFirmaMP(req) {
+  const secret = process.env.MP_WEBHOOK_SECRET
+  if (!secret) {
+    console.warn('MP_WEBHOOK_SECRET no configurado — firma no verificada')
+    return true
+  }
+  const xSignature = req.headers['x-signature']
+  const xRequestId = req.headers['x-request-id'] || ''
+  if (!xSignature) return false
+
+  const parts = {}
+  xSignature.split(',').forEach(p => {
+    const [k, v] = p.split('=')
+    if (k && v) parts[k.trim()] = v.trim()
+  })
+  const { ts, v1 } = parts
+  if (!ts || !v1) return false
+
+  const dataId   = req.query.id || req.body?.data?.id || ''
+  const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts}`
+  const expected = crypto.createHmac('sha256', secret).update(manifest).digest('hex')
+
+  try {
+    return crypto.timingSafeEqual(Buffer.from(v1, 'hex'), Buffer.from(expected, 'hex'))
+  } catch {
+    return false
+  }
+}
 
 const MP_BASE = 'https://api.mercadopago.com'
 
@@ -68,6 +98,11 @@ router.post('/suscribir', auth, async (req, res) => {
 // POST /api/pagos/webhook — notificaciones de Mercado Pago (sin auth)
 router.post('/webhook', async (req, res) => {
   try {
+    if (!verificarFirmaMP(req)) {
+      console.warn('Webhook MP rechazado: firma inválida')
+      return res.sendStatus(401)
+    }
+
     const { type, data } = req.body
 
     if (type === 'payment' && data?.id) {
