@@ -400,6 +400,7 @@ export const configService = {
   deleteLogo:     async ()     => request('/api/config/tienda/logo',    { method: 'DELETE' }),
   uploadPortada:  async (file) => uploadFile('/api/config/tienda/portada', 'portada', file),
   deletePortada:  async ()     => request('/api/config/tienda/portada', { method: 'DELETE' }),
+  saveFormasPago: async (formasPago) => request('/api/config/tienda/formas-pago', { method: 'PUT', body: JSON.stringify({ formasPago }) }),
 }
 
 // ── Delivery ─────────────────────────────────────────────────────────────────

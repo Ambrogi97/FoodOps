@@ -166,6 +166,96 @@ router.get('/:userId', async (req, res) => {
   }
 })
 
+function emailNuevoPedidoRestaurante({ numero, pedido, totalFinal, descuento }) {
+  const tipoLabel = pedido.tipo === 'delivery' ? `Delivery — ${pedido.direccion}` : pedido.tipo === 'mesa' ? `Mesa ${pedido.mesaNumero}` : 'Retiro en el local'
+  const itemsHtml = pedido.items.map(i => `
+    <tr>
+      <td style="padding:7px 0;border-bottom:1px solid #f3f4f6;color:#374151;font-size:14px;">(${i.cantidad}) ${i.nombre}</td>
+      <td style="padding:7px 0;border-bottom:1px solid #f3f4f6;color:#374151;font-size:14px;text-align:right;font-weight:600;">${fmt(i.precio * i.cantidad)}</td>
+    </tr>`).join('')
+
+  const hora = new Date().toLocaleString('es-AR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' })
+
+  return /* html */`<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:32px 0;">
+  <tr><td align="center">
+    <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:560px;width:100%;">
+
+      <tr>
+        <td style="background:#1a1a2e;padding:20px 32px;text-align:center;">
+          <span style="font-size:13px;font-weight:700;color:#e85d2b;text-transform:uppercase;letter-spacing:2px;">Nuevo pedido</span>
+          <div style="font-size:32px;font-weight:900;color:#ffffff;letter-spacing:-1px;margin-top:4px;">#${numero}</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:2px;">${hora} hs</div>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:20px 32px 8px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:10px;border:1px solid #f0f0f0;">
+            <tr><td style="padding:14px 18px 0;">
+              <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#e85d2b;text-transform:uppercase;letter-spacing:1px;">Datos del pedido</p>
+            </td></tr>
+            <tr><td style="padding:0 18px 14px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding:4px 0;color:#6b7280;font-size:13px;width:38%;">Tipo</td>
+                  <td style="padding:4px 0;color:#1a1a2e;font-size:13px;font-weight:600;">${tipoLabel}</td>
+                </tr>
+                ${pedido.clienteNombre ? `<tr>
+                  <td style="padding:4px 0;color:#6b7280;font-size:13px;">Cliente</td>
+                  <td style="padding:4px 0;color:#1a1a2e;font-size:13px;font-weight:600;">${pedido.clienteNombre}</td>
+                </tr>` : ''}
+                ${pedido.clienteTelefono ? `<tr>
+                  <td style="padding:4px 0;color:#6b7280;font-size:13px;">Teléfono</td>
+                  <td style="padding:4px 0;color:#1a1a2e;font-size:13px;font-weight:600;">${pedido.clienteTelefono}</td>
+                </tr>` : ''}
+                ${pedido.formaPago ? `<tr>
+                  <td style="padding:4px 0;color:#6b7280;font-size:13px;">Pago</td>
+                  <td style="padding:4px 0;color:#1a1a2e;font-size:13px;font-weight:600;">${pedido.formaPago}</td>
+                </tr>` : ''}
+              </table>
+            </td></tr>
+          </table>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:12px 32px 8px;">
+          <p style="margin:0 0 10px;font-size:12px;font-weight:700;color:#e85d2b;text-transform:uppercase;letter-spacing:1px;">Items</p>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            ${itemsHtml}
+            <tr>
+              <td style="padding:10px 0 0;color:#1a1a2e;font-size:17px;font-weight:800;border-top:2px solid #e85d2b;">Total</td>
+              <td style="padding:10px 0 0;color:#e85d2b;font-size:17px;font-weight:800;text-align:right;border-top:2px solid #e85d2b;">${fmt(totalFinal)}</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      ${pedido.notas ? `<tr>
+        <td style="padding:4px 32px 16px;">
+          <div style="background:#fffbeb;border-radius:8px;padding:12px 16px;border-left:3px solid #f59e0b;">
+            <p style="margin:0;font-size:13px;color:#92400e;"><strong>Nota:</strong> ${pedido.notas}</p>
+          </div>
+        </td>
+      </tr>` : ''}
+
+      <tr>
+        <td style="padding:12px 32px 28px;border-top:1px solid #f0f0f0;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#aaa;">Revisá el panel de <strong style="color:#1a1a2e;">FoodOps</strong> para gestionar este pedido.</p>
+        </td>
+      </tr>
+
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`
+}
+
 // Enviar pedido desde la carta
 router.post('/:userId/pedido', async (req, res) => {
   try {
@@ -207,9 +297,10 @@ router.post('/:userId/pedido', async (req, res) => {
     const frontendUrl  = process.env.FRONTEND_URL || 'http://localhost:5173'
     const trackingUrl  = `${frontendUrl}/tracking/${pedido._id}`
 
+    const user = await User.findById(req.params.userId).select('restaurante email')
+
     // Email de confirmación al cliente (no bloqueante)
     if (pedido.clienteEmail) {
-      const user = await User.findById(req.params.userId).select('restaurante')
       enviarEmail({
         to:      pedido.clienteEmail,
         subject: `¡Pedido confirmado! #${numero} — ${user?.restaurante || 'Tu restaurante'}`,
@@ -222,6 +313,15 @@ router.post('/:userId/pedido', async (req, res) => {
           trackingUrl,
         }),
       }).catch(e => console.error('Error enviando email pedido:', e))
+    }
+
+    // Notificación al restaurante (no bloqueante)
+    if (user?.email) {
+      enviarEmail({
+        to:      user.email,
+        subject: `🔔 Nuevo pedido #${numero} — ${user?.restaurante || 'tu restaurante'}`,
+        html:    emailNuevoPedidoRestaurante({ numero, pedido, totalFinal, descuento }),
+      }).catch(e => console.error('Error enviando email restaurante:', e))
     }
 
     res.status(201).json({ id: pedido._id, numero, trackingUrl })

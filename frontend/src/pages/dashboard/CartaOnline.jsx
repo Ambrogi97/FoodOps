@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { pedidosOnlineService } from '../../services/api'
-import { Armchair, ShoppingBag, User, FileText, RefreshCw, Bike, MapPin, Printer, Mail, Phone, CreditCard } from 'lucide-react'
+import { pedidosOnlineService, configService } from '../../services/api'
+import { Armchair, ShoppingBag, User, FileText, RefreshCw, Bike, MapPin, Printer, Mail, Phone, CreditCard, Plus, Trash2, GripVertical } from 'lucide-react'
 import './CartaOnline.css'
 
 const ESTADOS = ['pendiente', 'preparando', 'listo', 'entregado']
@@ -34,6 +34,12 @@ export default function CartaOnline() {
   const [copiado, setCopiado]     = useState(false)
   const [actualizando, setActualizando] = useState(null)
 
+  // Formas de pago
+  const [formasPago, setFormasPago]       = useState([])
+  const [guardandoFP, setGuardandoFP]     = useState(false)
+  const [nuevaForma, setNuevaForma]       = useState({ nombre: '', descuento: 0 })
+  const [mostrarFormFP, setMostrarFormFP] = useState(false)
+
   const cargar = useCallback(async (mostrarCarga = true) => {
     if (mostrarCarga) setCargando(true)
     try {
@@ -49,6 +55,34 @@ export default function CartaOnline() {
     const iv = setInterval(() => cargar(false), 15_000)
     return () => clearInterval(iv)
   }, [cargar])
+
+  useEffect(() => {
+    configService.getTienda().then(d => setFormasPago(d.formasPago || [])).catch(() => {})
+  }, [])
+
+  const toggleForma = (idx) => {
+    setFormasPago(prev => prev.map((f, i) => i === idx ? { ...f, habilitado: !f.habilitado } : f))
+  }
+
+  const eliminarForma = (idx) => {
+    setFormasPago(prev => prev.filter((_, i) => i !== idx))
+  }
+
+  const agregarForma = () => {
+    if (!nuevaForma.nombre.trim()) return
+    setFormasPago(prev => [...prev, { nombre: nuevaForma.nombre.trim(), descuento: Number(nuevaForma.descuento) || 0, habilitado: true }])
+    setNuevaForma({ nombre: '', descuento: 0 })
+    setMostrarFormFP(false)
+  }
+
+  const guardarFormasPago = async () => {
+    setGuardandoFP(true)
+    try {
+      await configService.saveFormasPago(formasPago)
+    } finally {
+      setGuardandoFP(false)
+    }
+  }
 
   const copiarUrl = () => {
     navigator.clipboard.writeText(cartaUrl)
@@ -143,6 +177,76 @@ export default function CartaOnline() {
             <Printer size={13} /> Imprimir QR
           </button>
         </div>
+      </div>
+
+      {/* Formas de pago */}
+      <div className="co-fp-card">
+        <div className="co-fp-header">
+          <div>
+            <h3 className="co-fp-title">Formas de pago</h3>
+            <p className="co-fp-desc">Configurá los métodos disponibles en tu carta y sus descuentos opcionales.</p>
+          </div>
+          <button className="co-fp-save-btn" onClick={guardarFormasPago} disabled={guardandoFP}>
+            {guardandoFP ? 'Guardando...' : 'Guardar'}
+          </button>
+        </div>
+
+        <div className="co-fp-list">
+          {formasPago.map((fp, idx) => (
+            <div key={idx} className={`co-fp-item ${!fp.habilitado ? 'co-fp-item--off' : ''}`}>
+              <GripVertical size={16} color="#d1d5db" className="co-fp-drag" />
+              <span className="co-fp-nombre">{fp.nombre}</span>
+              {fp.descuento > 0 && <span className="co-fp-desc-badge">-{fp.descuento}%</span>}
+              <label className="co-fp-toggle">
+                <input type="checkbox" checked={fp.habilitado} onChange={() => toggleForma(idx)} />
+                <span className="co-fp-toggle-track" />
+              </label>
+              <button className="co-fp-del-btn" onClick={() => eliminarForma(idx)} title="Eliminar">
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ))}
+
+          {formasPago.length === 0 && (
+            <p className="co-fp-empty">No hay formas de pago configuradas.</p>
+          )}
+        </div>
+
+        {mostrarFormFP ? (
+          <div className="co-fp-form">
+            <input
+              className="co-fp-input"
+              type="text"
+              placeholder="Nombre (ej: Mercado Pago)"
+              value={nuevaForma.nombre}
+              onChange={e => setNuevaForma(f => ({ ...f, nombre: e.target.value }))}
+              onKeyDown={e => e.key === 'Enter' && agregarForma()}
+              autoFocus
+            />
+            <div className="co-fp-form-row">
+              <label className="co-fp-form-label">Descuento</label>
+              <div className="co-fp-desc-input-wrap">
+                <input
+                  className="co-fp-input co-fp-input--sm"
+                  type="number"
+                  min="0" max="100"
+                  placeholder="0"
+                  value={nuevaForma.descuento}
+                  onChange={e => setNuevaForma(f => ({ ...f, descuento: e.target.value }))}
+                />
+                <span className="co-fp-pct">%</span>
+              </div>
+            </div>
+            <div className="co-fp-form-btns">
+              <button className="co-fp-add-confirm" onClick={agregarForma}>Agregar</button>
+              <button className="co-fp-cancel" onClick={() => setMostrarFormFP(false)}>Cancelar</button>
+            </div>
+          </div>
+        ) : (
+          <button className="co-fp-add-btn" onClick={() => setMostrarFormFP(true)}>
+            <Plus size={15} /> Agregar forma de pago
+          </button>
+        )}
       </div>
 
       {/* Pedidos entrantes */}

@@ -106,4 +106,21 @@ router.delete('/tienda/portada', auth, async (req, res) => {
   }
 })
 
+// ── Formas de pago ───────────────────────────────────────────────────────────
+
+router.put('/tienda/formas-pago', auth, async (req, res) => {
+  try {
+    const { formasPago } = req.body
+    if (!Array.isArray(formasPago)) return res.status(400).json({ message: 'formasPago debe ser un array' })
+    const config = await ConfigTienda.findOneAndUpdate(
+      { usuario: req.propietarioId },
+      { $set: { formasPago } },
+      { new: true, upsert: true }
+    )
+    res.json(config.formasPago)
+  } catch (e) {
+    res.status(500).json({ message: e.message })
+  }
+})
+
 module.exports = router
