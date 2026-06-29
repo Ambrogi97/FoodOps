@@ -35,7 +35,7 @@ router.post('/suscribir', auth, async (req, res) => {
 
     const isTest = process.env.MP_ACCESS_TOKEN?.startsWith('TEST-')
     const payerEmail = isTest
-      ? (process.env.MP_TEST_BUYER_EMAIL || 'test_user_3504788436@testuser.com')
+      ? (process.env.MP_TEST_BUYER_EMAIL || 'test_user_5575636763079287067@testuser.com')
       : user.email
 
     const mpRes = await mpFetch('/preapproval', {
