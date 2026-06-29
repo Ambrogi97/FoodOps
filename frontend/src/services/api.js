@@ -323,15 +323,21 @@ export const cuentasCorrientesService = {
 // ── Pedidos Online ────────────────────────────────────────────────────────────
 
 const mapPedidoOnline = p => ({
-  _id:           p._id,
-  items:         p.items,
-  tipo:          p.tipo,
-  mesaNumero:    p.mesaNumero,
-  clienteNombre: p.clienteNombre,
-  notas:         p.notas,
-  total:         p.total,
-  estado:        p.estado,
-  createdAt:     p.createdAt,
+  _id:             p._id,
+  items:           p.items,
+  tipo:            p.tipo,
+  mesaNumero:      p.mesaNumero,
+  direccion:       p.direccion,
+  clienteNombre:   p.clienteNombre,
+  clienteEmail:    p.clienteEmail,
+  clienteTelefono: p.clienteTelefono,
+  formaPago:       p.formaPago,
+  descuento:       p.descuento,
+  notas:           p.notas,
+  total:           p.total,
+  totalFinal:      p.totalFinal,
+  estado:          p.estado,
+  createdAt:       p.createdAt,
 })
 
 export const pedidosOnlineService = {
