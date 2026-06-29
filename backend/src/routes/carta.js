@@ -9,7 +9,7 @@ const { enviarEmail } = require('../utils/email')
 
 const fmt = (n) => `$${Number(n).toLocaleString('es-AR')}`
 
-function emailConfirmacionPedido({ restaurante, numero, pedido, totalFinal, descuento }) {
+function emailConfirmacionPedido({ restaurante, numero, pedido, totalFinal, descuento, trackingUrl }) {
   const tipoLabel = pedido.tipo === 'delivery' ? 'Delivery' : pedido.tipo === 'takeaway' ? 'Retiro en el local' : `Mesa ${pedido.mesaNumero}`
   const itemsHtml = pedido.items.map(i => `
     <tr>
@@ -109,8 +109,17 @@ function emailConfirmacionPedido({ restaurante, numero, pedido, totalFinal, desc
       </tr>
 
       <!-- Footer -->
+      ${trackingUrl ? `
       <tr>
-        <td style="padding:32px 48px;border-top:1px solid #f0f0f0;margin-top:24px;text-align:center;">
+        <td style="padding:0 48px 28px;text-align:center;">
+          <a href="${trackingUrl}" style="display:inline-block;background:#e85d2b;color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;padding:13px 32px;border-radius:8px;letter-spacing:0.3px;">
+            Seguir mi pedido →
+          </a>
+        </td>
+      </tr>` : ''}
+
+      <tr>
+        <td style="padding:24px 48px 32px;border-top:1px solid #f0f0f0;text-align:center;">
           <p style="margin:0 0 4px;font-size:12px;color:#aaa;">¿Dudas? Contactanos por cualquier medio.</p>
           <p style="margin:0;font-size:12px;color:#aaa;">Powered by <strong style="color:#e85d2b;">FoodOps</strong></p>
         </td>
@@ -195,6 +204,9 @@ router.post('/:userId/pedido', async (req, res) => {
 
     const numero = pedido._id.toString().slice(-6).toUpperCase()
 
+    const frontendUrl  = process.env.FRONTEND_URL || 'http://localhost:5173'
+    const trackingUrl  = `${frontendUrl}/tracking/${pedido._id}`
+
     // Email de confirmación al cliente (no bloqueante)
     if (pedido.clienteEmail) {
       const user = await User.findById(req.params.userId).select('restaurante')
@@ -207,11 +219,40 @@ router.post('/:userId/pedido', async (req, res) => {
           pedido,
           totalFinal,
           descuento,
+          trackingUrl,
         }),
       }).catch(e => console.error('Error enviando email pedido:', e))
     }
 
-    res.status(201).json({ id: pedido._id, numero })
+    res.status(201).json({ id: pedido._id, numero, trackingUrl })
+  } catch (e) {
+    res.status(500).json({ message: e.message })
+  }
+})
+
+// Tracking público del pedido (sin auth)
+router.get('/tracking/:pedidoId', async (req, res) => {
+  try {
+    const pedido = await PedidoOnline.findById(req.params.pedidoId)
+    if (!pedido) return res.status(404).json({ message: 'Pedido no encontrado' })
+
+    const user = await User.findById(pedido.usuario).select('restaurante logo')
+
+    res.json({
+      numero:          pedido._id.toString().slice(-6).toUpperCase(),
+      estado:          pedido.estado,
+      tipo:            pedido.tipo,
+      mesaNumero:      pedido.mesaNumero,
+      direccion:       pedido.direccion,
+      clienteNombre:   pedido.clienteNombre,
+      formaPago:       pedido.formaPago,
+      items:           pedido.items,
+      total:           pedido.total,
+      totalFinal:      pedido.totalFinal,
+      descuento:       pedido.descuento,
+      createdAt:       pedido.createdAt,
+      restaurante:     user?.restaurante || '',
+    })
   } catch (e) {
     res.status(500).json({ message: e.message })
   }

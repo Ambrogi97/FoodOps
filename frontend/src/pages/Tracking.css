@@ -1,0 +1,253 @@
+.trk-layout {
+  min-height: 100dvh;
+  background: #f4f4f4;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.trk-header {
+  background: #e85d2b;
+  padding: 28px 20px 24px;
+  text-align: center;
+}
+.trk-header-nombre {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.3px;
+}
+.trk-header-sub {
+  font-size: 13px;
+  color: rgba(255,255,255,0.75);
+  margin-top: 3px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.trk-body {
+  padding: 16px 14px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.trk-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+
+.trk-card--top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Número y estado */
+.trk-numero-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.trk-numero-label {
+  font-size: 12px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.trk-numero {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1a1a2e;
+  letter-spacing: -0.5px;
+}
+
+.trk-estado-badge {
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.trk-estado-badge--pendiente  { background: #fef9c3; color: #92400e; }
+.trk-estado-badge--preparando { background: #dbeafe; color: #1d4ed8; }
+.trk-estado-badge--listo      { background: #dcfce7; color: #15803d; }
+.trk-estado-badge--entregado  { background: #f0fdf4; color: #166534; }
+
+/* Pasos */
+.trk-pasos {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  position: relative;
+  gap: 4px;
+}
+
+.trk-paso-wrap {
+  display: flex;
+  flex: 1;
+  align-items: center;
+}
+
+.trk-paso {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.trk-paso-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .3s;
+}
+
+.trk-paso--hecho .trk-paso-circle {
+  background: #fff4f0;
+  color: #e85d2b;
+}
+
+.trk-paso--activo .trk-paso-circle {
+  background: #e85d2b;
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(232,93,43,.15);
+}
+
+.trk-paso-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-align: center;
+  line-height: 1.3;
+  max-width: 56px;
+}
+
+.trk-paso--hecho .trk-paso-label  { color: #e85d2b; }
+.trk-paso--activo .trk-paso-label { color: #1a1a2e; }
+
+.trk-paso-linea {
+  flex: 1;
+  height: 2px;
+  background: #e5e7eb;
+  margin: 0 4px;
+  margin-bottom: 24px;
+  transition: background .3s;
+}
+.trk-paso-linea--hecha { background: #e85d2b; }
+
+.trk-refresh-hint {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  justify-content: center;
+  margin-top: 16px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* Detalle */
+.trk-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #e85d2b;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.trk-tipo {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 2px;
+}
+
+.trk-forma-pago {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 14px;
+}
+
+.trk-items {
+  border-top: 1px solid #f3f4f6;
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.trk-item-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.trk-item-cant   { color: #9ca3af; font-weight: 600; min-width: 24px; }
+.trk-item-nombre { flex: 1; color: #374151; }
+.trk-item-precio { color: #1a1a2e; font-weight: 600; }
+
+.trk-total-row {
+  border-top: 1px solid #f3f4f6;
+  margin-top: 12px;
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.trk-subtotal-row,
+.trk-desc-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #6b7280;
+}
+.trk-desc-row { color: #16a34a; }
+
+.trk-total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 17px;
+  color: #1a1a2e;
+  padding-top: 6px;
+  border-top: 2px solid #e85d2b;
+  margin-top: 4px;
+}
+.trk-total strong:last-child { color: #e85d2b; }
+
+/* Estados de carga */
+.trk-loading {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.trk-spinner {
+  width: 40px; height: 40px;
+  border: 3px solid #f3f4f6;
+  border-top-color: #e85d2b;
+  border-radius: 50%;
+  animation: trk-spin 0.8s linear infinite;
+}
+@keyframes trk-spin { to { transform: rotate(360deg); } }
+
+.trk-error {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #94a3b8;
+  font-size: 15px;
+}

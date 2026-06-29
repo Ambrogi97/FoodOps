@@ -52,6 +52,7 @@ export default function Carta() {
   const [errorEnvio, setErrorEnvio]     = useState('')
   const [error, setError]               = useState('')
   const [numeroPedido, setNumeroPedido] = useState('')
+  const [trackingUrl, setTrackingUrl]   = useState('')
 
   const [form, setForm] = useState({
     tipo:            'takeaway',
@@ -178,6 +179,7 @@ export default function Carta() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Error al enviar')
       setNumeroPedido(data.numero || '')
+      setTrackingUrl(data.trackingUrl || '')
       setCarrito([])
       setStep('ok')
     } catch (e) {
@@ -190,9 +192,17 @@ export default function Carta() {
   // ── Confirmado ───────────────────────────────────────────────────────────────
   if (step === 'ok') return (
     <div className="carta-ok">
-      <div className="carta-ok-check"><CheckCircle size={64} color="#22c55e" /></div>
-      <h2>¡Recibimos tu pedido{numeroPedido ? ` #${numeroPedido}` : ''}!</h2>
-      <p>Te avisaremos cuando tu pedido esté en preparación.</p>
+      <div className="carta-ok-icon">
+        <CheckCircle size={72} color="#e85d2b" />
+      </div>
+      <h2 className="carta-ok-titulo">¡Pedido confirmado!</h2>
+      {numeroPedido && <p className="carta-ok-numero">#{numeroPedido}</p>}
+      <p className="carta-ok-msg">Recibimos tu pedido. Te avisaremos cuando esté listo.</p>
+      {trackingUrl && (
+        <a className="carta-ok-tracking-btn" href={trackingUrl} target="_blank" rel="noopener noreferrer">
+          Seguir mi pedido →
+        </a>
+      )}
       <button className="carta-ok-btn" onClick={() => { setStep('menu'); setForm(f => ({ ...f, tipo: 'takeaway', mesaNumero: '', direccion: '', clienteNombre: '', clienteEmail: '', clienteTelefono: '', notas: '' })) }}>
         Volver al menú
       </button>
