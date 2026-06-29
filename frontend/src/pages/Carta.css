@@ -686,6 +686,232 @@ body { background: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Seg
 }
 .carta-checkout-resumen strong { color: #1a1a2e; font-size: 17px; }
 
+/* ── Checkout page ───────────────────────────────────────────────────────── */
+.carta-checkout-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+  background: #fff;
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.carta-checkout-topbar-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.carta-checkout-page {
+  padding: 16px 14px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.carta-co-section {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+
+.carta-co-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.carta-co-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 7px;
+}
+
+.carta-co-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.carta-co-input {
+  width: 100%;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 11px 13px;
+  font-size: 15px;
+  color: #1a1a2e;
+  outline: none;
+  transition: border-color .15s;
+  background: #fff;
+}
+.carta-co-input:focus { border-color: #1a1a2e; }
+
+.carta-co-textarea {
+  resize: none;
+  min-height: 72px;
+}
+
+/* Tipo tabs */
+.carta-tipo-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.carta-tipo-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 11px 8px;
+  border-radius: 12px;
+  border: 1.5px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #555;
+  transition: all .15s;
+}
+
+.carta-tipo-tab--active {
+  border-color: #1a1a2e;
+  background: #1a1a2e;
+  color: #fff;
+}
+
+.carta-co-aviso {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #f59e0b;
+}
+
+/* Forma de pago */
+.carta-co-pagos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.carta-co-pago {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1.5px solid #e5e7eb;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.carta-co-pago input[type="radio"] { display: none; }
+
+.carta-co-pago--active {
+  border-color: #1a1a2e;
+  background: #f0f4ff;
+}
+
+.carta-co-pago-nombre {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.carta-co-pago-desc {
+  background: #dcfce7;
+  color: #16a34a;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.carta-co-pago--active::before {
+  content: '';
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #1a1a2e;
+  background: #1a1a2e;
+  box-shadow: inset 0 0 0 4px #fff;
+  flex-shrink: 0;
+}
+
+.carta-co-pago:not(.carta-co-pago--active)::before {
+  content: '';
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #d1d5db;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+/* Resumen */
+.carta-co-resumen {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.carta-co-resumen-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+  color: #555;
+}
+
+.carta-co-resumen-desc { color: #16a34a; }
+
+.carta-co-resumen-total {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 10px;
+  margin-top: 4px;
+  font-size: 17px;
+  color: #1a1a2e;
+}
+
+.carta-co-error {
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.carta-co-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.carta-volver-btn {
+  width: 100%;
+  background: transparent;
+  color: #1a1a2e;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 /* ── Pedido ok ───────────────────────────────────────────────────────────── */
 .carta-ok {
   min-height: 100dvh;

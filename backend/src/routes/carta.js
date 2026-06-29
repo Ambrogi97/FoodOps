@@ -23,14 +23,15 @@ router.get('/:userId', async (req, res) => {
     ])
 
     res.json({
-      habilitado:         true,
-      restaurante:        user.restaurante,
-      logo:               config.logo               || null,
-      portada:            config.portada             || null,
-      colorFondo:         config.colorFondo          || null,
-      deliveryCfg:   config.delivery  || null,
-      retiroCfg:     config.retiro    || null,
+      habilitado:    true,
+      restaurante:   user.restaurante,
+      logo:          config.logo        || null,
+      portada:       config.portada     || null,
+      colorFondo:    config.colorFondo  || null,
+      deliveryCfg:   config.delivery    || null,
+      retiroCfg:     config.retiro      || null,
       costoDelivery: config.delivery?.costoEnvio || 0,
+      formasPago:    (config.formasPago || []).filter(f => f.habilitado),
       categorias,
       productos,
     })
@@ -42,25 +43,40 @@ router.get('/:userId', async (req, res) => {
 // Enviar pedido desde la carta
 router.post('/:userId/pedido', async (req, res) => {
   try {
-    const { items, tipo, mesaNumero, direccion, clienteNombre, notas } = req.body
+    const {
+      items, tipo, mesaNumero, direccion,
+      clienteNombre, clienteEmail, clienteTelefono,
+      notas, formaPago, descuento = 0,
+    } = req.body
+
     if (!items?.length)  return res.status(400).json({ message: 'El pedido está vacío' })
     if (!tipo)           return res.status(400).json({ message: 'Indicá el tipo de pedido' })
-    if (tipo === 'mesa'     && !mesaNumero?.trim()) return res.status(400).json({ message: 'Indicá el número de mesa' })
-    if (tipo === 'delivery' && !direccion?.trim())  return res.status(400).json({ message: 'Indicá la dirección de entrega' })
+    if (tipo === 'mesa'     && !mesaNumero?.trim())     return res.status(400).json({ message: 'Indicá el número de mesa' })
+    if (tipo === 'delivery' && !direccion?.trim())      return res.status(400).json({ message: 'Indicá la dirección de entrega' })
+    if (tipo !== 'mesa'    && !clienteEmail?.trim())    return res.status(400).json({ message: 'El email es requerido' })
+    if (tipo !== 'mesa'    && !clienteNombre?.trim())   return res.status(400).json({ message: 'El nombre es requerido' })
+    if (tipo !== 'mesa'    && !clienteTelefono?.trim()) return res.status(400).json({ message: 'El teléfono es requerido' })
 
-    const total  = items.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
+    const total      = items.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
+    const totalFinal = descuento > 0 ? Math.round(total * (1 - descuento / 100)) : total
+
     const pedido = await PedidoOnline.create({
-      usuario: req.params.userId,
+      usuario:         req.params.userId,
       items,
       tipo,
-      mesaNumero:    mesaNumero?.trim()    || '',
-      direccion:     direccion?.trim()     || '',
-      clienteNombre: clienteNombre?.trim() || '',
-      notas:         notas?.trim()         || '',
+      mesaNumero:      mesaNumero?.trim()      || '',
+      direccion:       direccion?.trim()        || '',
+      clienteNombre:   clienteNombre?.trim()    || '',
+      clienteEmail:    clienteEmail?.trim()     || '',
+      clienteTelefono: clienteTelefono?.trim()  || '',
+      formaPago:       formaPago?.trim()        || '',
+      descuento,
+      notas:           notas?.trim()            || '',
       total,
+      totalFinal,
     })
 
-    res.status(201).json({ id: pedido._id, message: '¡Pedido enviado con éxito!' })
+    res.status(201).json({ id: pedido._id, numero: pedido._id.toString().slice(-6).toUpperCase() })
   } catch (e) {
     res.status(500).json({ message: e.message })
   }

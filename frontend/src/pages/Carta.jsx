@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { UtensilsCrossed, Frown, CheckCircle, Armchair, ShoppingBag, Store, Bike } from 'lucide-react'
+import { UtensilsCrossed, Frown, CheckCircle, Armchair, ShoppingBag, Store, Bike, MapPin, Phone, Mail, FileText } from 'lucide-react'
 import './Carta.css'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
@@ -9,7 +9,7 @@ const fmt = (n) => `$${Number(n).toLocaleString('es-AR')}`
 const DIAS_KEY = ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab']
 function estaAbiertaAhora(cfg) {
   if (!cfg?.habilitado) return false
-  const now    = new Date()           // hora local del browser (Argentina)
+  const now    = new Date()
   const diaKey = DIAS_KEY[now.getDay()]
   const dia    = (cfg.horarios || []).find(d => d.dia === diaKey)
   if (!dia?.habilitado) return false
@@ -32,8 +32,7 @@ function ProductoCard({ p, cant, onClick }) {
       <div className="carta-prod-thumb">
         {p.imagen
           ? <img src={p.imagen} alt={p.nombre} onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex' }} />
-          : null
-        }
+          : null}
         <div className="carta-prod-placeholder" style={{ display: p.imagen ? 'none' : 'flex' }}><UtensilsCrossed size={28} /></div>
         {cant > 0 && <span className="carta-prod-badge">{cant}</span>}
       </div>
@@ -48,12 +47,22 @@ export default function Carta() {
   const [carrito, setCarrito]           = useState([])
   const [productoOpen, setProductoOpen] = useState(null)
   const [cantModal, setCantModal]       = useState(1)
-  const [vistaCarrito, setVistaCarrito] = useState(false)
-  const [showCheckout, setShowCheckout] = useState(false)
+  const [step, setStep]                 = useState('menu') // menu | carrito | checkout | ok
   const [enviando, setEnviando]         = useState(false)
-  const [pedidoOk, setPedidoOk]         = useState(false)
+  const [errorEnvio, setErrorEnvio]     = useState('')
   const [error, setError]               = useState('')
-  const [form, setForm] = useState({ tipo: 'mesa', mesaNumero: '', direccion: '', clienteNombre: '', notas: '' })
+  const [numeroPedido, setNumeroPedido] = useState('')
+
+  const [form, setForm] = useState({
+    tipo:            'takeaway',
+    mesaNumero:      '',
+    direccion:       '',
+    clienteNombre:   '',
+    clienteEmail:    '',
+    clienteTelefono: '',
+    formaPago:       '',
+    notas:           '',
+  })
 
   useEffect(() => {
     if (!userId) { setError('Enlace inválido'); return }
@@ -64,6 +73,8 @@ export default function Carta() {
           setDatos({ cerrada: true, restaurante: data.restaurante })
         } else {
           setDatos(data)
+          const primeraForma = data.formasPago?.[0]?.nombre || ''
+          setForm(f => ({ ...f, formaPago: primeraForma }))
         }
       })
       .catch(() => setError('No se pudo cargar el menú'))
@@ -84,12 +95,23 @@ export default function Carta() {
     </div>
   )
 
-  const { restaurante, logo, portada, colorFondo, deliveryCfg, retiroCfg, costoDelivery = 0, categorias = [], productos: todosProductos = [] } = datos
+  const {
+    restaurante, logo, portada, colorFondo,
+    deliveryCfg, retiroCfg, costoDelivery = 0,
+    categorias = [], productos: todosProductos = [],
+    formasPago = [],
+  } = datos
+
   const deliveryHabilitado = estaAbiertaAhora(deliveryCfg)
   const retiroHabilitado   = estaAbiertaAhora(retiroCfg)
-  const productos = todosProductos.filter(p => p.activo !== false)
+  const productos          = todosProductos.filter(p => p.activo !== false)
+
+  const descuentoActual = formasPago.find(f => f.nombre === form.formaPago)?.descuento || 0
   const subtotalCarrito = carrito.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
-  const totalCarrito    = subtotalCarrito + (form.tipo === 'delivery' ? costoDelivery : 0)
+  const costoEnvio      = form.tipo === 'delivery' ? costoDelivery : 0
+  const baseTotal       = subtotalCarrito + costoEnvio
+  const montoDescuento  = descuentoActual > 0 ? Math.round(baseTotal * descuentoActual / 100) : 0
+  const totalCarrito    = baseTotal - montoDescuento
   const cantCarrito     = carrito.reduce((acc, i) => acc + i.cantidad, 0)
 
   const cantEnCarrito = (id) => carrito.find(i => i.id === id)?.cantidad || 0
@@ -121,48 +143,249 @@ export default function Carta() {
     )
   }
 
+  const setTipo = (tipo) => {
+    setForm(f => ({ ...f, tipo }))
+  }
+
+  const canConfirm = () => {
+    if (form.tipo === 'mesa') return !!form.mesaNumero.trim()
+    if (!form.clienteEmail.trim() || !form.clienteNombre.trim() || !form.clienteTelefono.trim()) return false
+    if (form.tipo === 'delivery' && !form.direccion.trim()) return false
+    if (formasPago.length > 0 && !form.formaPago) return false
+    return true
+  }
+
   const enviarPedido = async () => {
-    if (form.tipo === 'mesa'     && !form.mesaNumero.trim()) return
-    if (form.tipo === 'delivery' && !form.direccion.trim())  return
+    setErrorEnvio('')
     setEnviando(true)
     try {
       const res = await fetch(`${API}/api/carta/${userId}/pedido`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: carrito.map(i => ({ nombre: i.nombre, cantidad: i.cantidad, precio: i.precio })),
-          tipo: form.tipo, mesaNumero: form.mesaNumero,
-          direccion: form.direccion,
-          clienteNombre: form.clienteNombre, notas: form.notas,
+          items:           carrito.map(i => ({ nombre: i.nombre, cantidad: i.cantidad, precio: i.precio })),
+          tipo:            form.tipo,
+          mesaNumero:      form.mesaNumero,
+          direccion:       form.direccion,
+          clienteNombre:   form.clienteNombre,
+          clienteEmail:    form.clienteEmail,
+          clienteTelefono: form.clienteTelefono,
+          formaPago:       form.formaPago,
+          descuento:       descuentoActual,
+          notas:           form.notas,
         }),
       })
-      if (!res.ok) throw new Error()
-      setPedidoOk(true)
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Error al enviar')
+      setNumeroPedido(data.numero || '')
       setCarrito([])
-      setVistaCarrito(false)
-      setShowCheckout(false)
-    } catch {
-      setError('No se pudo enviar el pedido. Intentá de nuevo.')
+      setStep('ok')
+    } catch (e) {
+      setErrorEnvio(e.message)
     } finally {
       setEnviando(false)
     }
   }
 
-  // ── Pedido OK ───────────────────────────────────────────────────────────────
-  if (pedidoOk) return (
+  // ── Confirmado ───────────────────────────────────────────────────────────────
+  if (step === 'ok') return (
     <div className="carta-ok">
-      <span className="carta-ok-icon"><CheckCircle size={56} color="#22c55e" /></span>
-      <h2>¡Pedido enviado!</h2>
-      <p>Tu pedido fue recibido. En breve lo estamos preparando.</p>
-      <button className="carta-ok-btn" onClick={() => setPedidoOk(false)}>Volver al menú</button>
+      <div className="carta-ok-check"><CheckCircle size={64} color="#22c55e" /></div>
+      <h2>¡Recibimos tu pedido{numeroPedido ? ` #${numeroPedido}` : ''}!</h2>
+      <p>Te avisaremos cuando tu pedido esté en preparación.</p>
+      <button className="carta-ok-btn" onClick={() => { setStep('menu'); setForm(f => ({ ...f, tipo: 'takeaway', mesaNumero: '', direccion: '', clienteNombre: '', clienteEmail: '', clienteTelefono: '', notas: '' })) }}>
+        Volver al menú
+      </button>
     </div>
   )
 
-  // ── Vista carrito ───────────────────────────────────────────────────────────
-  if (vistaCarrito) return (
+  // ── Checkout ─────────────────────────────────────────────────────────────────
+  if (step === 'checkout') return (
+    <div className="carta-layout">
+      <header className="carta-checkout-topbar">
+        <button className="carta-back-btn" onClick={() => setStep('carrito')}>‹</button>
+        <span className="carta-checkout-topbar-title">Confirmar pedido</span>
+        <div style={{ width: 36 }} />
+      </header>
+
+      <div className="carta-checkout-page">
+
+        {/* Selector tipo */}
+        <div className="carta-co-section">
+          <div className="carta-tipo-tabs">
+            {retiroHabilitado && (
+              <button
+                className={`carta-tipo-tab ${form.tipo === 'takeaway' ? 'carta-tipo-tab--active' : ''}`}
+                onClick={() => setTipo('takeaway')}
+              >
+                <ShoppingBag size={16} /> Para retirar
+              </button>
+            )}
+            {deliveryHabilitado && (
+              <button
+                className={`carta-tipo-tab ${form.tipo === 'delivery' ? 'carta-tipo-tab--active' : ''}`}
+                onClick={() => setTipo('delivery')}
+              >
+                <Bike size={16} /> Delivery
+              </button>
+            )}
+            <button
+              className={`carta-tipo-tab ${form.tipo === 'mesa' ? 'carta-tipo-tab--active' : ''}`}
+              onClick={() => setTipo('mesa')}
+            >
+              <Armchair size={16} /> En mesa
+            </button>
+          </div>
+          {!retiroHabilitado && !deliveryHabilitado && (
+            <p className="carta-co-aviso">Solo pedidos en mesa disponibles ahora.</p>
+          )}
+        </div>
+
+        {/* Campos de dirección / mesa */}
+        {form.tipo === 'delivery' && (
+          <div className="carta-co-section">
+            <label className="carta-co-label"><MapPin size={14} /> Dirección de entrega *</label>
+            <input
+              className="carta-co-input"
+              type="text"
+              placeholder="Ej: Av. Corrientes 1234"
+              value={form.direccion}
+              onChange={e => setForm(f => ({ ...f, direccion: e.target.value }))}
+            />
+          </div>
+        )}
+        {form.tipo === 'mesa' && (
+          <div className="carta-co-section">
+            <label className="carta-co-label"><Armchair size={14} /> Número de mesa *</label>
+            <input
+              className="carta-co-input"
+              type="text"
+              placeholder="Ej: 5"
+              value={form.mesaNumero}
+              onChange={e => setForm(f => ({ ...f, mesaNumero: e.target.value }))}
+            />
+          </div>
+        )}
+
+        {/* Contacto */}
+        {form.tipo !== 'mesa' && (
+          <div className="carta-co-section">
+            <h3 className="carta-co-section-title"><Mail size={15} /> Contacto</h3>
+            <div className="carta-co-fields">
+              <div>
+                <label className="carta-co-label">Correo electrónico *</label>
+                <input
+                  className="carta-co-input"
+                  type="email"
+                  placeholder="tu@email.com"
+                  value={form.clienteEmail}
+                  onChange={e => setForm(f => ({ ...f, clienteEmail: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="carta-co-label">Nombre y apellido *</label>
+                <input
+                  className="carta-co-input"
+                  type="text"
+                  placeholder="Juan García"
+                  value={form.clienteNombre}
+                  onChange={e => setForm(f => ({ ...f, clienteNombre: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="carta-co-label"><Phone size={13} /> Teléfono *</label>
+                <input
+                  className="carta-co-input"
+                  type="tel"
+                  placeholder="+54 341 000-0000"
+                  value={form.clienteTelefono}
+                  onChange={e => setForm(f => ({ ...f, clienteTelefono: e.target.value }))}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Forma de pago */}
+        {formasPago.length > 0 && (
+          <div className="carta-co-section">
+            <h3 className="carta-co-section-title"><FileText size={15} /> Forma de pago *</h3>
+            <div className="carta-co-pagos">
+              {formasPago.map(fp => (
+                <label key={fp.nombre} className={`carta-co-pago ${form.formaPago === fp.nombre ? 'carta-co-pago--active' : ''}`}>
+                  <input
+                    type="radio"
+                    name="formaPago"
+                    value={fp.nombre}
+                    checked={form.formaPago === fp.nombre}
+                    onChange={() => setForm(f => ({ ...f, formaPago: fp.nombre }))}
+                  />
+                  <span className="carta-co-pago-nombre">{fp.nombre}</span>
+                  {fp.descuento > 0 && <span className="carta-co-pago-desc">-{fp.descuento}%</span>}
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Notas */}
+        <div className="carta-co-section">
+          <label className="carta-co-label">Notas (opcional)</label>
+          <textarea
+            className="carta-co-input carta-co-textarea"
+            placeholder="Sin cebolla, extra salsa..."
+            value={form.notas}
+            onChange={e => setForm(f => ({ ...f, notas: e.target.value }))}
+          />
+        </div>
+
+        {/* Resumen */}
+        <div className="carta-co-section carta-co-resumen">
+          <div className="carta-co-resumen-row">
+            <span>Subtotal</span>
+            <span>{fmt(subtotalCarrito)}</span>
+          </div>
+          {costoEnvio > 0 && (
+            <div className="carta-co-resumen-row">
+              <span>Costo de envío</span>
+              <span>{fmt(costoEnvio)}</span>
+            </div>
+          )}
+          {montoDescuento > 0 && (
+            <div className="carta-co-resumen-row carta-co-resumen-desc">
+              <span>Descuento ({descuentoActual}%)</span>
+              <span>-{fmt(montoDescuento)}</span>
+            </div>
+          )}
+          <div className="carta-co-resumen-row carta-co-resumen-total">
+            <strong>Total</strong>
+            <strong>{fmt(totalCarrito)}</strong>
+          </div>
+        </div>
+
+        {errorEnvio && <p className="carta-co-error">{errorEnvio}</p>}
+
+        <div className="carta-co-btns">
+          <button
+            className="carta-confirmar-btn"
+            onClick={enviarPedido}
+            disabled={enviando || !canConfirm()}
+          >
+            {enviando ? 'Enviando...' : 'Confirmar pedido'}
+          </button>
+          <button className="carta-volver-btn" onClick={() => setStep('carrito')}>
+            Volver
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+
+  // ── Carrito ──────────────────────────────────────────────────────────────────
+  if (step === 'carrito') return (
     <div className="carta-layout">
       <header className="carta-cart-header">
-        <button className="carta-back-btn" onClick={() => setVistaCarrito(false)}>‹</button>
+        <button className="carta-back-btn" onClick={() => setStep('menu')}>‹</button>
         <h2>Mi pedido</h2>
       </header>
 
@@ -185,37 +408,12 @@ export default function Carta() {
         ))}
       </div>
 
-      {/* Tipo de pedido — selección en el carrito */}
-      <div className="carta-cart-tipo">
-        <span className="carta-cart-tipo-label">¿Cómo es tu pedido?</span>
-        <div className="carta-tipo-row">
-          <button className={`carta-tipo-btn ${form.tipo === 'mesa'     ? 'carta-tipo-btn--active' : ''}`} onClick={() => setForm(f => ({ ...f, tipo: 'mesa' }))}><Armchair size={15} /> En mesa</button>
-          <button
-            className={`carta-tipo-btn ${form.tipo === 'takeaway' ? 'carta-tipo-btn--active' : ''} ${!retiroHabilitado ? 'carta-tipo-btn--disabled' : ''}`}
-            onClick={() => retiroHabilitado && setForm(f => ({ ...f, tipo: 'takeaway' }))}
-          ><ShoppingBag size={15} /> Retiro</button>
-          <button
-            className={`carta-tipo-btn ${form.tipo === 'delivery' ? 'carta-tipo-btn--active' : ''} ${!deliveryHabilitado ? 'carta-tipo-btn--disabled' : ''}`}
-            onClick={() => deliveryHabilitado && setForm(f => ({ ...f, tipo: 'delivery' }))}
-          ><Bike size={15} /> Delivery</button>
-        </div>
-        {!retiroHabilitado && !deliveryHabilitado && (
-          <p className="carta-delivery-off">Por el momento no estamos haciendo envíos ni retiros, disculpe las molestias.</p>
-        )}
-        {retiroHabilitado && !deliveryHabilitado && (
-          <p className="carta-delivery-off">Por el momento no estamos haciendo envíos, disculpe las molestias.</p>
-        )}
-        {!retiroHabilitado && deliveryHabilitado && (
-          <p className="carta-delivery-off">Por el momento no estamos haciendo retiros, disculpe las molestias.</p>
-        )}
-      </div>
-
       <div className="carta-cart-resumen">
         <div className="carta-cart-resumen-row">
           <span>Subtotal</span>
           <span>{fmt(subtotalCarrito)}</span>
         </div>
-        {form.tipo === 'delivery' && costoDelivery > 0 && (
+        {costoDelivery > 0 && form.tipo === 'delivery' && (
           <div className="carta-cart-resumen-row">
             <span>Costo de envío</span>
             <span>{fmt(costoDelivery)}</span>
@@ -223,60 +421,15 @@ export default function Carta() {
         )}
         <div className="carta-cart-resumen-row carta-cart-total-row">
           <strong>Total</strong>
-          <strong>{fmt(totalCarrito)}</strong>
+          <strong>{fmt(subtotalCarrito)}</strong>
         </div>
       </div>
 
       <div className="carta-cart-footer">
-        <button className="carta-confirmar-btn" onClick={() => setShowCheckout(true)}>
+        <button className="carta-confirmar-btn" onClick={() => setStep('checkout')}>
           Continuar →
         </button>
       </div>
-
-      {/* Checkout */}
-      {showCheckout && (
-        <div className="carta-checkout-overlay">
-          <div className="carta-checkout">
-            <div className="carta-checkout-header">
-              <h3>Completá tu pedido</h3>
-              <button className="carta-carrito-close" onClick={() => setShowCheckout(false)}>×</button>
-            </div>
-            <div className="carta-checkout-form">
-              {form.tipo === 'mesa' && (
-                <div className="carta-checkout-field">
-                  <label>Número de mesa *</label>
-                  <input type="text" placeholder="Ej: 5" value={form.mesaNumero} onChange={e => setForm(f => ({ ...f, mesaNumero: e.target.value }))} />
-                </div>
-              )}
-              {form.tipo === 'delivery' && (
-                <div className="carta-checkout-field">
-                  <label>Dirección de entrega *</label>
-                  <input type="text" placeholder="Ej: Av. Corrientes 1234" value={form.direccion} onChange={e => setForm(f => ({ ...f, direccion: e.target.value }))} />
-                </div>
-              )}
-              <div className="carta-checkout-field">
-                <label>Tu nombre (opcional)</label>
-                <input type="text" placeholder="Ej: Juan" value={form.clienteNombre} onChange={e => setForm(f => ({ ...f, clienteNombre: e.target.value }))} />
-              </div>
-              <div className="carta-checkout-field">
-                <label>Notas (opcional)</label>
-                <textarea placeholder="Sin cebolla, extra salsa..." value={form.notas} onChange={e => setForm(f => ({ ...f, notas: e.target.value }))} />
-              </div>
-            </div>
-            <div className="carta-checkout-resumen">
-              <span>{cantCarrito} producto{cantCarrito !== 1 ? 's' : ''}{form.tipo === 'delivery' && costoDelivery > 0 ? ` + envío ${fmt(costoDelivery)}` : ''}</span>
-              <strong>{fmt(totalCarrito)}</strong>
-            </div>
-            <button
-              className="carta-confirmar-btn"
-              onClick={enviarPedido}
-              disabled={enviando || (form.tipo === 'mesa' && !form.mesaNumero.trim()) || (form.tipo === 'delivery' && !form.direccion.trim())}
-            >
-              {enviando ? 'Enviando...' : 'Enviar pedido'}
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   )
 
@@ -288,7 +441,6 @@ export default function Carta() {
   return (
     <div className="carta-layout" style={colorFondo ? { background: colorFondo } : {}}>
 
-      {/* Header */}
       <header
         className={`carta-header ${portada ? 'carta-header--con-portada' : ''}`}
         style={portada ? { backgroundImage: `url(${portada})` } : {}}
@@ -303,7 +455,6 @@ export default function Carta() {
         </div>
       </header>
 
-      {/* Categorías */}
       {categorias.length > 0 && (
         <div className="carta-cats-wrap">
           <div className="carta-cats">
@@ -322,7 +473,6 @@ export default function Carta() {
         </div>
       )}
 
-      {/* Lista de productos */}
       <div className="carta-productos">
         {productos.length === 0 ? (
           <div className="carta-empty">
@@ -345,38 +495,31 @@ export default function Carta() {
         )}
       </div>
 
-      {/* Botón flotante carrito */}
       {cantCarrito > 0 && (
-        <button className="carta-float-btn" onClick={() => setVistaCarrito(true)}>
+        <button className="carta-float-btn" onClick={() => setStep('carrito')}>
           <span className="carta-float-cant">{cantCarrito}</span>
           Mi pedido
-          <span className="carta-float-total">{fmt(totalCarrito)}</span>
+          <span className="carta-float-total">{fmt(subtotalCarrito)}</span>
         </button>
       )}
 
-      {/* Modal detalle producto */}
       {productoOpen && (
         <div className="carta-prod-modal-overlay" onClick={() => setProductoOpen(null)}>
           <div className="carta-prod-modal" onClick={e => e.stopPropagation()}>
             <button className="carta-prod-modal-close" onClick={() => setProductoOpen(null)}>×</button>
             {productoOpen.imagen
               ? <img src={productoOpen.imagen} alt={productoOpen.nombre} className="carta-prod-modal-img" onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex' }} />
-              : null
-            }
+              : null}
             <div className="carta-prod-modal-img-placeholder" style={{ display: productoOpen.imagen ? 'none' : 'flex' }}><UtensilsCrossed size={40} /></div>
             <div className="carta-prod-modal-body">
               <h2 className="carta-prod-modal-nombre">{productoOpen.nombre}</h2>
-              {productoOpen.descripcion && (
-                <p className="carta-prod-modal-desc">{productoOpen.descripcion}</p>
-              )}
+              {productoOpen.descripcion && <p className="carta-prod-modal-desc">{productoOpen.descripcion}</p>}
               <p className="carta-prod-modal-precio">{fmt(productoOpen.precio)}</p>
-
               <div className="carta-prod-modal-ctrl">
                 <button className="carta-modal-ctrl-btn" onClick={() => setCantModal(c => Math.max(0, c - 1))}>−</button>
                 <span className="carta-modal-ctrl-cant">{cantModal}</span>
                 <button className="carta-modal-ctrl-btn carta-modal-ctrl-btn--add" onClick={() => setCantModal(c => c + 1)}>+</button>
               </div>
-
               <button
                 className="carta-confirmar-btn"
                 onClick={agregarDesdeModal}
@@ -393,7 +536,6 @@ export default function Carta() {
           </div>
         </div>
       )}
-
     </div>
   )
 }

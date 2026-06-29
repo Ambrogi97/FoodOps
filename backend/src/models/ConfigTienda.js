@@ -29,6 +29,15 @@ const seccionSchema = new mongoose.Schema(
   { _id: false }
 )
 
+const formaPagoSchema = new mongoose.Schema(
+  {
+    nombre:     { type: String, required: true },
+    descuento:  { type: Number, default: 0 },
+    habilitado: { type: Boolean, default: true },
+  },
+  { _id: false }
+)
+
 const configTiendaSchema = new mongoose.Schema(
   {
     usuario:   { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
@@ -38,6 +47,10 @@ const configTiendaSchema = new mongoose.Schema(
     logo:        { type: String, default: null },
     portada:     { type: String, default: null },
     colorFondo:  { type: String, default: null },
+    formasPago:  { type: [formaPagoSchema], default: () => [
+      { nombre: 'Efectivo', descuento: 0, habilitado: true },
+      { nombre: 'Transferencia', descuento: 0, habilitado: true },
+    ]},
   },
   { timestamps: true }
 )

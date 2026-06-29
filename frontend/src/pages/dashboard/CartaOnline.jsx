@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { pedidosOnlineService } from '../../services/api'
-import { Armchair, ShoppingBag, User, FileText, RefreshCw, Bike, MapPin, Printer } from 'lucide-react'
+import { Armchair, ShoppingBag, User, FileText, RefreshCw, Bike, MapPin, Printer, Mail, Phone, CreditCard } from 'lucide-react'
 import './CartaOnline.css'
 
 const ESTADOS = ['pendiente', 'preparando', 'listo', 'entregado']
@@ -202,6 +202,15 @@ export default function CartaOnline() {
                     {p.clienteNombre && (
                       <span className="co-cliente-chip"><User size={12} color="#6b7280" /> {p.clienteNombre}</span>
                     )}
+                    {p.clienteEmail && (
+                      <span className="co-cliente-chip"><Mail size={12} color="#6b7280" /> {p.clienteEmail}</span>
+                    )}
+                    {p.clienteTelefono && (
+                      <span className="co-cliente-chip"><Phone size={12} color="#6b7280" /> {p.clienteTelefono}</span>
+                    )}
+                    {p.formaPago && (
+                      <span className="co-cliente-chip"><CreditCard size={12} color="#6b7280" /> {p.formaPago}{p.descuento > 0 ? ` (-${p.descuento}%)` : ''}</span>
+                    )}
                   </div>
                   <span className="co-card-time">{relTime(p.createdAt)}</span>
                 </div>
@@ -221,7 +230,10 @@ export default function CartaOnline() {
                 )}
 
                 <div className="co-card-footer">
-                  <span className="co-total">Total: <strong>{fmt(p.total)}</strong></span>
+                  <span className="co-total">
+                    Total: <strong>{fmt(p.totalFinal || p.total)}</strong>
+                    {p.descuento > 0 && <span className="co-descuento-chip">-{p.descuento}%</span>}
+                  </span>
                   {sigEstado && (
                     <button
                       className="co-avanzar-btn"

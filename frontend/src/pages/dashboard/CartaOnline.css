@@ -187,8 +187,9 @@
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding-top: 8px; border-top: 1px solid var(--border);
 }
-.co-total { font-size: 14px; color: var(--muted); }
+.co-total { font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
 .co-total strong { color: var(--text); font-weight: 700; }
+.co-descuento-chip { background: #dcfce7; color: #16a34a; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 10px; }
 
 .co-avanzar-btn {
   padding: 8px 16px;
