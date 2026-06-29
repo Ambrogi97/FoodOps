@@ -17,6 +17,7 @@ const pedidoOnlineSchema = new mongoose.Schema({
   clienteTelefono:  { type: String, default: '' },
   formaPago:        { type: String, default: '' },
   descuento:        { type: Number, default: 0 },
+  costoEnvio:       { type: Number, default: 0 },
   notas:            { type: String, default: '' },
   total:            { type: Number, required: true },
   totalFinal:       { type: Number, default: 0 },

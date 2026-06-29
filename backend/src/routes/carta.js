@@ -183,8 +183,11 @@ router.post('/:userId/pedido', async (req, res) => {
     if (tipo !== 'mesa'    && !clienteNombre?.trim())   return res.status(400).json({ message: 'El nombre es requerido' })
     if (tipo !== 'mesa'    && !clienteTelefono?.trim()) return res.status(400).json({ message: 'El teléfono es requerido' })
 
-    const total      = items.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
-    const totalFinal = descuento > 0 ? Math.round(total * (1 - descuento / 100)) : total
+    const config      = await ConfigTienda.findOne({ usuario: req.params.userId })
+    const costoEnvio  = tipo === 'delivery' ? (config?.delivery?.costoEnvio || 0) : 0
+    const subtotal    = items.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
+    const total       = subtotal + costoEnvio
+    const totalFinal  = descuento > 0 ? Math.round(total * (1 - descuento / 100)) : total
 
     const pedido = await PedidoOnline.create({
       usuario:         req.params.userId,
@@ -197,6 +200,7 @@ router.post('/:userId/pedido', async (req, res) => {
       clienteTelefono: clienteTelefono?.trim()  || '',
       formaPago:       formaPago?.trim()        || '',
       descuento,
+      costoEnvio,
       notas:           notas?.trim()            || '',
       total,
       totalFinal,
