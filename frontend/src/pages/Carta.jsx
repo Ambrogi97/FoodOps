@@ -432,7 +432,7 @@ export default function Carta() {
         )}
         <div className="carta-cart-resumen-row carta-cart-total-row">
           <strong>Total</strong>
-          <strong>{fmt(subtotalCarrito)}</strong>
+          <strong>{fmt(subtotalCarrito + (form.tipo === 'delivery' ? costoDelivery : 0))}</strong>
         </div>
       </div>
 
