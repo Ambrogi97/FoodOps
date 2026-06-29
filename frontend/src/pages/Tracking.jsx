@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { CheckCircle, Clock, ChefHat, PackageCheck, Bike, Frown } from 'lucide-react'
 import './Tracking.css'
@@ -23,6 +23,7 @@ export default function Tracking() {
   const { pedidoId } = useParams()
   const [datos, setDatos]   = useState(null)
   const [error, setError]   = useState('')
+  const ivRef               = useRef(null)
 
   const cargar = async () => {
     try {
@@ -37,9 +38,13 @@ export default function Tracking() {
 
   useEffect(() => {
     cargar()
-    const iv = setInterval(cargar, 15_000)
-    return () => clearInterval(iv)
+    ivRef.current = setInterval(cargar, 15_000)
+    return () => clearInterval(ivRef.current)
   }, [pedidoId])
+
+  useEffect(() => {
+    if (datos?.estado === 'entregado') clearInterval(ivRef.current)
+  }, [datos?.estado])
 
   if (error) return (
     <div className="trk-error">

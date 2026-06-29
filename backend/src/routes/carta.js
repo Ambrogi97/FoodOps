@@ -1,11 +1,30 @@
 const express        = require('express')
 const router         = express.Router()
+const mongoose       = require('mongoose')
+const rateLimit      = require('express-rate-limit')
 const User           = require('../models/User')
 const Categoria      = require('../models/Categoria')
 const Producto       = require('../models/Producto')
 const PedidoOnline   = require('../models/PedidoOnline')
 const ConfigTienda   = require('../models/ConfigTienda')
 const { enviarEmail } = require('../utils/email')
+
+const DIAS_KEY_AR = ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab']
+function estaAbiertaAhora(seccion) {
+  if (!seccion?.habilitado) return false
+  const ahoraAR = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' }))
+  const diaKey  = DIAS_KEY_AR[ahoraAR.getDay()]
+  const dia     = (seccion.horarios || []).find(d => d.dia === diaKey)
+  if (!dia?.habilitado) return false
+  const min = ahoraAR.getHours() * 60 + ahoraAR.getMinutes()
+  return (dia.franjas || []).some(f => {
+    const [h1, m1] = f.desde.split(':').map(Number)
+    const [h2, m2] = f.hasta.split(':').map(Number)
+    return min >= h1 * 60 + m1 && min <= h2 * 60 + m2
+  })
+}
+
+const cartaLimiter = rateLimit({ windowMs: 60_000, max: 60, standardHeaders: true, legacyHeaders: false })
 
 const fmt = (n) => `$${Number(n).toLocaleString('es-AR')}`
 
@@ -133,8 +152,11 @@ function emailConfirmacionPedido({ restaurante, numero, pedido, totalFinal, desc
 }
 
 // Menú público del restaurante
-router.get('/:userId', async (req, res) => {
+router.get('/:userId', cartaLimiter, async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.userId))
+      return res.status(404).json({ message: 'Restaurante no encontrado' })
+
     const user = await User.findById(req.params.userId).select('restaurante')
     if (!user) return res.status(404).json({ message: 'Restaurante no encontrado' })
 
@@ -145,19 +167,21 @@ router.get('/:userId', async (req, res) => {
 
     const [categorias, productos] = await Promise.all([
       Categoria.find({ usuario: req.params.userId }).sort('nombre'),
-      Producto.find({ usuario: req.params.userId }).sort('nombre'),
+      Producto.find({ usuario: req.params.userId })
+        .select('nombre descripcion precio imagen categoria activo')
+        .sort('nombre'),
     ])
 
     res.json({
-      habilitado:    true,
-      restaurante:   user.restaurante,
-      logo:          config.logo        || null,
-      portada:       config.portada     || null,
-      colorFondo:    config.colorFondo  || null,
-      deliveryCfg:   config.delivery    || null,
-      retiroCfg:     config.retiro      || null,
-      costoDelivery: config.delivery?.costoEnvio || 0,
-      formasPago:    (config.formasPago || []).filter(f => f.habilitado),
+      habilitado:      true,
+      restaurante:     user.restaurante,
+      logo:            config.logo        || null,
+      portada:         config.portada     || null,
+      colorFondo:      config.colorFondo  || null,
+      deliveryAbierto: estaAbiertaAhora(config.delivery),
+      retiroAbierto:   estaAbiertaAhora(config.retiro),
+      costoDelivery:   config.delivery?.costoEnvio || 0,
+      formasPago:      (config.formasPago || []).filter(f => f.habilitado),
       categorias,
       productos,
     })
@@ -169,6 +193,9 @@ router.get('/:userId', async (req, res) => {
 // Enviar pedido desde la carta
 router.post('/:userId/pedido', async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.userId))
+      return res.status(404).json({ message: 'Restaurante no encontrado' })
+
     const {
       items, tipo, mesaNumero, direccion,
       clienteNombre, clienteEmail, clienteTelefono,
@@ -183,7 +210,14 @@ router.post('/:userId/pedido', async (req, res) => {
     if (tipo !== 'mesa'    && !clienteNombre?.trim())   return res.status(400).json({ message: 'El nombre es requerido' })
     if (tipo !== 'mesa'    && !clienteTelefono?.trim()) return res.status(400).json({ message: 'El teléfono es requerido' })
 
-    const config      = await ConfigTienda.findOne({ usuario: req.params.userId })
+    // Incrementa contador atómico y verifica que la carta esté habilitada
+    const config = await ConfigTienda.findOneAndUpdate(
+      { usuario: req.params.userId },
+      { $inc: { pedidoCounter: 1 } },
+      { new: true }
+    )
+    if (!config?.habilitado)
+      return res.status(403).json({ message: 'Este restaurante no está aceptando pedidos online' })
     const costoEnvio  = tipo === 'delivery' ? (config?.delivery?.costoEnvio || 0) : 0
     const subtotal    = items.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
     const total       = subtotal + costoEnvio
@@ -204,9 +238,10 @@ router.post('/:userId/pedido', async (req, res) => {
       notas:           notas?.trim()            || '',
       total,
       totalFinal,
+      numero,
     })
 
-    const numero = pedido._id.toString().slice(-6).toUpperCase()
+    const numero = String(config.pedidoCounter).padStart(4, '0')
 
     const frontendUrl = frontendOrigin || process.env.FRONTEND_URL || 'http://localhost:5173'
     const trackingUrl = `${frontendUrl}/tracking/${pedido._id}`
@@ -238,13 +273,16 @@ router.post('/:userId/pedido', async (req, res) => {
 // Tracking público del pedido (sin auth)
 router.get('/tracking/:pedidoId', async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.pedidoId))
+      return res.status(404).json({ message: 'Pedido no encontrado' })
+
     const pedido = await PedidoOnline.findById(req.params.pedidoId)
     if (!pedido) return res.status(404).json({ message: 'Pedido no encontrado' })
 
     const user = await User.findById(pedido.usuario).select('restaurante logo')
 
     res.json({
-      numero:          pedido._id.toString().slice(-6).toUpperCase(),
+      numero:          pedido.numero || pedido._id.toString().slice(-6).toUpperCase(),
       estado:          pedido.estado,
       tipo:            pedido.tipo,
       mesaNumero:      pedido.mesaNumero,

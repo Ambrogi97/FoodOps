@@ -58,6 +58,13 @@ export default function Dashboard() {
     setActive('configuracion')
   }
 
+  // Refrescar plan/trial al abrir el dashboard (bugs 8 y 9: JWT puede ser stale)
+  useEffect(() => {
+    authService.getMe()
+      .then(data => saveSession(localStorage.getItem('token'), data))
+      .catch(() => {})
+  }, [])
+
   useEffect(() => {
     rolesService.misPermisos()
       .then(data => {

@@ -21,6 +21,7 @@ const pedidoOnlineSchema = new mongoose.Schema({
   notas:            { type: String, default: '' },
   total:            { type: Number, required: true },
   totalFinal:       { type: Number, default: 0 },
+  numero:           { type: String, default: '' },
   estado:           { type: String, enum: ['pendiente', 'preparando', 'listo', 'entregado'], default: 'pendiente' },
 }, { timestamps: true })
 
