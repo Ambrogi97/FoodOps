@@ -19,7 +19,7 @@ function emailConfirmacionPedido({ restaurante, numero, pedido, totalFinal, desc
 
   const subtotal  = pedido.items.reduce((a, i) => a + i.precio * i.cantidad, 0)
   const montoDesc = descuento > 0 ? Math.round(subtotal * descuento / 100) : 0
-  const fecha     = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  const fecha     = new Date().toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' })
 
   return /* html */`<!DOCTYPE html>
 <html lang="es">
