@@ -33,6 +33,11 @@ router.post('/suscribir', auth, async (req, res) => {
 
     const backUrl = `${process.env.FRONTEND_URL || 'https://foodops-app.vercel.app'}/dashboard?pago=ok`
 
+    const isTest = process.env.MP_ACCESS_TOKEN?.startsWith('TEST-')
+    const payerEmail = isTest
+      ? (process.env.MP_TEST_BUYER_EMAIL || 'test_user_3504788436@testuser.com')
+      : user.email
+
     const mpRes = await mpFetch('/preapproval', {
       method: 'POST',
       body: JSON.stringify({
@@ -44,6 +49,7 @@ router.post('/suscribir', auth, async (req, res) => {
           currency_id:        'ARS',
         },
         back_url:           backUrl,
+        payer_email:        payerEmail,
         status:             'pending',
         external_reference: `${user._id}|${plan}`,
       }),
