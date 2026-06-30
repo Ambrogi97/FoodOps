@@ -363,7 +363,7 @@ ${p.formaPago ? `<div style="font-size:12px; margin-top:4px;">Forma de pago: ${p
                 title={pushActivo ? 'Desactivar notificaciones push' : 'Activar notificaciones push cuando el tab esté cerrado'}
               >
                 {pushActivo ? <BellOff size={14} /> : <Bell size={14} />}
-                {pushCargando ? '...' : pushActivo ? 'Push ON' : 'Activar push'}
+                {pushCargando ? '...' : pushActivo ? 'Notificaciones activas' : 'Notificarme nuevos pedidos'}
               </button>
             )}
           </div>
@@ -640,7 +640,6 @@ ${p.formaPago ? `<div style="font-size:12px; margin-top:4px;">Forma de pago: ${p
                 {guardandoTE ? 'Guardando...' : 'Guardar'}
               </button>
             </div>
-            <p className="co-config-hint">Se mostrará como "{tiempoEstimadoMin}–{tiempoEstimadoMin + 10} min" en el tracking</p>
           </div>
 
           {/* Zona de delivery */}
@@ -660,6 +659,9 @@ ${p.formaPago ? `<div style="font-size:12px; margin-top:4px;">Forma de pago: ${p
                   <button className="co-zona-rehacer" onClick={obtenerUbicacion} disabled={geolocando}>
                     {geolocando ? 'Actualizando...' : 'Actualizar'}
                   </button>
+                  <button className="co-zona-quitar" onClick={() => setZonaDelivery({ lat: '', lng: '', radioKm: zonaDelivery.radioKm })} title="Quitar ubicación">
+                    ×
+                  </button>
                 </div>
               ) : (
                 <button className="co-geo-btn" onClick={obtenerUbicacion} disabled={geolocando}>
@@ -678,12 +680,12 @@ ${p.formaPago ? `<div style="font-size:12px; margin-top:4px;">Forma de pago: ${p
                   />
                   <span className="co-te-label">km de radio</span>
                 </div>
-                <button className="co-fp-save-btn" onClick={guardarZonaDelivery} disabled={guardandoZD || !zonaDelivery.lat}>
+                <button className="co-fp-save-btn" onClick={guardarZonaDelivery} disabled={guardandoZD}>
                   {guardandoZD ? 'Guardando...' : 'Guardar'}
                 </button>
               </div>
-              {!zonaDelivery.lat && <p className="co-config-hint">Primero configurá la ubicación del local.</p>}
-              {zonaDelivery.lat && !zonaDelivery.radioKm && <p className="co-config-hint">Sin radio configurado, no se valida la zona.</p>}
+              {!zonaDelivery.lat && zonaDelivery.radioKm && <p className="co-config-hint">Falta configurar la ubicación del local para activar la zona.</p>}
+              {!zonaDelivery.radioKm && <p className="co-config-hint">Sin radio configurado, no se valida la zona.</p>}
             </div>
           </div>
 

@@ -598,3 +598,14 @@
   padding: 0;
 }
 .co-zona-rehacer:hover { color: #374151; }
+
+.co-zona-quitar {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+}
+.co-zona-quitar:hover { color: #ef4444; }
