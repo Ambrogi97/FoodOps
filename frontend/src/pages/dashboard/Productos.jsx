@@ -41,9 +41,19 @@ function FormProducto({ producto, categorias, ingredientes, onGuardar, onCancela
   const [subiendo, setSubiendo]       = useState(false)
   const imgInputRef                   = useRef()
   const [receta, setReceta]           = useState(producto?.receta || [])
+  const [opciones, setOpciones]       = useState(producto?.opciones || [])
   const [guardando, setGuardando]     = useState(false)
   const [confirmElim, setConfirmElim] = useState(false)
   const [errores, setErrores]         = useState({})
+
+  const agregarGrupo = () => setOpciones(prev => [...prev, { grupo: '', items: [{ label: '', precio: 0 }] }])
+  const eliminarGrupo = (gi) => setOpciones(prev => prev.filter((_, i) => i !== gi))
+  const editarGrupo   = (gi, val) => setOpciones(prev => prev.map((g, i) => i === gi ? { ...g, grupo: val } : g))
+  const agregarItem   = (gi) => setOpciones(prev => prev.map((g, i) => i === gi ? { ...g, items: [...g.items, { label: '', precio: 0 }] } : g))
+  const eliminarItem  = (gi, ii) => setOpciones(prev => prev.map((g, i) => i === gi ? { ...g, items: g.items.filter((_, j) => j !== ii) } : g))
+  const editarItem    = (gi, ii, k, v) => setOpciones(prev => prev.map((g, i) => i === gi ? {
+    ...g, items: g.items.map((it, j) => j === ii ? { ...it, [k]: k === 'precio' ? Number(v) || 0 : v } : it)
+  } : g))
 
   const setF = (k, v) => setForm(p => ({ ...p, [k]: v }))
 
@@ -97,6 +107,10 @@ function FormProducto({ producto, categorias, ingredientes, onGuardar, onCancela
         controlStock: form.controlStock,
         tiempoPrepMin: form.tiempoPrepMin ? Number(form.tiempoPrepMin) : null,
         receta:       receta.filter(r => r.ingredienteId && r.cantNeta),
+        opciones:     opciones.filter(g => g.grupo.trim() && g.items.some(it => it.label.trim())).map(g => ({
+          grupo: g.grupo.trim(),
+          items: g.items.filter(it => it.label.trim()),
+        })),
       }
       const prod = esNuevo
         ? await productosService.crear(payload)
@@ -268,6 +282,58 @@ function FormProducto({ producto, categorias, ingredientes, onGuardar, onCancela
             <Plus size={13} /> Ingrediente
           </button>
         </div>
+      </div>
+
+      {/* Variantes / Opciones */}
+      <div className="pf-opciones-section">
+        <div className="pf-section-title" style={{ marginBottom: 12 }}>Variantes y opciones</div>
+        <p className="pf-receta-hint" style={{ marginBottom: 16 }}>
+          Agrupá opciones como Tamaño, Extras, Salsas. El cliente elige al agregar al carrito.
+        </p>
+        {opciones.map((grupo, gi) => (
+          <div key={gi} className="pf-opcion-grupo">
+            <div className="pf-opcion-grupo-header">
+              <input
+                className="pf-input"
+                placeholder="Nombre del grupo (ej: Tamaño)"
+                value={grupo.grupo}
+                onChange={e => editarGrupo(gi, e.target.value)}
+                style={{ flex: 1 }}
+              />
+              <button className="pf-receta-del" onClick={() => eliminarGrupo(gi)} title="Eliminar grupo"><X size={13} /></button>
+            </div>
+            {grupo.items.map((item, ii) => (
+              <div key={ii} className="pf-opcion-item-row">
+                <input
+                  className="pf-input"
+                  placeholder="Opción (ej: Grande)"
+                  value={item.label}
+                  onChange={e => editarItem(gi, ii, 'label', e.target.value)}
+                  style={{ flex: 1 }}
+                />
+                <div className="pf-prefix-wrap" style={{ width: 120 }}>
+                  <span className="pf-prefix">+$</span>
+                  <input
+                    type="number" min="0"
+                    className="pf-input pf-input--prefixed"
+                    placeholder="0"
+                    value={item.precio || ''}
+                    onChange={e => editarItem(gi, ii, 'precio', e.target.value)}
+                  />
+                </div>
+                {grupo.items.length > 1 && (
+                  <button className="pf-receta-del" onClick={() => eliminarItem(gi, ii)}><X size={13} /></button>
+                )}
+              </div>
+            ))}
+            <button className="pf-add-ing" style={{ marginLeft: 0, marginTop: 4 }} onClick={() => agregarItem(gi)}>
+              <Plus size={13} /> Opción
+            </button>
+          </div>
+        ))}
+        <button className="pf-add-ing" onClick={agregarGrupo}>
+          <Plus size={13} /> Grupo de opciones
+        </button>
       </div>
 
       {/* Footer */}

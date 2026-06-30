@@ -51,7 +51,14 @@ const configTiendaSchema = new mongoose.Schema(
       { nombre: 'Efectivo', descuento: 0, habilitado: true },
       { nombre: 'Transferencia', descuento: 0, habilitado: true },
     ]},
-    pedidoCounter:  { type: Number, default: 0 },
+    pedidoCounter:    { type: Number, default: 0 },
+    tiempoEstimadoMin:{ type: Number, default: 30 },
+    zonaDelivery: {
+      lat:     { type: Number, default: null },
+      lng:     { type: Number, default: null },
+      radioKm: { type: Number, default: null },
+    },
+    pushSuscripciones: { type: [mongoose.Schema.Types.Mixed], default: [] },
   },
   { timestamps: true }
 )

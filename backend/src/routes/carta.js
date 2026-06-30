@@ -8,6 +8,8 @@ const Producto       = require('../models/Producto')
 const PedidoOnline   = require('../models/PedidoOnline')
 const ConfigTienda   = require('../models/ConfigTienda')
 const { enviarEmail } = require('../utils/email')
+const { enviarPushNuevoPedido } = require('./push')
+const ClienteHistorial = require('../models/ClienteHistorial')
 
 const DIAS_KEY_AR = ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab']
 function estaAbiertaAhora(seccion) {
@@ -182,6 +184,7 @@ router.get('/:userId', cartaLimiter, async (req, res) => {
       retiroAbierto:   estaAbiertaAhora(config.retiro),
       costoDelivery:   config.delivery?.costoEnvio || 0,
       formasPago:      (config.formasPago || []).filter(f => f.habilitado),
+      zonaDelivery:    config.zonaDelivery || null,
       categorias,
       productos,
     })
@@ -218,6 +221,18 @@ router.post('/:userId/pedido', async (req, res) => {
     )
     if (!config?.habilitado)
       return res.status(403).json({ message: 'Este restaurante no está aceptando pedidos online' })
+
+    // Validar zona de delivery si está configurada y viene coordenadas del cliente
+    if (tipo === 'delivery' && config.zonaDelivery?.radioKm && req.body.clienteLat && req.body.clienteLng) {
+      const { clienteLat, clienteLng } = req.body
+      const { lat, lng, radioKm } = config.zonaDelivery
+      const R = 6371
+      const dLat = (clienteLat - lat) * Math.PI / 180
+      const dLng = (clienteLng - lng) * Math.PI / 180
+      const a = Math.sin(dLat/2)**2 + Math.cos(lat * Math.PI/180) * Math.cos(clienteLat * Math.PI/180) * Math.sin(dLng/2)**2
+      const distKm = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+      if (distKm > radioKm) return res.status(400).json({ message: `Lo sentimos, tu dirección está fuera de nuestra zona de delivery (${radioKm} km)` })
+    }
     const costoEnvio  = tipo === 'delivery' ? (config?.delivery?.costoEnvio || 0) : 0
     const subtotal    = items.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
     const total       = subtotal + costoEnvio
@@ -248,6 +263,28 @@ router.post('/:userId/pedido', async (req, res) => {
 
     const user = await User.findById(req.params.userId).select('restaurante email')
 
+    // Guardar/actualizar historial del cliente
+    if (pedido.clienteEmail) {
+      ClienteHistorial.findOneAndUpdate(
+        { usuario: req.params.userId, email: pedido.clienteEmail },
+        { nombre: pedido.clienteNombre, telefono: pedido.clienteTelefono, direccion: pedido.direccion || '' },
+        { upsert: true }
+      ).catch(() => {})
+    }
+
+    // Push notification al restaurante
+    enviarPushNuevoPedido(req.params.userId, { numero, tipo }).catch(() => {})
+
+    // WhatsApp al cliente (requiere TWILIO_ACCOUNT_SID + TWILIO_AUTH_TOKEN + TWILIO_WHATSAPP_FROM)
+    if (process.env.TWILIO_ACCOUNT_SID && pedido.clienteTelefono) {
+      const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+      twilio.messages.create({
+        from: `whatsapp:${process.env.TWILIO_WHATSAPP_FROM}`,
+        to:   `whatsapp:${pedido.clienteTelefono}`,
+        body: `✅ ¡Pedido confirmado! #${numero}\n\nYa lo recibimos y pronto empezamos a prepararlo.\n\nSeguí tu pedido: ${trackingUrl}`,
+      }).catch(() => {})
+    }
+
     // Email de confirmación al cliente (no bloqueante)
     if (pedido.clienteEmail) {
       enviarEmail({
@@ -270,6 +307,19 @@ router.post('/:userId/pedido', async (req, res) => {
   }
 })
 
+// Historial del cliente por email (auto-fill)
+router.get('/:userId/cliente/:email', async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.userId))
+      return res.status(404).json({})
+    const h = await ClienteHistorial.findOne({ usuario: req.params.userId, email: req.params.email.toLowerCase() })
+    if (!h) return res.json({})
+    res.json({ nombre: h.nombre, telefono: h.telefono, direccion: h.direccion })
+  } catch {
+    res.json({})
+  }
+})
+
 // Tracking público del pedido (sin auth)
 router.get('/tracking/:pedidoId', async (req, res) => {
   try {
@@ -279,22 +329,26 @@ router.get('/tracking/:pedidoId', async (req, res) => {
     const pedido = await PedidoOnline.findById(req.params.pedidoId)
     if (!pedido) return res.status(404).json({ message: 'Pedido no encontrado' })
 
-    const user = await User.findById(pedido.usuario).select('restaurante logo')
+    const [user, config] = await Promise.all([
+      User.findById(pedido.usuario).select('restaurante'),
+      ConfigTienda.findOne({ usuario: pedido.usuario }).select('tiempoEstimadoMin'),
+    ])
 
     res.json({
-      numero:          pedido.numero || pedido._id.toString().slice(-6).toUpperCase(),
-      estado:          pedido.estado,
-      tipo:            pedido.tipo,
-      mesaNumero:      pedido.mesaNumero,
-      direccion:       pedido.direccion,
-      clienteNombre:   pedido.clienteNombre,
-      formaPago:       pedido.formaPago,
-      items:           pedido.items,
-      total:           pedido.total,
-      totalFinal:      pedido.totalFinal,
-      descuento:       pedido.descuento,
-      createdAt:       pedido.createdAt,
-      restaurante:     user?.restaurante || '',
+      numero:             pedido.numero || pedido._id.toString().slice(-6).toUpperCase(),
+      estado:             pedido.estado,
+      tipo:               pedido.tipo,
+      mesaNumero:         pedido.mesaNumero,
+      direccion:          pedido.direccion,
+      clienteNombre:      pedido.clienteNombre,
+      formaPago:          pedido.formaPago,
+      items:              pedido.items,
+      total:              pedido.total,
+      totalFinal:         pedido.totalFinal,
+      descuento:          pedido.descuento,
+      createdAt:          pedido.createdAt,
+      restaurante:        user?.restaurante || '',
+      tiempoEstimadoMin:  pedido.estado === 'pendiente' ? (config?.tiempoEstimadoMin || 0) : 0,
     })
   } catch (e) {
     res.status(500).json({ message: e.message })

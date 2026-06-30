@@ -251,3 +251,17 @@
   color: #94a3b8;
   font-size: 15px;
 }
+
+/* ── Tiempo estimado ────────────────────────────────────────────────────── */
+.trk-tiempo-estimado {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff5f2;
+  border: 1px solid #fdd5c8;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #e85d2b;
+  font-size: 14px;
+  margin-top: 16px;
+}

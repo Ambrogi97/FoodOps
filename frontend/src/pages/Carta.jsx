@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { UtensilsCrossed, Frown, CheckCircle, Armchair, ShoppingBag, Store, Bike, MapPin, Phone, Mail, FileText } from 'lucide-react'
 import './Carta.css'
@@ -6,13 +6,13 @@ import './Carta.css'
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 const fmt = (n) => `$${Number(n).toLocaleString('es-AR')}`
 
-
 function ProductoCard({ p, cant, onClick }) {
   return (
     <div className="carta-prod" onClick={onClick}>
       <div className="carta-prod-info">
         <span className="carta-prod-nombre">{p.nombre}</span>
         {p.descripcion && <span className="carta-prod-desc">{p.descripcion}</span>}
+        {p.opciones?.length > 0 && <span className="carta-prod-variantes-hint">Personalizable</span>}
         <span className="carta-prod-precio">{fmt(p.precio)}</span>
       </div>
       <div className="carta-prod-thumb">
@@ -33,12 +33,14 @@ export default function Carta() {
   const [carrito, setCarrito]           = useState([])
   const [productoOpen, setProductoOpen] = useState(null)
   const [cantModal, setCantModal]       = useState(1)
-  const [step, setStep]                 = useState('menu') // menu | carrito | checkout | ok
+  const [opcionesSeleccionadas, setOpcionesSeleccionadas] = useState({}) // { grupoNombre: { label, precio } }
+  const [step, setStep]                 = useState('menu')
   const [enviando, setEnviando]         = useState(false)
   const [errorEnvio, setErrorEnvio]     = useState('')
   const [error, setError]               = useState('')
   const [numeroPedido, setNumeroPedido] = useState('')
   const [trackingUrl, setTrackingUrl]   = useState('')
+  const historialRef                    = useRef(null) // timer para debounce email
 
   const [form, setForm] = useState({
     tipo:            'takeaway',
@@ -61,7 +63,6 @@ export default function Carta() {
         } else {
           setDatos(data)
           const primeraForma = data.formasPago?.[0]?.nombre || ''
-          // Bug 10: tipo inicial según lo que esté habilitado ahora
           const tipoInicial = data.retiroAbierto ? 'takeaway'
             : data.deliveryAbierto ? 'delivery'
             : 'mesa'
@@ -70,6 +71,30 @@ export default function Carta() {
       })
       .catch(() => setError('No se pudo cargar el menú'))
   }, [userId])
+
+  // Auto-fill historial del cliente al ingresar email
+  const buscarHistorial = useCallback((email) => {
+    if (!email || !email.includes('@')) return
+    fetch(`${API}/api/carta/${userId}/cliente/${encodeURIComponent(email)}`)
+      .then(r => r.json())
+      .then(h => {
+        if (h.nombre || h.telefono || h.direccion) {
+          setForm(f => ({
+            ...f,
+            clienteNombre:   f.clienteNombre   || h.nombre   || '',
+            clienteTelefono: f.clienteTelefono || h.telefono || '',
+            direccion:       f.direccion       || h.direccion || '',
+          }))
+        }
+      })
+      .catch(() => {})
+  }, [userId])
+
+  const onEmailChange = (email) => {
+    setForm(f => ({ ...f, clienteEmail: email }))
+    clearTimeout(historialRef.current)
+    historialRef.current = setTimeout(() => buscarHistorial(email), 700)
+  }
 
   if (error) return (
     <div className="carta-error"><span><Frown size={40} color="#ef4444" /></span><p>{error}</p></div>
@@ -90,7 +115,7 @@ export default function Carta() {
     restaurante, logo, portada, colorFondo,
     deliveryAbierto, retiroAbierto, costoDelivery = 0,
     categorias = [], productos: todosProductos = [],
-    formasPago = [],
+    formasPago = [], zonaDelivery,
   } = datos
 
   const deliveryHabilitado = !!deliveryAbierto
@@ -107,21 +132,42 @@ export default function Carta() {
 
   const cantEnCarrito = (id) => carrito.find(i => i.id === id)?.cantidad || 0
 
+  // Precio del producto en modal considerando opciones
+  const precioConOpciones = (p) => {
+    const delta = Object.values(opcionesSeleccionadas).reduce((sum, opt) => sum + (opt?.precio || 0), 0)
+    return p.precio + delta
+  }
+
+  const opcionesTexto = () => {
+    const partes = Object.entries(opcionesSeleccionadas).map(([g, v]) => v?.label).filter(Boolean)
+    return partes.length ? ` (${partes.join(', ')})` : ''
+  }
+
   const abrirProducto = (p) => {
     setCantModal(cantEnCarrito(p._id) || 1)
+    // Inicializar opciones con la primera opción de cada grupo
+    const inicial = {}
+    p.opciones?.forEach(grupo => {
+      if (grupo.items?.length) inicial[grupo.grupo] = grupo.items[0]
+    })
+    setOpcionesSeleccionadas(inicial)
     setProductoOpen(p)
   }
 
   const agregarDesdeModal = () => {
     const p = productoOpen
+    const precio = precioConOpciones(p)
+    const sufijo = opcionesTexto()
+    const nombre = p.nombre + sufijo
+
     if (cantModal === 0) {
       setCarrito(prev => prev.filter(i => i.id !== p._id))
     } else {
       setCarrito(prev => {
         const existe = prev.find(i => i.id === p._id)
         return existe
-          ? prev.map(i => i.id === p._id ? { ...i, cantidad: cantModal } : i)
-          : [...prev, { id: p._id, nombre: p.nombre, precio: p.precio, cantidad: cantModal }]
+          ? prev.map(i => i.id === p._id ? { ...i, cantidad: cantModal, precio, nombre } : i)
+          : [...prev, { id: p._id, nombre, precio, cantidad: cantModal }]
       })
     }
     setProductoOpen(null)
@@ -134,9 +180,7 @@ export default function Carta() {
     )
   }
 
-  const setTipo = (tipo) => {
-    setForm(f => ({ ...f, tipo }))
-  }
+  const setTipo = (tipo) => setForm(f => ({ ...f, tipo }))
 
   const canConfirm = () => {
     if (form.tipo === 'mesa') return !!form.mesaNumero.trim()
@@ -146,10 +190,31 @@ export default function Carta() {
     return true
   }
 
+  // Geocodificar dirección usando Nominatim (sin API key)
+  const geocodificarDireccion = async (direccion) => {
+    try {
+      const r = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(direccion)}&format=json&limit=1`,
+        { headers: { 'Accept-Language': 'es' } }
+      )
+      const data = await r.json()
+      if (data?.[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) }
+    } catch {}
+    return null
+  }
+
   const enviarPedido = async () => {
     setErrorEnvio('')
     setEnviando(true)
     try {
+      let clienteLat, clienteLng
+
+      // Geocodificar si hay zona de delivery configurada
+      if (form.tipo === 'delivery' && zonaDelivery?.radioKm && form.direccion) {
+        const coords = await geocodificarDireccion(form.direccion)
+        if (coords) { clienteLat = coords.lat; clienteLng = coords.lng }
+      }
+
       const res = await fetch(`${API}/api/carta/${userId}/pedido`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -165,6 +230,8 @@ export default function Carta() {
           descuento:       descuentoActual,
           notas:           form.notas,
           frontendOrigin:  window.location.origin,
+          clienteLat,
+          clienteLng,
         }),
       })
       const data = await res.json()
@@ -194,7 +261,10 @@ export default function Carta() {
           Seguir mi pedido →
         </a>
       )}
-      <button className="carta-ok-btn" onClick={() => { setStep('menu'); setForm(f => ({ ...f, tipo: 'takeaway', mesaNumero: '', direccion: '', clienteNombre: '', clienteEmail: '', clienteTelefono: '', notas: '' })) }}>
+      <button className="carta-ok-btn" onClick={() => {
+        setStep('menu')
+        setForm(f => ({ ...f, tipo: 'takeaway', mesaNumero: '', direccion: '', clienteNombre: '', clienteEmail: '', clienteTelefono: '', notas: '' }))
+      }}>
         Volver al menú
       </button>
     </div>
@@ -211,7 +281,6 @@ export default function Carta() {
 
       <div className="carta-checkout-page">
 
-        {/* Selector tipo */}
         <div className="carta-co-section">
           <div className="carta-tipo-tabs">
             {retiroHabilitado && (
@@ -242,17 +311,19 @@ export default function Carta() {
           )}
         </div>
 
-        {/* Campos de dirección / mesa */}
         {form.tipo === 'delivery' && (
           <div className="carta-co-section">
             <label className="carta-co-label"><MapPin size={14} /> Dirección de entrega *</label>
             <input
               className="carta-co-input"
               type="text"
-              placeholder="Ej: Av. Corrientes 1234"
+              placeholder="Ej: Av. Corrientes 1234, Buenos Aires"
               value={form.direccion}
               onChange={e => setForm(f => ({ ...f, direccion: e.target.value }))}
             />
+            {zonaDelivery?.radioKm && (
+              <p className="carta-co-hint">Zona de cobertura: {zonaDelivery.radioKm} km</p>
+            )}
           </div>
         )}
         {form.tipo === 'mesa' && (
@@ -268,7 +339,6 @@ export default function Carta() {
           </div>
         )}
 
-        {/* Contacto */}
         {form.tipo !== 'mesa' && (
           <div className="carta-co-section">
             <h3 className="carta-co-section-title"><Mail size={15} /> Contacto</h3>
@@ -280,7 +350,7 @@ export default function Carta() {
                   type="email"
                   placeholder="tu@email.com"
                   value={form.clienteEmail}
-                  onChange={e => setForm(f => ({ ...f, clienteEmail: e.target.value }))}
+                  onChange={e => onEmailChange(e.target.value)}
                 />
               </div>
               <div>
@@ -307,7 +377,6 @@ export default function Carta() {
           </div>
         )}
 
-        {/* Forma de pago */}
         {formasPago.length > 0 && (
           <div className="carta-co-section">
             <h3 className="carta-co-section-title"><FileText size={15} /> Forma de pago *</h3>
@@ -329,7 +398,6 @@ export default function Carta() {
           </div>
         )}
 
-        {/* Notas */}
         <div className="carta-co-section">
           <label className="carta-co-label">Notas (opcional)</label>
           <textarea
@@ -340,7 +408,6 @@ export default function Carta() {
           />
         </div>
 
-        {/* Resumen */}
         <div className="carta-co-section carta-co-resumen">
           <div className="carta-co-resumen-row">
             <span>Subtotal</span>
@@ -504,6 +571,7 @@ export default function Carta() {
         </button>
       )}
 
+      {/* Modal de producto con variantes */}
       {productoOpen && (
         <div className="carta-prod-modal-overlay" onClick={() => setProductoOpen(null)}>
           <div className="carta-prod-modal" onClick={e => e.stopPropagation()}>
@@ -515,7 +583,30 @@ export default function Carta() {
             <div className="carta-prod-modal-body">
               <h2 className="carta-prod-modal-nombre">{productoOpen.nombre}</h2>
               {productoOpen.descripcion && <p className="carta-prod-modal-desc">{productoOpen.descripcion}</p>}
-              <p className="carta-prod-modal-precio">{fmt(productoOpen.precio)}</p>
+
+              {/* Variantes / Opciones */}
+              {productoOpen.opciones?.map(grupo => (
+                <div key={grupo.grupo} className="carta-opciones-grupo">
+                  <p className="carta-opciones-titulo">{grupo.grupo}</p>
+                  <div className="carta-opciones-items">
+                    {grupo.items.map(item => {
+                      const seleccionado = opcionesSeleccionadas[grupo.grupo]?.label === item.label
+                      return (
+                        <button
+                          key={item.label}
+                          className={`carta-opcion-btn ${seleccionado ? 'carta-opcion-btn--active' : ''}`}
+                          onClick={() => setOpcionesSeleccionadas(prev => ({ ...prev, [grupo.grupo]: item }))}
+                        >
+                          {item.label}
+                          {item.precio > 0 && <span className="carta-opcion-precio">+{fmt(item.precio)}</span>}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+
+              <p className="carta-prod-modal-precio">{fmt(precioConOpciones(productoOpen))}</p>
               <div className="carta-prod-modal-ctrl">
                 <button className="carta-modal-ctrl-btn" onClick={() => setCantModal(c => Math.max(0, c - 1))}>−</button>
                 <span className="carta-modal-ctrl-cant">{cantModal}</span>
@@ -529,8 +620,8 @@ export default function Carta() {
                 {cantModal === 0
                   ? 'Quitar del pedido'
                   : carrito.find(i => i.id === productoOpen._id)
-                    ? `Actualizar · ${fmt(productoOpen.precio * cantModal)}`
-                    : `Agregar al pedido · ${fmt(productoOpen.precio * cantModal)}`
+                    ? `Actualizar · ${fmt(precioConOpciones(productoOpen) * cantModal)}`
+                    : `Agregar al pedido · ${fmt(precioConOpciones(productoOpen) * cantModal)}`
                 }
               </button>
             </div>

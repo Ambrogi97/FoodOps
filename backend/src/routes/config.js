@@ -106,6 +106,38 @@ router.delete('/tienda/portada', auth, async (req, res) => {
   }
 })
 
+// ── Tiempo estimado ───────────────────────────────────────────────────────────
+
+router.put('/tienda/tiempo-estimado', auth, async (req, res) => {
+  try {
+    const { tiempoEstimadoMin } = req.body
+    const config = await ConfigTienda.findOneAndUpdate(
+      { usuario: req.propietarioId },
+      { $set: { tiempoEstimadoMin: Number(tiempoEstimadoMin) || 30 } },
+      { new: true, upsert: true }
+    )
+    res.json({ tiempoEstimadoMin: config.tiempoEstimadoMin })
+  } catch (e) {
+    res.status(500).json({ message: e.message })
+  }
+})
+
+// ── Zona de delivery ─────────────────────────────────────────────────────────
+
+router.put('/tienda/zona-delivery', auth, async (req, res) => {
+  try {
+    const { lat, lng, radioKm } = req.body
+    const config = await ConfigTienda.findOneAndUpdate(
+      { usuario: req.propietarioId },
+      { $set: { zonaDelivery: { lat: Number(lat) || null, lng: Number(lng) || null, radioKm: Number(radioKm) || null } } },
+      { new: true, upsert: true }
+    )
+    res.json(config.zonaDelivery)
+  } catch (e) {
+    res.status(500).json({ message: e.message })
+  }
+})
+
 // ── Formas de pago ───────────────────────────────────────────────────────────
 
 router.put('/tienda/formas-pago', auth, async (req, res) => {

@@ -112,6 +112,12 @@ export default function Tracking() {
             })}
           </div>
 
+          {!entregado && datos.tiempoEstimadoMin > 0 && (
+            <div className="trk-tiempo-estimado">
+              <Clock size={16} />
+              <span>Tiempo estimado: <strong>{datos.tiempoEstimadoMin}–{datos.tiempoEstimadoMin + 10} min</strong></span>
+            </div>
+          )}
           {!entregado && (
             <p className="trk-refresh-hint">
               <Clock size={13} /> Actualizando automáticamente cada 15 segundos

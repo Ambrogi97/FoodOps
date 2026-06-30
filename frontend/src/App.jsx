@@ -11,6 +11,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Carta from './pages/Carta'
 import Tracking from './pages/Tracking'
+import Resena from './pages/Resena'
 import ResetPassword from './pages/ResetPassword'
 
 function Landing() {
@@ -39,6 +40,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/carta/:userId" element={<Carta />} />
         <Route path="/tracking/:pedidoId" element={<Tracking />} />
+        <Route path="/resena/:pedidoId" element={<Resena />} />
         <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </BrowserRouter>

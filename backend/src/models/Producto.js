@@ -22,6 +22,7 @@ const productoSchema = new mongoose.Schema({
   tiempoPrepMin:      { type: Number, default: null },
   stockActual:        { type: Number, default: 0 },
   receta:             { type: [recetaItemSchema], default: [] },
+  opciones:           { type: [{ grupo: String, items: [{ label: String, precio: { type: Number, default: 0 } }] }], default: [] },
   usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 }, { timestamps: true })
 

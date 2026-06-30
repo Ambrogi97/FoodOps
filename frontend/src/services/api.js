@@ -406,7 +406,14 @@ export const configService = {
   deleteLogo:     async ()     => request('/api/config/tienda/logo',    { method: 'DELETE' }),
   uploadPortada:  async (file) => uploadFile('/api/config/tienda/portada', 'portada', file),
   deletePortada:  async ()     => request('/api/config/tienda/portada', { method: 'DELETE' }),
-  saveFormasPago: async (formasPago) => request('/api/config/tienda/formas-pago', { method: 'PUT', body: JSON.stringify({ formasPago }) }),
+  saveFormasPago:     async (formasPago)      => request('/api/config/tienda/formas-pago',    { method: 'PUT', body: JSON.stringify({ formasPago }) }),
+  saveTiempoEstimado: async (tiempoEstimadoMin) => request('/api/config/tienda/tiempo-estimado', { method: 'PUT', body: JSON.stringify({ tiempoEstimadoMin }) }),
+  saveZonaDelivery:   async (zona)             => request('/api/config/tienda/zona-delivery',   { method: 'PUT', body: JSON.stringify(zona) }),
+}
+
+// ── Reseñas ───────────────────────────────────────────────────────────────────
+export const resenasService = {
+  listar: async () => request('/api/resenas'),
 }
 
 // ── Delivery ─────────────────────────────────────────────────────────────────

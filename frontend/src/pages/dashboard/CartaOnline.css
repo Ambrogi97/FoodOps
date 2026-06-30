@@ -375,3 +375,201 @@
 
   .co-wrap { padding: 12px; }
 }
+
+/* ── Tabs ──────────────────────────────────────────────────────────────── */
+.co-tabs {
+  display: flex;
+  gap: 4px;
+  background: #f1f5f9;
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 20px;
+}
+.co-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.co-tab--active {
+  background: #fff;
+  color: #e85d2b;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.co-resena-avg {
+  background: #fff5f2;
+  color: #e85d2b;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 20px;
+}
+
+/* ── Push button ────────────────────────────────────────────────────────── */
+.co-push-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.co-push-btn--active {
+  border-color: #e85d2b;
+  color: #e85d2b;
+  background: #fff5f2;
+}
+
+/* ── Card actions ───────────────────────────────────────────────────────── */
+.co-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.co-ticket-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.co-ticket-btn:hover {
+  border-color: #e85d2b;
+  color: #e85d2b;
+}
+
+/* ── Reseñas ─────────────────────────────────────────────────────────────── */
+.co-resenas-panel { }
+.co-resenas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.co-resenas-header h3 { font-size: 16px; font-weight: 700; color: #1a1a2e; }
+.co-resenas-promedio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #e85d2b;
+}
+.co-resenas-total { font-size: 13px; font-weight: 500; color: #6b7280; }
+
+.co-resena-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.co-resena-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.co-resena-stars { display: flex; gap: 2px; }
+.co-resena-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  font-size: 13px;
+}
+.co-resena-meta span:first-child { font-weight: 600; color: #1f2937; }
+.co-resena-meta span:last-child { color: #6b7280; font-size: 12px; }
+.co-resena-comentario {
+  font-size: 14px;
+  color: #374151;
+  font-style: italic;
+  padding: 10px 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+/* ── Config panel ───────────────────────────────────────────────────────── */
+.co-config-panel { }
+.co-config-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.co-config-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.co-config-card-title { font-size: 15px; font-weight: 700; color: #1a1a2e; margin-bottom: 2px; }
+.co-config-card-desc  { font-size: 13px; color: #6b7280; }
+.co-config-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.co-te-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.co-te-input {
+  width: 80px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2937;
+  text-align: center;
+}
+.co-te-input--full { width: 100%; text-align: left; }
+.co-te-label { font-size: 13px; color: #6b7280; font-weight: 500; }
+.co-config-hint { font-size: 12px; color: #94a3b8; margin-top: 8px; }
+
+.co-zona-form { }
+.co-zona-coords { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px; }
+.co-co-label { font-size: 12px; font-weight: 600; color: #374151; display: block; margin-bottom: 4px; }
+.co-geo-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  background: #f9fafb;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.co-geo-btn:hover:not(:disabled) { border-color: #e85d2b; color: #e85d2b; }
