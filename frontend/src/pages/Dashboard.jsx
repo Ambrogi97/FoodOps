@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getSession, clearSession, saveSession, categoriasService, productosService, pedidosOnlineService, rolesService, pagosService, authService } from '../services/api'
+import { getSession, clearSession, saveSession, categoriasService, productosService, pedidosOnlineService, rolesService, pagosService, authService, perfilService } from '../services/api'
 import {
   UtensilsCrossed, Package, Truck, Users, DollarSign, TrendingUp, BarChart2, Calculator,
   Smartphone, LogOut, ShieldCheck, Settings, Monitor, Lock, Crown, Clock,
@@ -60,7 +60,7 @@ export default function Dashboard() {
 
   // Refrescar plan/trial al abrir el dashboard (bugs 8 y 9: JWT puede ser stale)
   useEffect(() => {
-    authService.getMe()
+    perfilService.getMe()
       .then(data => saveSession(localStorage.getItem('token'), data))
       .catch(() => {})
   }, [])
@@ -124,7 +124,7 @@ export default function Dashboard() {
     setPagoOk(true)
     window.history.replaceState({}, '', '/dashboard')
     // Refrescar sesión para obtener plan actualizado
-    authService.getMe().then(data => {
+    perfilService.getMe().then(data => {
       saveSession(localStorage.getItem('token'), data)
       window.location.reload()
     }).catch(() => {})
