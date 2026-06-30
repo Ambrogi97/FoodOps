@@ -593,7 +593,8 @@ function TabMesas({ ventasFilt, lbl }) {
 ══════════════════════════════════════════════════════════════════════ */
 export default function Reportes() {
   const [seccion,      setSeccion]      = useState('Ventas')
-  const [periodo,      setPeriodo]      = useState('7dias')
+  const [fechaDesde,   setFechaDesde]   = useState('')
+  const [fechaHasta,   setFechaHasta]   = useState('')
   const [ventas,       setVentas]       = useState([])
   const [gastos,       setGastos]       = useState([])
   const [ingredientes, setIngredientes] = useState([])
@@ -605,9 +606,18 @@ export default function Reportes() {
       .catch(e => { console.error(e); setCargando(false) })
   }, [])
 
-  const lbl        = PERIODOS.find(p => p.value === periodo)?.label || ''
-  const ventasFilt = filtrar(ventas,  periodo, 'cierre')
-  const gastosFilt = filtrar(gastos,  periodo, 'fecha')
+  const filtrarPorFecha = (items, campo) => items.filter(item => {
+    const f = parseFecha(item[campo])
+    if (fechaDesde && f < new Date(fechaDesde + 'T00:00:00')) return false
+    if (fechaHasta && f > new Date(fechaHasta + 'T23:59:59')) return false
+    return true
+  })
+
+  const lbl        = fechaDesde || fechaHasta
+    ? `${fechaDesde || '…'} — ${fechaHasta || '…'}`
+    : 'Todos los registros'
+  const ventasFilt = filtrarPorFecha(ventas, 'cierre')
+  const gastosFilt = filtrarPorFecha(gastos, 'fecha')
 
   if (cargando) return <div className="rep-loading">Cargando...</div>
 
@@ -625,11 +635,19 @@ export default function Reportes() {
 
       <div className="rep-content">
         <div className="rep-topbar">
-          <div className="rep-periodo-sel">
-            <label className="rep-periodo-lbl">Período</label>
-            <select className="rep-periodo-dd" value={periodo} onChange={e => setPeriodo(e.target.value)}>
-              {PERIODOS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-            </select>
+          <div className="co-fecha-row" style={{ margin: 0 }}>
+            <div className="co-fecha-group">
+              <label className="co-fecha-label">Desde</label>
+              <input type="date" className="co-fecha-input" value={fechaDesde} onChange={e => setFechaDesde(e.target.value)} />
+            </div>
+            <span className="co-fecha-sep">—</span>
+            <div className="co-fecha-group">
+              <label className="co-fecha-label">Hasta</label>
+              <input type="date" className="co-fecha-input" value={fechaHasta} onChange={e => setFechaHasta(e.target.value)} />
+            </div>
+            {(fechaDesde || fechaHasta) && (
+              <button className="co-fecha-clear" onClick={() => { setFechaDesde(''); setFechaHasta('') }}>Limpiar</button>
+            )}
           </div>
           <button className="rep-export-btn">↗ Exportar</button>
         </div>
