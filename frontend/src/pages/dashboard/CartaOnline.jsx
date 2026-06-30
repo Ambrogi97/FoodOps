@@ -653,19 +653,19 @@ ${p.formaPago ? `<div style="font-size:12px; margin-top:4px;">Forma de pago: ${p
               </div>
             </div>
             <div className="co-zona-form">
-              <div className="co-zona-coords">
-                <div>
-                  <label className="co-co-label">Latitud del local</label>
-                  <input className="co-te-input co-te-input--full" type="text" placeholder="Ej: -34.603722" value={zonaDelivery.lat} onChange={e => setZonaDelivery(z => ({ ...z, lat: e.target.value }))} />
+              {zonaDelivery.lat && zonaDelivery.lng ? (
+                <div className="co-zona-ubicacion-ok">
+                  <MapPin size={15} color="#10b981" />
+                  <span>Ubicación del local configurada</span>
+                  <button className="co-zona-rehacer" onClick={obtenerUbicacion} disabled={geolocando}>
+                    {geolocando ? 'Actualizando...' : 'Actualizar'}
+                  </button>
                 </div>
-                <div>
-                  <label className="co-co-label">Longitud del local</label>
-                  <input className="co-te-input co-te-input--full" type="text" placeholder="Ej: -58.381592" value={zonaDelivery.lng} onChange={e => setZonaDelivery(z => ({ ...z, lng: e.target.value }))} />
-                </div>
-              </div>
-              <button className="co-geo-btn" onClick={obtenerUbicacion} disabled={geolocando}>
-                <MapPin size={14} /> {geolocando ? 'Obteniendo...' : 'Usar mi ubicación actual'}
-              </button>
+              ) : (
+                <button className="co-geo-btn" onClick={obtenerUbicacion} disabled={geolocando}>
+                  <MapPin size={14} /> {geolocando ? 'Obteniendo ubicación...' : 'Usar mi ubicación actual'}
+                </button>
+              )}
               <div className="co-config-row" style={{ marginTop: 12 }}>
                 <div className="co-te-input-wrap">
                   <input
@@ -678,11 +678,12 @@ ${p.formaPago ? `<div style="font-size:12px; margin-top:4px;">Forma de pago: ${p
                   />
                   <span className="co-te-label">km de radio</span>
                 </div>
-                <button className="co-fp-save-btn" onClick={guardarZonaDelivery} disabled={guardandoZD}>
+                <button className="co-fp-save-btn" onClick={guardarZonaDelivery} disabled={guardandoZD || !zonaDelivery.lat}>
                   {guardandoZD ? 'Guardando...' : 'Guardar'}
                 </button>
               </div>
-              {!zonaDelivery.radioKm && <p className="co-config-hint">Sin radio configurado, no se valida la zona.</p>}
+              {!zonaDelivery.lat && <p className="co-config-hint">Primero configurá la ubicación del local.</p>}
+              {zonaDelivery.lat && !zonaDelivery.radioKm && <p className="co-config-hint">Sin radio configurado, no se valida la zona.</p>}
             </div>
           </div>
 

@@ -573,3 +573,28 @@
   transition: all 0.15s;
 }
 .co-geo-btn:hover:not(:disabled) { border-color: #e85d2b; color: #e85d2b; }
+
+/* ── Zona ubicacion indicador ──────────────────────────────────────────── */
+.co-zona-ubicacion-ok {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f0fdf4;
+  border: 1.5px solid #86efac;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #16a34a;
+}
+.co-zona-rehacer {
+  margin-left: auto;
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: #6b7280;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+.co-zona-rehacer:hover { color: #374151; }
