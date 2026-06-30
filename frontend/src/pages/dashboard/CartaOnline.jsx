@@ -34,6 +34,8 @@ export default function CartaOnline() {
   const [cargando, setCargando]   = useState(true)
   const [filtro, setFiltro]       = useState('pendiente')
   const [soloHoy, setSoloHoy]     = useState(true)
+  const [fechaDesde, setFechaDesde] = useState('')
+  const [fechaHasta, setFechaHasta] = useState('')
   const [copiado, setCopiado]     = useState(false)
   const [actualizando, setActualizando] = useState(null)
   const [tab, setTab]             = useState('pedidos') // 'pedidos' | 'resenas' | 'config'
@@ -337,6 +339,14 @@ ${p.formaPago ? `<div style="font-size:12px; margin-top:4px;">Forma de pago: ${p
   const pedidosFiltrados = (() => {
     const base = filtro === 'todos' ? pedidos : pedidos.filter(p => p.estado === filtro)
     if (filtro === 'entregado' && soloHoy) return base.filter(p => esDeHoy(p.createdAt))
+    if (filtro === 'todos') {
+      return base.filter(p => {
+        const fecha = new Date(p.createdAt)
+        if (fechaDesde && fecha < new Date(fechaDesde + 'T00:00:00')) return false
+        if (fechaHasta && fecha > new Date(fechaHasta + 'T23:59:59')) return false
+        return true
+      })
+    }
     return base
   })()
 
@@ -425,6 +435,35 @@ ${p.formaPago ? `<div style="font-size:12px; margin-top:4px;">Forma de pago: ${p
               )
             })}
           </div>
+
+          {filtro === 'todos' && (
+            <div className="co-fecha-row">
+              <div className="co-fecha-group">
+                <label className="co-fecha-label">Desde</label>
+                <input
+                  type="date"
+                  className="co-fecha-input"
+                  value={fechaDesde}
+                  onChange={e => setFechaDesde(e.target.value)}
+                />
+              </div>
+              <span className="co-fecha-sep">—</span>
+              <div className="co-fecha-group">
+                <label className="co-fecha-label">Hasta</label>
+                <input
+                  type="date"
+                  className="co-fecha-input"
+                  value={fechaHasta}
+                  onChange={e => setFechaHasta(e.target.value)}
+                />
+              </div>
+              {(fechaDesde || fechaHasta) && (
+                <button className="co-fecha-clear" onClick={() => { setFechaDesde(''); setFechaHasta('') }}>
+                  Limpiar
+                </button>
+              )}
+            </div>
+          )}
 
           {filtro === 'entregado' && (
             <div className="co-hoy-row">

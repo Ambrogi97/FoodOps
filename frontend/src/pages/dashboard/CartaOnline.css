@@ -635,3 +635,58 @@
   padding: 0;
   text-decoration: underline;
 }
+
+/* ── Filtro por fecha ───────────────────────────────────────────────────── */
+.co-fecha-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.co-fecha-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.co-fecha-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.co-fecha-input {
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 13px;
+  color: #1f2937;
+  background: #fff;
+  cursor: pointer;
+}
+.co-fecha-input:focus {
+  outline: none;
+  border-color: #e85d2b;
+}
+.co-fecha-sep {
+  color: #9ca3af;
+  padding-bottom: 8px;
+  font-size: 14px;
+}
+.co-fecha-clear {
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e85d2b;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  align-self: flex-end;
+  padding-bottom: 8px;
+}
