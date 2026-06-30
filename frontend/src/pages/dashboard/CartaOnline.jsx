@@ -33,6 +33,7 @@ export default function CartaOnline() {
   const [pedidos, setPedidos]     = useState([])
   const [cargando, setCargando]   = useState(true)
   const [filtro, setFiltro]       = useState('pendiente')
+  const [soloHoy, setSoloHoy]     = useState(true)
   const [fechaDesde, setFechaDesde] = useState('')
   const [fechaHasta, setFechaHasta] = useState('')
   const [copiado, setCopiado]     = useState(false)
@@ -331,15 +332,22 @@ ${p.formaPago ? `<div style="font-size:12px; margin-top:4px;">Forma de pago: ${p
     ventana.document.close()
   }
 
-const pedidosFiltrados = (() => {
+  const hoyAR = new Date().toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })
+  const esDeHoy = (iso) =>
+    new Date(iso).toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' }) === hoyAR
+
+  const pedidosFiltrados = (() => {
     const base = filtro === 'todos' ? pedidos : pedidos.filter(p => p.estado === filtro)
-    if (!fechaDesde && !fechaHasta) return base
-    return base.filter(p => {
-      const fecha = new Date(p.createdAt)
-      if (fechaDesde && fecha < new Date(fechaDesde + 'T00:00:00')) return false
-      if (fechaHasta && fecha > new Date(fechaHasta + 'T23:59:59')) return false
-      return true
-    })
+    if (filtro === 'entregado' && soloHoy) return base.filter(p => esDeHoy(p.createdAt))
+    if (filtro === 'todos') {
+      return base.filter(p => {
+        const fecha = new Date(p.createdAt)
+        if (fechaDesde && fecha < new Date(fechaDesde + 'T00:00:00')) return false
+        if (fechaHasta && fecha > new Date(fechaHasta + 'T23:59:59')) return false
+        return true
+      })
+    }
+    return base
   })()
 
   const cantPend   = pedidos.filter(p => p.estado === 'pendiente').length
@@ -412,13 +420,9 @@ const pedidosFiltrados = (() => {
 
           <div className="co-filtros">
             {['pendiente', 'preparando', 'listo', 'entregado', 'todos'].map(f => {
-              const base = f === 'todos' ? pedidos : pedidos.filter(p => p.estado === f)
-              const cant = f === 'todos' ? null : base.filter(p => {
-                const fecha = new Date(p.createdAt)
-                if (fechaDesde && fecha < new Date(fechaDesde + 'T00:00:00')) return false
-                if (fechaHasta && fecha > new Date(fechaHasta + 'T23:59:59')) return false
-                return true
-              }).length
+              const cant = f === 'todos' ? null
+                : f === 'entregado' && soloHoy ? pedidos.filter(p => p.estado === f && esDeHoy(p.createdAt)).length
+                : pedidos.filter(p => p.estado === f).length
               return (
                 <button
                   key={f}
@@ -432,39 +436,52 @@ const pedidosFiltrados = (() => {
             })}
           </div>
 
-          <div className="co-fecha-row">
-            <div className="co-fecha-group">
-              <label className="co-fecha-label">Desde</label>
-              <input
-                type="date"
-                className="co-fecha-input"
-                value={fechaDesde}
-                onChange={e => setFechaDesde(e.target.value)}
-              />
+          {filtro === 'todos' && (
+            <div className="co-fecha-row">
+              <div className="co-fecha-group">
+                <label className="co-fecha-label">Desde</label>
+                <input
+                  type="date"
+                  className="co-fecha-input"
+                  value={fechaDesde}
+                  onChange={e => setFechaDesde(e.target.value)}
+                />
+              </div>
+              <span className="co-fecha-sep">—</span>
+              <div className="co-fecha-group">
+                <label className="co-fecha-label">Hasta</label>
+                <input
+                  type="date"
+                  className="co-fecha-input"
+                  value={fechaHasta}
+                  onChange={e => setFechaHasta(e.target.value)}
+                />
+              </div>
+              {(fechaDesde || fechaHasta) && (
+                <button className="co-fecha-clear" onClick={() => { setFechaDesde(''); setFechaHasta('') }}>
+                  Limpiar
+                </button>
+              )}
             </div>
-            <span className="co-fecha-sep">—</span>
-            <div className="co-fecha-group">
-              <label className="co-fecha-label">Hasta</label>
-              <input
-                type="date"
-                className="co-fecha-input"
-                value={fechaHasta}
-                onChange={e => setFechaHasta(e.target.value)}
-              />
-            </div>
-            {(fechaDesde || fechaHasta) && (
-              <button className="co-fecha-clear" onClick={() => { setFechaDesde(''); setFechaHasta('') }}>
-                Limpiar
+          )}
+
+          {filtro === 'entregado' && (
+            <div className="co-hoy-row">
+              <span className="co-hoy-label">
+                {soloHoy ? 'Mostrando entregas de hoy' : 'Mostrando todos los entregados'}
+              </span>
+              <button className="co-hoy-toggle" onClick={() => setSoloHoy(v => !v)}>
+                {soloHoy ? 'Ver anteriores' : 'Solo hoy'}
               </button>
-            )}
-          </div>
+            </div>
+          )}
 
           {cargando ? (
             <div className="co-loading">Cargando pedidos...</div>
           ) : pedidosFiltrados.length === 0 ? (
             <div className="co-empty">
               {filtro === 'pendiente' ? 'No hay pedidos pendientes'
-                : (fechaDesde || fechaHasta) ? 'No hay pedidos en el período seleccionado'
+                : filtro === 'entregado' && soloHoy ? 'No hay pedidos entregados hoy'
                 : 'No hay pedidos en este estado'}
             </div>
           ) : (
