@@ -33,6 +33,7 @@ export default function CartaOnline() {
   const [pedidos, setPedidos]     = useState([])
   const [cargando, setCargando]   = useState(true)
   const [filtro, setFiltro]       = useState('pendiente')
+  const [soloHoy, setSoloHoy]     = useState(true)
   const [copiado, setCopiado]     = useState(false)
   const [actualizando, setActualizando] = useState(null)
   const [tab, setTab]             = useState('pedidos') // 'pedidos' | 'resenas' | 'config'
@@ -329,9 +330,15 @@ ${p.formaPago ? `<div style="font-size:12px; margin-top:4px;">Forma de pago: ${p
     ventana.document.close()
   }
 
-  const pedidosFiltrados = filtro === 'todos'
-    ? pedidos
-    : pedidos.filter(p => p.estado === filtro)
+  const hoyAR = new Date().toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })
+  const esDeHoy = (iso) =>
+    new Date(iso).toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' }) === hoyAR
+
+  const pedidosFiltrados = (() => {
+    const base = filtro === 'todos' ? pedidos : pedidos.filter(p => p.estado === filtro)
+    if (filtro === 'entregado' && soloHoy) return base.filter(p => esDeHoy(p.createdAt))
+    return base
+  })()
 
   const cantPend   = pedidos.filter(p => p.estado === 'pendiente').length
   const promedioResenas = resenas.length ? (resenas.reduce((s, r) => s + r.estrellas, 0) / resenas.length).toFixed(1) : null
@@ -417,11 +424,24 @@ ${p.formaPago ? `<div style="font-size:12px; margin-top:4px;">Forma de pago: ${p
             })}
           </div>
 
+          {filtro === 'entregado' && (
+            <div className="co-hoy-row">
+              <span className="co-hoy-label">
+                {soloHoy ? 'Mostrando entregas de hoy' : 'Mostrando todos los entregados'}
+              </span>
+              <button className="co-hoy-toggle" onClick={() => setSoloHoy(v => !v)}>
+                {soloHoy ? 'Ver anteriores' : 'Solo hoy'}
+              </button>
+            </div>
+          )}
+
           {cargando ? (
             <div className="co-loading">Cargando pedidos...</div>
           ) : pedidosFiltrados.length === 0 ? (
             <div className="co-empty">
-              {filtro === 'pendiente' ? 'No hay pedidos pendientes' : 'No hay pedidos en este estado'}
+              {filtro === 'pendiente' ? 'No hay pedidos pendientes'
+                : filtro === 'entregado' && soloHoy ? 'No hay pedidos entregados hoy'
+                : 'No hay pedidos en este estado'}
             </div>
           ) : (
             <div className="co-lista">

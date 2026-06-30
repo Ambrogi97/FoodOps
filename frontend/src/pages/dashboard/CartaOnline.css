@@ -609,3 +609,29 @@
   line-height: 1;
 }
 .co-zona-quitar:hover { color: #ef4444; }
+
+/* ── Filtro hoy / todos ─────────────────────────────────────────────────── */
+.co-hoy-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 14px;
+  margin-bottom: 12px;
+}
+.co-hoy-label {
+  font-size: 13px;
+  color: #6b7280;
+}
+.co-hoy-toggle {
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e85d2b;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
