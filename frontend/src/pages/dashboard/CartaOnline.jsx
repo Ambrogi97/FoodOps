@@ -410,7 +410,9 @@ ${p.formaPago ? `<div style="font-size:12px; margin-top:4px;">Forma de pago: ${p
 
           <div className="co-filtros">
             {['pendiente', 'preparando', 'listo', 'entregado', 'todos'].map(f => {
-              const cant = f === 'todos' ? null : pedidos.filter(p => p.estado === f).length
+              const cant = f === 'todos' ? null
+                : f === 'entregado' && soloHoy ? pedidos.filter(p => p.estado === f && esDeHoy(p.createdAt)).length
+                : pedidos.filter(p => p.estado === f).length
               return (
                 <button
                   key={f}
