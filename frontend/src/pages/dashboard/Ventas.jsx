@@ -123,7 +123,7 @@ function TabVentas({ ventas, cargando }) {
         {/* Stats bar */}
         <div className="ventas-stats-bar">
           <div className="ventas-stats-rango">
-            <span>Del {fmtFechaCorta(desde)} al {fmtFechaCorta(new Date(hasta?.getTime() - 1))}</span>
+            <span>{fechaDesde || fechaHasta ? `${fechaDesde || '…'} — ${fechaHasta || '…'}` : 'Todos los registros'}</span>
             <span className="ventas-stats-reg">{ventasFiltradas.length} registros</span>
           </div>
           <div className="ventas-stats-items">
