@@ -25,8 +25,9 @@ self.addEventListener('fetch', (e) => {
   // Siempre red para API y tracking calls
   if (url.pathname.startsWith('/api/') || url.hostname !== location.hostname) return
 
-  // Cache-first para la carta (rutas de menú)
-  if (url.pathname.startsWith('/carta/') || url.pathname === '/') {
+  // Cache-first para la carta (solo rutas con userId, no /carta/ solo)
+  const esCarta = url.pathname.match(/^\/carta\/.+/) || url.pathname === '/'
+  if (esCarta) {
     e.respondWith(
       caches.match(e.request).then(cached => {
         const networkFetch = fetch(e.request)
@@ -37,7 +38,8 @@ self.addEventListener('fetch', (e) => {
             }
             return res
           })
-        return cached || networkFetch
+          .catch(() => cached)
+        return cached ? cached : networkFetch
       })
     )
     return
