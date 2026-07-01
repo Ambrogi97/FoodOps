@@ -180,6 +180,7 @@ router.get('/:userId', cartaLimiter, async (req, res) => {
       logo:            config.logo        || null,
       portada:         config.portada     || null,
       colorFondo:      config.colorFondo  || null,
+      fondoImagen:     config.fondoImagen || null,
       deliveryAbierto: estaAbiertaAhora(config.delivery),
       retiroAbierto:   estaAbiertaAhora(config.retiro),
       costoDelivery:   config.delivery?.costoEnvio || 0,
