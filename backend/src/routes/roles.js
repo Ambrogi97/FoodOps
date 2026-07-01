@@ -31,17 +31,6 @@ router.get('/mis-permisos', auth, async (req, res) => {
 })
 
 const ROLES_FIJOS = [
-  { key: 'admin', nombre: 'Admin', esFijo: true, permisos: [
-    'Ver Restaurante', 'Ver Monitor de Cocina', 'Ver Productos', 'Ver Proveedores',
-    'Ver Clientes', 'Ver Ventas', 'Ver Finanzas', 'Ver Reportes', 'Ver Gastos',
-    'Ver Carta Online', 'Ver Configuración',
-    'Cerrar venta de mesa', 'Imprimir ticket de mesa', 'Adicionar ítems a mesa', 'Cancelar ítems de mesa',
-    'Listar descuentos', 'Crear descuentos', 'Editar descuentos', 'Eliminar descuentos',
-    'Listar pedidos', 'Crear pedido', 'Actualizar pedido', 'Eliminar pedido',
-    'Listar ventas', 'Ver resumen y estadísticas',
-    'Listar productos', 'Crear producto', 'Actualizar producto', 'Eliminar producto',
-    'Ver costo del producto', 'Gestionar stock', 'Gestionar ingredientes',
-  ]},
   { key: 'encargado', nombre: 'Encargado', esFijo: true, permisos: [
     'Ver Restaurante', 'Ver Monitor de Cocina', 'Ver Productos', 'Ver Clientes', 'Ver Ventas',
     'Cerrar venta de mesa', 'Imprimir ticket de mesa', 'Adicionar ítems a mesa', 'Cancelar ítems de mesa',
