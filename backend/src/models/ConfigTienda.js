@@ -47,6 +47,7 @@ const configTiendaSchema = new mongoose.Schema(
     logo:        { type: String, default: null },
     portada:     { type: String, default: null },
     colorFondo:  { type: String, default: null },
+    fondoImagen: { type: String, default: null },
     formasPago:     { type: [formaPagoSchema], default: () => [
       { nombre: 'Efectivo', descuento: 0, habilitado: true },
       { nombre: 'Transferencia', descuento: 0, habilitado: true },

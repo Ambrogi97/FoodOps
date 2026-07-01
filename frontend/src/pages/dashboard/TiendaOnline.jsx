@@ -328,11 +328,12 @@ export default function TiendaOnline() {
   const [habilitado, setHabilitado] = useState(false)
   const [delivery, setDelivery]     = useState(SECCION_DEFAULT)
   const [retiro, setRetiro]         = useState(SECCION_DEFAULT)
-  const [logo, setLogo]             = useState(null)
-  const [portada, setPortada]       = useState(null)
-  const [colorFondo, setColorFondo] = useState('#f8fafc')
-  const [guardado, setGuardado]     = useState(false)
-  const [subiendo, setSubiendo]     = useState({ logo: false, portada: false })
+  const [logo, setLogo]               = useState(null)
+  const [portada, setPortada]         = useState(null)
+  const [colorFondo, setColorFondo]   = useState('#f8fafc')
+  const [fondoImagen, setFondoImagen] = useState(null)
+  const [guardado, setGuardado]       = useState(false)
+  const [subiendo, setSubiendo]       = useState({ logo: false, portada: false, fondoImagen: false })
   const [error, setError]           = useState(null)
   const cargado = useRef(false)
 
@@ -342,9 +343,10 @@ export default function TiendaOnline() {
         setHabilitado(data.habilitado ?? false)
         setDelivery(data.delivery ?? SECCION_DEFAULT)
         setRetiro(data.retiro   ?? SECCION_DEFAULT)
-        setLogo(data.logo         || null)
-        setPortada(data.portada   || null)
+        setLogo(data.logo             || null)
+        setPortada(data.portada       || null)
         setColorFondo(data.colorFondo || '#f8fafc')
+        setFondoImagen(data.fondoImagen || null)
         cargado.current = true
       })
       .catch(() => setError('No se pudo cargar la configuración'))
@@ -412,6 +414,13 @@ export default function TiendaOnline() {
     try { const res = await configService.uploadPortada(file); setPortada(res.url) }
     catch { setError('Error al subir la portada') }
     finally { setSubiendo(s => ({ ...s, portada: false })) }
+  }
+
+  const handleUploadFondoImagen = async (file) => {
+    setSubiendo(s => ({ ...s, fondoImagen: true }))
+    try { const res = await configService.uploadFondoImagen(file); setFondoImagen(res.url) }
+    catch { setError('Error al subir la imagen de fondo') }
+    finally { setSubiendo(s => ({ ...s, fondoImagen: false })) }
   }
 
   return (
@@ -490,6 +499,19 @@ export default function TiendaOnline() {
           </div>
         </div>
       </div>
+
+      <div className="tienda-divider" />
+
+      {/* Imagen de fondo */}
+      <ImageUploader
+        label="IMAGEN DE FONDO"
+        desc="Subí una imagen para usar como fondo de tu carta. Si hay imagen, tiene prioridad sobre el color."
+        previewClass="tienda-img-preview-wrap--fondo"
+        url={fondoImagen}
+        onUpload={handleUploadFondoImagen}
+        onDelete={async () => { await configService.deleteFondoImagen(); setFondoImagen(null) }}
+        uploading={subiendo.fondoImagen}
+      />
 
       <div className="tienda-divider" />
 

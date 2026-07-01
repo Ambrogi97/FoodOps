@@ -112,7 +112,7 @@ export default function Carta() {
   )
 
   const {
-    restaurante, logo, portada, colorFondo,
+    restaurante, logo, portada, colorFondo, fondoImagen,
     deliveryAbierto, retiroAbierto, costoDelivery = 0,
     categorias = [], productos: todosProductos = [],
     formasPago = [], zonaDelivery,
@@ -507,7 +507,11 @@ export default function Carta() {
   )
 
   return (
-    <div className="carta-layout" style={colorFondo ? { background: colorFondo } : {}}>
+    <div className="carta-layout" style={
+      fondoImagen
+        ? { backgroundImage: `url(${fondoImagen})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }
+        : colorFondo ? { background: colorFondo } : {}
+    }>
 
       <header
         className={`carta-header ${portada ? 'carta-header--con-portada' : ''}`}

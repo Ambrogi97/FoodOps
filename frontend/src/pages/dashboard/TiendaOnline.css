@@ -317,6 +317,16 @@
   display: block;
 }
 
+.tienda-img-preview-wrap--fondo .tienda-img-preview {
+  width: 100%;
+  max-width: 480px;
+  height: 120px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 2px solid var(--border);
+  display: block;
+}
+
 .tienda-img-delete {
   position: absolute;
   top: -8px;

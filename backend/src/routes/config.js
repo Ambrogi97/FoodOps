@@ -106,6 +106,36 @@ router.delete('/tienda/portada', auth, async (req, res) => {
   }
 })
 
+// ── Imagen de fondo ───────────────────────────────────────────────────────────
+
+router.post('/tienda/fondo-imagen', auth, upload.single('fondoImagen'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: 'No se recibió archivo' })
+    const config = await ConfigTienda.findOne({ usuario: req.propietarioId })
+    if (config?.fondoImagen) await deleteByUrl(config.fondoImagen)
+    const url = await uploadBuffer(req.file.buffer, 'fondo')
+    const updated = await ConfigTienda.findOneAndUpdate(
+      { usuario: req.propietarioId },
+      { $set: { fondoImagen: url } },
+      { new: true, upsert: true }
+    )
+    res.json({ url: updated.fondoImagen })
+  } catch (e) {
+    res.status(500).json({ message: e.message })
+  }
+})
+
+router.delete('/tienda/fondo-imagen', auth, async (req, res) => {
+  try {
+    const config = await ConfigTienda.findOne({ usuario: req.propietarioId })
+    if (config?.fondoImagen) await deleteByUrl(config.fondoImagen)
+    await ConfigTienda.findOneAndUpdate({ usuario: req.propietarioId }, { $set: { fondoImagen: null } })
+    res.json({ ok: true })
+  } catch (e) {
+    res.status(500).json({ message: e.message })
+  }
+})
+
 // ── Tiempo estimado ───────────────────────────────────────────────────────────
 
 router.put('/tienda/tiempo-estimado', auth, async (req, res) => {
