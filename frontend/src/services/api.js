@@ -475,9 +475,10 @@ export const perfilService = {
 // ── Usuarios del restaurante ──────────────────────────────────────────────────
 
 export const usuariosService = {
-  listar:   async ()       => request('/api/usuarios'),
-  crear:    async (data)   => request('/api/usuarios', { method: 'POST', body: JSON.stringify(data) }),
-  eliminar: async (id)     => request(`/api/usuarios/${id}`, { method: 'DELETE' }),
+  listar:    async ()         => request('/api/usuarios'),
+  crear:     async (data)     => request('/api/usuarios', { method: 'POST', body: JSON.stringify(data) }),
+  actualizar: async (id, data) => request(`/api/usuarios/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  eliminar:  async (id)       => request(`/api/usuarios/${id}`, { method: 'DELETE' }),
 }
 
 // ── Roles del restaurante ─────────────────────────────────────────────────────

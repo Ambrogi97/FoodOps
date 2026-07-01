@@ -46,7 +46,7 @@ router.post('/', auth, soloOwner, async (req, res) => {
     const existe = await User.findOne({ email: email.toLowerCase() })
     if (existe) return res.status(400).json({ message: 'El email ya está registrado' })
 
-    const safeRole = ['admin', 'encargado', 'camarero', 'repartidor'].includes(role) ? role : 'camarero'
+    const safeRole = ['encargado', 'camarero', 'repartidor'].includes(role) ? role : 'camarero'
 
     const nuevo = await User.create({
       nombre,
@@ -62,6 +62,29 @@ router.post('/', auth, soloOwner, async (req, res) => {
   } catch (e) {
     console.error(e)
     res.status(500).json({ message: 'Error al crear usuario' })
+  }
+})
+
+// PUT /api/usuarios/:id — edita nombre, rol y/o contraseña de un sub-usuario
+router.put('/:id', auth, soloOwner, async (req, res) => {
+  try {
+    const usuario = await User.findOne({ _id: req.params.id, cuentaPadreId: req.usuario.id })
+    if (!usuario) return res.status(404).json({ message: 'Usuario no encontrado' })
+
+    const { nombre, role, password } = req.body
+    if (nombre) usuario.nombre = nombre.trim()
+    if (role) {
+      const safeRole = ['encargado', 'camarero', 'repartidor'].includes(role) ? role : usuario.role
+      usuario.role = safeRole
+    }
+    if (password) usuario.password = password
+
+    await usuario.save()
+    const { password: _, ...data } = usuario.toObject()
+    res.json(data)
+  } catch (e) {
+    console.error(e)
+    res.status(500).json({ message: 'Error al actualizar usuario' })
   }
 })
 

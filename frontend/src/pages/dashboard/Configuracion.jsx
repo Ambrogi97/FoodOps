@@ -105,6 +105,8 @@ function SeccionUsuarios() {
   const [saving, setSaving]   = useState(false)
   const [err, setErr]         = useState('')
   const { user: me }          = getSession()
+  const ROL_LABELS = { encargado: 'Encargado', camarero: 'Camarero', repartidor: 'Repartidor' }
+  const rolLabel = r => ROL_LABELS[r] || r
 
   const load = () => {
     setLoading(true)
@@ -153,8 +155,30 @@ function SeccionUsuarios() {
     }
   }
 
-  const ROL_LABELS = { encargado: 'Encargado', camarero: 'Camarero', repartidor: 'Repartidor' }
-  const rolLabel = r => ROL_LABELS[r] || r
+  const openEditar = () => {
+    setForm({ email: sel.email, nombre: sel.nombre, role: sel.role, password: '', confirm: '' })
+    setErr('')
+    setPanel('editar')
+  }
+
+  const handleUpdate = async e => {
+    e.preventDefault()
+    if (!form.nombre) { setErr('El nombre es obligatorio'); return }
+    if (form.password && form.password !== form.confirm) { setErr('Las contraseñas no coinciden'); return }
+    setSaving(true); setErr('')
+    try {
+      const data = { nombre: form.nombre, role: form.role }
+      if (form.password) data.password = form.password
+      const updated = await usuariosService.actualizar(sel._id, data)
+      load()
+      setSel(prev => ({ ...prev, nombre: updated.nombre, role: updated.role }))
+      setPanel('detalle')
+    } catch (e) {
+      setErr(e.message)
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <div className="cfg-split">
@@ -240,8 +264,72 @@ function SeccionUsuarios() {
                 <button className="cfg-btn-danger" onClick={() => handleDelete(sel._id)}>
                   Eliminar
                 </button>
+                <button className="cfg-btn-save" onClick={openEditar}>
+                  Editar
+                </button>
               </div>
             )}
+          </>
+        )}
+
+        {panel === 'editar' && sel && (
+          <>
+            <div className="cfg-detail-hdr cfg-detail-hdr--orange">
+              <span className="cfg-detail-title">EDITAR USUARIO</span>
+              <button className="cfg-icon-btn cfg-icon-btn--white" onClick={() => setPanel('detalle')}>
+                <X size={16} />
+              </button>
+            </div>
+            <div className="cfg-detail-body">
+              <form id="form-editar-usr" onSubmit={handleUpdate} className="cfg-form">
+                <div className="cfg-field">
+                  <label>Nombre *</label>
+                  <input
+                    className="cfg-input"
+                    value={form.nombre}
+                    onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
+                  />
+                </div>
+                <div className="cfg-field">
+                  <label>Rol *</label>
+                  <select
+                    className="cfg-input"
+                    value={form.role}
+                    onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
+                  >
+                    <option value="camarero">Camarero</option>
+                    <option value="repartidor">Repartidor</option>
+                    <option value="encargado">Encargado</option>
+                  </select>
+                </div>
+                <div className="cfg-field">
+                  <label>Nueva contraseña</label>
+                  <input
+                    className="cfg-input" type="password"
+                    placeholder="Dejar vacío para no cambiar"
+                    value={form.password}
+                    onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                  />
+                </div>
+                {form.password && (
+                  <div className="cfg-field">
+                    <label>Confirmar contraseña</label>
+                    <input
+                      className="cfg-input" type="password"
+                      value={form.confirm}
+                      onChange={e => setForm(f => ({ ...f, confirm: e.target.value }))}
+                    />
+                  </div>
+                )}
+                {err && <p className="cfg-err">{err}</p>}
+              </form>
+            </div>
+            <div className="cfg-detail-ftr">
+              <button className="cfg-btn-cancel" onClick={() => setPanel('detalle')}>Cancelar</button>
+              <button className="cfg-btn-save" form="form-editar-usr" type="submit" disabled={saving}>
+                {saving ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
           </>
         )}
 
