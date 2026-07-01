@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getSession, clearSession, saveSession, categoriasService, productosService, pedidosOnlineService, rolesService, pagosService, authService, perfilService } from '../services/api'
+import { getSession, clearSession, saveSession, categoriasService, productosService, pedidosOnlineService, rolesService, pagosService, perfilService } from '../services/api'
 import {
   UtensilsCrossed, Package, Truck, Users, DollarSign, TrendingUp, BarChart2, Calculator,
   Smartphone, LogOut, ShieldCheck, Settings, Monitor, Lock, Crown, Clock,

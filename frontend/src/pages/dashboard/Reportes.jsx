@@ -6,12 +6,6 @@ import './Reportes.css'
 const fmt    = n => `$${Number(n).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
 const fmtNum = n => Number(n).toLocaleString('es-AR')
 
-const PERIODOS = [
-  { label: 'Hoy',             value: 'hoy'    },
-  { label: 'Últimos 7 días',  value: '7dias'  },
-  { label: 'Este mes',        value: 'mes'    },
-  { label: 'Últimos 30 días', value: '30dias' },
-]
 
 const SECCIONES = ['Ventas', 'Productos', 'Stock', 'Compras', 'Gastos', 'Balance', 'Mesas']
 const DOW       = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']

@@ -21,14 +21,6 @@ const fmtFechaCorta = d => {
   return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${String(d.getFullYear()).slice(2)}`
 }
 
-const calcRango = periodo => {
-  const hoy = new Date(); hoy.setHours(0, 0, 0, 0)
-  const manana = new Date(hoy.getTime() + 86_400_000)
-  if (periodo === 'hoy')    return { desde: hoy, hasta: manana }
-  if (periodo === 'semana') { const d = new Date(hoy); d.setDate(d.getDate() - 6); return { desde: d, hasta: manana } }
-  if (periodo === 'mes')    return { desde: new Date(hoy.getFullYear(), hoy.getMonth(), 1), hasta: manana }
-  return { desde: null, hasta: null }
-}
 
 const METODOS = ['Efectivo', 'Tarjeta de débito', 'Tarjeta de crédito', 'Transferencia', 'MercadoPago']
 
@@ -80,7 +72,7 @@ function TabVentas({ ventas, cargando }) {
     return acc
   }, {})
 
-  const ventaSel = selected ? ventas.find(v => v.id === selected) : null
+  const ventaSel = selected ? ventasFiltradas.find(v => v.id === selected) : null
 
   const metodosUnicos = [...new Set(ventas.map(v => v.metodoPago || 'Efectivo').filter(Boolean))]
 

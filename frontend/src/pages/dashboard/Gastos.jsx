@@ -60,6 +60,7 @@ function TabGastos({ categorias }) {
     return true
   })
 
+  const hoy      = new Date()
   const aVencer  = filtrados.filter(g => g.estadoPago === 'pendiente' && g.fechaVencimiento && parseGDate(g.fechaVencimiento) >= hoy)
   const vencidos = filtrados.filter(g => g.estadoPago === 'vencido' || (g.estadoPago === 'pendiente' && g.fechaVencimiento && parseGDate(g.fechaVencimiento) < hoy))
   const aPagar   = [...aVencer, ...vencidos].reduce((a, g) => a + g.importe, 0)

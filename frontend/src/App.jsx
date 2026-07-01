@@ -40,6 +40,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/carta/:userId" element={<Carta />} />
         <Route path="/carta" element={<Navigate to="/" replace />} />
+        <Route path="/carta/" element={<Navigate to="/" replace />} />
         <Route path="/tracking/:pedidoId" element={<Tracking />} />
         <Route path="/resena/:pedidoId" element={<Resena />} />
         <Route path="/reset-password" element={<ResetPassword />} />

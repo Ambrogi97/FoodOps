@@ -1,21 +1,21 @@
-const CACHE = 'foodops-v1'
+const CACHE = 'foodops-v2'
 
 // Al instalar: pre-cachear la shell mínima
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(['/', '/favicon.svg']))
+    caches.open(CACHE)
+      .then(c => c.addAll(['/', '/favicon.svg']))
+      .then(() => self.skipWaiting())
   )
-  self.skipWaiting()
 })
 
 // Al activar: limpiar caches viejas
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    )
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
   )
-  self.clients.claim()
 })
 
 // Fetch: network-first para API, cache-first para assets estáticos
@@ -34,11 +34,11 @@ self.addEventListener('fetch', (e) => {
           .then(res => {
             if (res.ok) {
               const clone = res.clone()
-              caches.open(CACHE).then(c => c.put(e.request, clone))
+              e.waitUntil(caches.open(CACHE).then(c => c.put(e.request, clone)))
             }
             return res
           })
-          .catch(() => cached)
+          .catch(() => cached || new Response('Sin conexión', { status: 503, statusText: 'Offline' }))
         return cached ? cached : networkFetch
       })
     )

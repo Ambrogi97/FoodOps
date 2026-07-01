@@ -26,7 +26,8 @@ const relTime = (iso) => {
 }
 
 export default function CartaOnline() {
-  const user     = JSON.parse(localStorage.getItem('user') || '{}')
+  let user = {}
+  try { user = JSON.parse(localStorage.getItem('user') || '{}') } catch {}
   const userId   = user.id?.toString() || user._id?.toString() || ''
   const cartaUrl = `${window.location.origin}/carta/${userId}`
 
