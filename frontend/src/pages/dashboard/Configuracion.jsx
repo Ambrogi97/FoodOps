@@ -153,7 +153,7 @@ function SeccionUsuarios() {
     }
   }
 
-  const ROL_LABELS = { admin: 'Admin', encargado: 'Encargado', camarero: 'Camarero', repartidor: 'Repartidor' }
+  const ROL_LABELS = { encargado: 'Encargado', camarero: 'Camarero', repartidor: 'Repartidor' }
   const rolLabel = r => ROL_LABELS[r] || r
 
   return (
@@ -226,7 +226,6 @@ function SeccionUsuarios() {
                 ['Nombre',        sel.nombre],
                 ['E-mail',        sel.email],
                 ['Rol',           rolLabel(sel.role)],
-                ['Superusuario',  sel.role === 'admin' ? 'Sí' : 'No'],
                 ['Activo',        'Sí'],
                 ['Último Login',  fmtDate(sel.updatedAt || sel.createdAt)],
               ].map(([k, v]) => (
@@ -291,7 +290,6 @@ function SeccionUsuarios() {
                     <option value="camarero">Camarero</option>
                     <option value="repartidor">Repartidor</option>
                     <option value="encargado">Encargado</option>
-                    <option value="admin">Admin</option>
                   </select>
                 </div>
                 <div className="cfg-field">

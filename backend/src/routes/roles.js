@@ -56,6 +56,8 @@ const ROLES_FIJOS = [
 
 // Inicializa los roles fijos si el propietario no los tiene aún
 async function inicializarRoles(propietarioId) {
+  const keysFijos = ROLES_FIJOS.map(r => r.key)
+  await Role.deleteMany({ propietarioId, esFijo: true, key: { $nin: keysFijos } })
   for (const r of ROLES_FIJOS) {
     const existe = await Role.findOne({ propietarioId, key: r.key })
     if (!existe) {
