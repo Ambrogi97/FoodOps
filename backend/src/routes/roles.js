@@ -31,10 +31,15 @@ router.get('/mis-permisos', auth, async (req, res) => {
 })
 
 const ROLES_FIJOS = [
-  { key: 'admin',      nombre: 'Admin',      esFijo: true },
-  { key: 'encargado',  nombre: 'Encargado',  esFijo: true },
-  { key: 'camarero',   nombre: 'Camarero',   esFijo: true },
-  { key: 'repartidor', nombre: 'Repartidor', esFijo: true },
+  { key: 'admin',      nombre: 'Admin',      esFijo: true, permisos: [] },
+  { key: 'encargado',  nombre: 'Encargado',  esFijo: true, permisos: [] },
+  { key: 'camarero',   nombre: 'Camarero',   esFijo: true, permisos: [] },
+  { key: 'repartidor', nombre: 'Repartidor', esFijo: true, permisos: [
+    'Ver Restaurante',
+    'Ver Monitor de Cocina',
+    'Listar pedidos',
+    'Actualizar pedido',
+  ]},
 ]
 
 // Inicializa los roles fijos si el propietario no los tiene aún
@@ -42,7 +47,7 @@ async function inicializarRoles(propietarioId) {
   for (const r of ROLES_FIJOS) {
     const existe = await Role.findOne({ propietarioId, key: r.key })
     if (!existe) {
-      await Role.create({ propietarioId, nombre: r.nombre, key: r.key, permisos: [], esFijo: r.esFijo })
+      await Role.create({ propietarioId, nombre: r.nombre, key: r.key, permisos: r.permisos, esFijo: r.esFijo })
     }
   }
 }
