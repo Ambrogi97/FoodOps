@@ -509,7 +509,7 @@ export default function Carta() {
   return (
     <div className="carta-layout" style={
       fondoImagen
-        ? { backgroundImage: `url(${fondoImagen})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }
+        ? { backgroundImage: `url(${fondoImagen})`, backgroundSize: 'cover', backgroundPosition: 'center top' }
         : colorFondo ? { background: colorFondo } : {}
     }>
 
