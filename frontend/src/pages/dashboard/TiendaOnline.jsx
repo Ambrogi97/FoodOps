@@ -458,6 +458,7 @@ export default function TiendaOnline() {
         onUpload={handleUploadPortada}
         onDelete={async () => { await configService.deletePortada(); setPortada(null) }}
         uploading={subiendo.portada}
+        cropAspect={16/9}
       />
 
       <div className="tienda-divider" />
