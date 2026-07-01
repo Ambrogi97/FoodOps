@@ -27,7 +27,7 @@ const relTime = (iso) => {
 
 export default function CartaOnline() {
   const user     = JSON.parse(localStorage.getItem('user') || '{}')
-  const userId   = user.id || ''
+  const userId   = user.id?.toString() || user._id?.toString() || ''
   const cartaUrl = `${window.location.origin}/carta/${userId}`
 
   const [pedidos, setPedidos]     = useState([])

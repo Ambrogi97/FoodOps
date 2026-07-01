@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import Problemas from './components/Problemas'
@@ -39,6 +39,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/carta/:userId" element={<Carta />} />
+        <Route path="/carta" element={<Navigate to="/" replace />} />
         <Route path="/tracking/:pedidoId" element={<Tracking />} />
         <Route path="/resena/:pedidoId" element={<Resena />} />
         <Route path="/reset-password" element={<ResetPassword />} />
