@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Plus, X, Check, Trash2, ImagePlus, RotateCcw } from 'lucide-react'
+import Cropper from 'react-easy-crop'
 import { configService } from '../../services/api'
 import './TiendaOnline.css'
 
@@ -173,47 +174,152 @@ function SeccionHorarios({ titulo, label, seccion, onChange, onToggle, showCosto
   )
 }
 
+// ── Helpers de recorte ────────────────────────────────────────────────────────
+function createImage(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.addEventListener('load', () => resolve(img))
+    img.addEventListener('error', reject)
+    img.setAttribute('crossOrigin', 'anonymous')
+    img.src = url
+  })
+}
+
+async function getCroppedImg(imageSrc, cropPx) {
+  const image = await createImage(imageSrc)
+  const canvas = document.createElement('canvas')
+  canvas.width  = cropPx.width
+  canvas.height = cropPx.height
+  const ctx = canvas.getContext('2d')
+  ctx.drawImage(image, cropPx.x, cropPx.y, cropPx.width, cropPx.height, 0, 0, cropPx.width, cropPx.height)
+  return new Promise(resolve => canvas.toBlob(blob => resolve(blob), 'image/jpeg', 0.92))
+}
+
+// ── Sub-componente: modal de recorte ─────────────────────────────────────────
+function CropModal({ src, aspect, crop, zoom, onCropChange, onZoomChange, onCropComplete, onApply, onCancel, applying }) {
+  return (
+    <div className="crop-overlay">
+      <div className="crop-modal">
+        <div className="crop-header">
+          <span>Ajustar imagen</span>
+          <button className="crop-close" onClick={onCancel}><X size={16} /></button>
+        </div>
+        <div className="crop-area">
+          <Cropper
+            image={src}
+            crop={crop}
+            zoom={zoom}
+            aspect={aspect}
+            onCropChange={onCropChange}
+            onZoomChange={onZoomChange}
+            onCropComplete={onCropComplete}
+          />
+        </div>
+        <div className="crop-controls">
+          <label className="crop-zoom-label">Zoom</label>
+          <input
+            type="range"
+            className="crop-zoom-slider"
+            min={1}
+            max={3}
+            step={0.01}
+            value={zoom}
+            onChange={e => onZoomChange(Number(e.target.value))}
+          />
+        </div>
+        <div className="crop-footer">
+          <button className="crop-btn-cancel" onClick={onCancel}>Cancelar</button>
+          <button className="crop-btn-apply" onClick={onApply} disabled={applying}>
+            {applying ? 'Aplicando…' : 'Aplicar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Sub-componente: uploader de imagen ────────────────────────────────────────
-function ImageUploader({ label, desc, previewClass, url, onUpload, onDelete, uploading }) {
+function ImageUploader({ label, desc, previewClass, url, onUpload, onDelete, uploading, cropAspect }) {
   const inputRef = useRef()
+  const [cropSrc, setCropSrc]   = useState(null)
+  const [crop, setCrop]         = useState({ x: 0, y: 0 })
+  const [zoom, setZoom]         = useState(1)
+  const [cropPx, setCropPx]     = useState(null)
+  const [applying, setApplying] = useState(false)
 
   const handleFile = (e) => {
     const file = e.target.files[0]
-    if (file) onUpload(file)
+    if (!file) return
     e.target.value = ''
+    if (cropAspect) {
+      const reader = new FileReader()
+      reader.onload = () => { setCropSrc(reader.result); setCrop({ x: 0, y: 0 }); setZoom(1) }
+      reader.readAsDataURL(file)
+    } else {
+      onUpload(file)
+    }
+  }
+
+  const handleApply = async () => {
+    if (!cropPx) return
+    setApplying(true)
+    try {
+      const blob = await getCroppedImg(cropSrc, cropPx)
+      const file = new File([blob], 'imagen.jpg', { type: 'image/jpeg' })
+      setCropSrc(null)
+      onUpload(file)
+    } finally {
+      setApplying(false)
+    }
   }
 
   return (
-    <div className="tienda-row">
-      <div className="tienda-row-label">
-        <span>{label}</span>
-      </div>
-      <div className="tienda-row-content">
-        <p className="tienda-section-desc">{desc}</p>
-
-        {url && (
-          <div className={`tienda-img-preview-wrap ${previewClass}`}>
-            <img src={url} alt={label} className="tienda-img-preview" />
-            <button className="tienda-img-delete" onClick={onDelete} title="Eliminar">
-              <Trash2 size={15} />
-            </button>
-          </div>
-        )}
-
-        <div className="tienda-upload-row">
-          <button
-            className="tienda-btn-upload"
-            onClick={() => inputRef.current.click()}
-            disabled={uploading}
-          >
-            <ImagePlus size={15} />
-            {uploading ? 'Subiendo…' : 'Seleccionar archivo'}
-          </button>
-          {!url && <span className="tienda-upload-hint">Sin archivo seleccionado</span>}
+    <>
+      {cropSrc && (
+        <CropModal
+          src={cropSrc}
+          aspect={cropAspect}
+          crop={crop}
+          zoom={zoom}
+          onCropChange={setCrop}
+          onZoomChange={setZoom}
+          onCropComplete={(_, px) => setCropPx(px)}
+          onApply={handleApply}
+          onCancel={() => setCropSrc(null)}
+          applying={applying}
+        />
+      )}
+      <div className="tienda-row">
+        <div className="tienda-row-label">
+          <span>{label}</span>
         </div>
-        <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFile} />
+        <div className="tienda-row-content">
+          <p className="tienda-section-desc">{desc}</p>
+
+          {url && (
+            <div className={`tienda-img-preview-wrap ${previewClass}`}>
+              <img src={url} alt={label} className="tienda-img-preview" />
+              <button className="tienda-img-delete" onClick={onDelete} title="Eliminar">
+                <Trash2 size={15} />
+              </button>
+            </div>
+          )}
+
+          <div className="tienda-upload-row">
+            <button
+              className="tienda-btn-upload"
+              onClick={() => inputRef.current.click()}
+              disabled={uploading}
+            >
+              <ImagePlus size={15} />
+              {uploading ? 'Subiendo…' : 'Seleccionar archivo'}
+            </button>
+            {!url && <span className="tienda-upload-hint">Sin archivo seleccionado</span>}
+          </div>
+          <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFile} />
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 
@@ -338,6 +444,7 @@ export default function TiendaOnline() {
         onUpload={handleUploadLogo}
         onDelete={async () => { await configService.deleteLogo(); setLogo(null) }}
         uploading={subiendo.logo}
+        cropAspect={1}
       />
 
       <div className="tienda-divider" />
