@@ -1,6 +1,5 @@
 # Dependencies
-frontend/node_modules/
-backend/node_modules/
+node_modules/
 
 # Build output
 frontend/dist/
@@ -27,3 +26,4 @@ backend/uploads/
 
 # Claude
 .claude/
+.vercel
