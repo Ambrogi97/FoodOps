@@ -11,7 +11,7 @@
     "deploy": "npx vercel --prod && npx vercel alias set frontend-virid-sigma-79.vercel.app foodops-app.vercel.app"
   },
   "dependencies": {
-    "lucide-react": "^1.17.0",
+    "lucide-react": "~1.17.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-easy-crop": "^6.0.2",
