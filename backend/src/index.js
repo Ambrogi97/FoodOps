@@ -30,12 +30,20 @@ const pagosRoutes                          = require('./routes/pagos')
 const { router: pushRoutes }               = require('./routes/push')
 const resenasRoutes                        = require('./routes/resenas')
 
+const mongoSanitize = require('express-mongo-sanitize')
+const User = require('./models/User')
+
 const app = express()
 const PORT = process.env.PORT || 3000
 
 app.set('trust proxy', 1)
 
-connectDB()
+connectDB().then(async () => {
+  const deleted = await User.deleteMany({ email: /@seed\.local$/i })
+  if (deleted.deletedCount > 0) {
+    console.log(`[startup] Eliminados ${deleted.deletedCount} usuarios de prueba (@seed.local)`)
+  }
+})
 
 const allowedOrigins = [
   'http://localhost:5173',
@@ -50,6 +58,7 @@ app.use(cors({
   credentials: true,
 }))
 app.use(express.json())
+app.use(mongoSanitize())
 
 app.use('/auth', authRoutes)
 app.use('/api/categorias',   categoriasRoutes)

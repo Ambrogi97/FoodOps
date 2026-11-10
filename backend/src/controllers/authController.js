@@ -82,13 +82,16 @@ const generateToken = (userId, role, cuentaPadreId = null, plan = 'basico') => {
 
 const register = async (req, res) => {
   try {
-    const { nombre, email, password, restaurante, plan } = req.body
+    const nombre      = typeof req.body.nombre      === 'string' ? req.body.nombre.trim()      : null
+    const email       = typeof req.body.email       === 'string' ? req.body.email.trim()       : null
+    const password    = typeof req.body.password    === 'string' ? req.body.password           : null
+    const restaurante = typeof req.body.restaurante === 'string' ? req.body.restaurante.trim() : null
 
     if (!nombre || !email || !password || !restaurante) {
       return res.status(400).json({ message: 'Todos los campos son obligatorios' })
     }
 
-    const existingUser = await User.findOne({ email })
+    const existingUser = await User.findOne({ email: email.toLowerCase() })
     if (existingUser) {
       return res.status(400).json({ message: 'El email ya está registrado' })
     }
@@ -112,13 +115,14 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body
+    const email    = typeof req.body.email    === 'string' ? req.body.email.trim()    : null
+    const password = typeof req.body.password === 'string' ? req.body.password        : null
 
     if (!email || !password) {
-      return res.status(400).json({ message: 'Email y contraseña son obligatorios' })
+      return res.status(401).json({ message: 'Credenciales inválidas' })
     }
 
-    const user = await User.findOne({ email })
+    const user = await User.findOne({ email: email.toLowerCase() })
     if (!user) {
       return res.status(401).json({ message: 'Credenciales inválidas' })
     }

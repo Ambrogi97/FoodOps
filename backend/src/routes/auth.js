@@ -52,10 +52,10 @@ function hashToken(token) {
 // POST /auth/recuperar — solicita reseteo de contraseña
 router.post('/recuperar', resetLimiter, async (req, res) => {
   try {
-    const { email } = req.body
+    const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : null
     if (!email) return res.status(400).json({ message: 'El email es obligatorio' })
 
-    const user = await User.findOne({ email: email.toLowerCase() })
+    const user = await User.findOne({ email })
     // Siempre responder OK para no revelar si el email existe
     if (!user) return res.json({ message: 'Si el email existe, recibirás un correo.' })
 
