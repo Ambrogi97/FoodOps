@@ -171,7 +171,15 @@ router.post('/reset', resetLimiter, async (req, res) => {
   }
 })
 
-router.post('/register', register)
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Demasiados registros desde esta IP. Intentá más tarde.' },
+})
+
+router.post('/register', registerLimiter, register)
 router.post('/login', loginLimiter, login)
 
 router.get('/me', auth, async (req, res) => {
