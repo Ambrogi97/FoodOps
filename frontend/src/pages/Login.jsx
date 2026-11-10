@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { authService, saveSession } from '../services/api'
 import Logo from '../components/Logo'
@@ -7,7 +7,9 @@ import './Login.css'
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading]   = useState(false)
+  const [lento, setLento]       = useState(false)
+  const lentoTimer              = useRef(null)
   const navigate = useNavigate()
 
   const [showRecuperar, setShowRecuperar]   = useState(false)
@@ -23,7 +25,9 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setLento(false)
     setLoading(true)
+    lentoTimer.current = setTimeout(() => setLento(true), 6000)
     try {
       const { token, user } = await authService.login(form)
       saveSession(token, user)
@@ -32,6 +36,8 @@ export default function Login() {
       setError(err.message)
     } finally {
       setLoading(false)
+      setLento(false)
+      clearTimeout(lentoTimer.current)
     }
   }
 
@@ -100,6 +106,11 @@ export default function Login() {
           <button type="submit" className="btn btn--primary btn--lg login-submit" disabled={loading}>
             {loading ? 'Ingresando...' : 'Iniciar sesión'}
           </button>
+          {lento && (
+            <p className="login-lento">
+              El servidor está iniciando, puede demorar hasta un minuto la primera vez. Por favor esperá…
+            </p>
+          )}
         </form>
 
         <p className="login-forgot">

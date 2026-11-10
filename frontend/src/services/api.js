@@ -13,14 +13,25 @@ const requestCacheado = async (clave) => _leer(clave) ?? _guardar(clave, await r
 
 const request = async (path, options = {}) => {
   const token = localStorage.getItem('token')
-  const res = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers || {}),
-    },
-  })
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 90_000)
+  let res
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers || {}),
+      },
+    })
+  } catch (err) {
+    if (err.name === 'AbortError') throw new Error('El servidor tardó demasiado en responder. Intentá de nuevo.')
+    throw err
+  } finally {
+    clearTimeout(timer)
+  }
   if (res.status === 401) {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
