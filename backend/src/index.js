@@ -58,7 +58,15 @@ app.use(cors({
   credentials: true,
 }))
 app.use(express.json())
-app.use(mongoSanitize())
+// express-mongo-sanitize reasigna req.query, que en Express 5 es solo getter.
+// Sanitizamos body/params in-place y redefinimos query como propiedad propia.
+app.use((req, res, next) => {
+  if (req.body) mongoSanitize.sanitize(req.body)
+  if (req.params) mongoSanitize.sanitize(req.params)
+  const query = mongoSanitize.sanitize({ ...req.query })
+  Object.defineProperty(req, 'query', { value: query, writable: true, configurable: true, enumerable: true })
+  next()
+})
 
 app.use('/auth', authRoutes)
 app.use('/api/categorias',   categoriasRoutes)
