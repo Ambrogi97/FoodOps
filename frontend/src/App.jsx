@@ -27,8 +27,10 @@ function Landing() {
         <Problemas />
         <ComoFunciona />
         <Caracteristicas />
-        <Planes />
-        <FAQ />
+        <div className="planes-faq-row">
+          <Planes />
+          <FAQ />
+        </div>
         <CTAFinal />
       </main>
       <Footer />
