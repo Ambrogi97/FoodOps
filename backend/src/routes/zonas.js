@@ -1,5 +1,6 @@
 const express = require('express')
 const router  = express.Router()
+const { responderError } = require('../utils/security')
 const auth    = require('../middleware/auth')
 const Zona    = require('../models/Zona')
 const Mesa    = require('../models/Mesa')
@@ -9,7 +10,7 @@ router.get('/', auth, async (req, res) => {
     const zonas = await Zona.find({ usuario: req.propietarioId }).sort('createdAt')
     res.json(zonas)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -20,7 +21,7 @@ router.post('/', auth, async (req, res) => {
     const zona = await Zona.create({ label: label.trim(), removible: removible !== false, usuario: req.propietarioId })
     res.status(201).json(zona)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -31,7 +32,7 @@ router.delete('/:id', auth, async (req, res) => {
     await Mesa.deleteMany({ zona: req.params.id, usuario: req.propietarioId })
     res.json({ message: 'Zona eliminada' })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 

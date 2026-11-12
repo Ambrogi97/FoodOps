@@ -1,5 +1,6 @@
 const express       = require('express')
 const router        = express.Router()
+const { responderError } = require('../utils/security')
 const crypto        = require('crypto')
 const auth          = require('../middleware/auth')
 const PedidoOnline  = require('../models/PedidoOnline')
@@ -10,7 +11,7 @@ const { enviarPushNuevoPedido } = require('./push')
 const fmt = (n) => `$${Number(n).toLocaleString('es-AR')}`
 
 function tokenResena(pedidoId) {
-  return crypto.createHmac('sha256', process.env.JWT_SECRET || 'secret')
+  return crypto.createHmac('sha256', process.env.JWT_SECRET)
     .update(String(pedidoId))
     .digest('hex')
     .slice(0, 16)
@@ -54,7 +55,7 @@ router.get('/', auth, async (req, res) => {
       .limit(100)
     res.json(pedidos)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -91,7 +92,7 @@ router.put('/:id/estado', auth, async (req, res) => {
 
     res.json(pedido)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 

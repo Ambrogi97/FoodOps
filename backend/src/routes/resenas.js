@@ -1,5 +1,6 @@
 const express      = require('express')
 const router       = express.Router()
+const { responderError } = require('../utils/security')
 const auth         = require('../middleware/auth')
 const Resena       = require('../models/Resena')
 const PedidoOnline = require('../models/PedidoOnline')
@@ -27,7 +28,7 @@ router.get('/:pedidoId', async (req, res) => {
       comentario:    existente?.comentario || '',
     })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -45,7 +46,7 @@ router.post('/:pedidoId', async (req, res) => {
     if (!pedido) return res.status(404).json({ message: 'Pedido no encontrado' })
 
     const crypto = require('crypto')
-    const tokenEsperado = crypto.createHmac('sha256', process.env.JWT_SECRET || 'secret')
+    const tokenEsperado = crypto.createHmac('sha256', process.env.JWT_SECRET)
       .update(req.params.pedidoId)
       .digest('hex')
       .slice(0, 16)
@@ -59,7 +60,7 @@ router.post('/:pedidoId', async (req, res) => {
     )
     res.json({ ok: true })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -72,7 +73,7 @@ router.get('/', auth, async (req, res) => {
       .populate('pedido', 'numero clienteNombre createdAt')
     res.json(resenas)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 

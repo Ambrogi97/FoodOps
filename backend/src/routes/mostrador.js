@@ -1,5 +1,6 @@
 const express = require('express')
 const router  = express.Router()
+const { responderError } = require('../utils/security')
 
 // Solo se aceptan estos campos desde el cliente (nunca usuario ni numero)
 const CAMPOS = ["etiqueta", "items", "total", "estado", "cliente", "metodoPago"]
@@ -13,7 +14,7 @@ router.get('/', auth, async (req, res) => {
     const cerradas = await PedidoMostrador.find({ usuario: req.propietarioId, estado: 'cerrada' }).sort('-createdAt').limit(5)
     res.json({ enCurso, cerradas })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -23,7 +24,7 @@ router.post('/', auth, async (req, res) => {
     const pedido = await PedidoMostrador.create({ ...pick(req.body), numero: count + 1, usuario: req.propietarioId })
     res.status(201).json(pedido)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -37,7 +38,7 @@ router.put('/:id', auth, async (req, res) => {
     if (!pedido) return res.status(404).json({ message: 'No encontrado' })
     res.json(pedido)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -46,7 +47,7 @@ router.delete('/:id', auth, async (req, res) => {
     await PedidoMostrador.findOneAndDelete({ _id: req.params.id, usuario: req.propietarioId })
     res.json({ ok: true })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 

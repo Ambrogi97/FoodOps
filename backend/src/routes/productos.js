@@ -1,5 +1,6 @@
 const express  = require('express')
 const router   = express.Router()
+const { responderError } = require('../utils/security')
 const auth     = require('../middleware/auth')
 const Producto = require('../models/Producto')
 
@@ -8,7 +9,7 @@ router.get('/', auth, async (req, res) => {
     const productos = await Producto.find({ usuario: req.propietarioId }).sort('nombre')
     res.json(productos)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -19,6 +20,8 @@ router.post('/', auth, async (req, res) => {
       tiempoPrepMin, receta, activo } = req.body
     if (!nombre?.trim() || !categoria || precio == null)
       return res.status(400).json({ message: 'Faltan campos requeridos' })
+    if (await Producto.countDocuments({ usuario: req.propietarioId }) >= 2000)
+      return res.status(400).json({ message: 'Alcanzaste el máximo de 2000 productos' })
     const ultimo = await Producto.findOne({ usuario: req.propietarioId }).sort('-codigo')
     const codigo = (ultimo?.codigo || 0) + 1
     const producto = await Producto.create({
@@ -35,7 +38,7 @@ router.post('/', auth, async (req, res) => {
     })
     res.status(201).json(producto)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -62,7 +65,7 @@ router.put('/:id', auth, async (req, res) => {
     if (!producto) return res.status(404).json({ message: 'Producto no encontrado' })
     res.json(producto)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -77,7 +80,7 @@ router.put('/:id/stock', auth, async (req, res) => {
     if (!producto) return res.status(404).json({ message: 'Producto no encontrado' })
     res.json(producto)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -87,7 +90,7 @@ router.delete('/:id', auth, async (req, res) => {
     if (!producto) return res.status(404).json({ message: 'Producto no encontrado' })
     res.json({ message: 'Producto eliminado' })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 

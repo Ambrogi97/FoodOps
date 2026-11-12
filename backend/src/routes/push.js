@@ -1,5 +1,6 @@
 const express     = require('express')
 const router      = express.Router()
+const { responderError } = require('../utils/security')
 const webPush     = require('web-push')
 const auth        = require('../middleware/auth')
 const ConfigTienda = require('../models/ConfigTienda')
@@ -30,7 +31,7 @@ router.post('/subscribe', auth, async (req, res) => {
     )
     res.json({ ok: true })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -44,7 +45,7 @@ router.post('/unsubscribe', auth, async (req, res) => {
     )
     res.json({ ok: true })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 

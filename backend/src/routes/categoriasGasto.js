@@ -1,5 +1,6 @@
 const express       = require('express')
 const router        = express.Router()
+const { responderError } = require('../utils/security')
 const auth          = require('../middleware/auth')
 const CategoriaGasto = require('../models/CategoriaGasto')
 
@@ -8,7 +9,7 @@ router.get('/', auth, async (req, res) => {
     const cats = await CategoriaGasto.find({ usuario: req.propietarioId }).sort('nombre')
     res.json(cats)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -25,7 +26,7 @@ router.post('/', auth, async (req, res) => {
     })
     res.status(201).json(cat)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -40,7 +41,7 @@ router.put('/:id', auth, async (req, res) => {
     if (!cat) return res.status(404).json({ message: 'No encontrado' })
     res.json(cat)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -49,7 +50,7 @@ router.delete('/:id', auth, async (req, res) => {
     await CategoriaGasto.findOneAndDelete({ _id: req.params.id, usuario: req.propietarioId })
     res.json({ ok: true })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 

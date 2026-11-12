@@ -29,3 +29,21 @@ function str(value, max = 200) {
 }
 
 module.exports = { escapeHtml, allowedOrigins, safeFrontendUrl, str }
+
+// Respuesta de error uniforme para las rutas:
+// datos inválidos → 400 con el motivo; cualquier otra cosa → 500 genérico
+function responderError(req, res, e) {
+  if (e?.name === 'ValidationError') {
+    const primero = Object.values(e.errors || {})[0]
+    // "items.0.precio" → "precio" (solo dentro de las comillas del nombre del campo)
+    const message = (primero?.message || 'Datos inválidos').replace(/"(?:\w+\.)+(\w+)"/g, '"$1"')
+    return res.status(400).json({ message })
+  }
+  if (e?.name === 'CastError') {
+    return res.status(400).json({ message: 'Datos inválidos: revisá los valores ingresados' })
+  }
+  console.error('[' + req.method + ' ' + req.originalUrl + ']', e)
+  return res.status(500).json({ message: 'Error interno del servidor' })
+}
+
+module.exports.responderError = responderError

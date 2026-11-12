@@ -1,5 +1,6 @@
 const express        = require('express')
 const router         = express.Router()
+const { responderError } = require('../utils/security')
 const mongoose       = require('mongoose')
 const rateLimit      = require('express-rate-limit')
 const User           = require('../models/User')
@@ -194,7 +195,7 @@ router.get('/:userId', cartaLimiter, async (req, res) => {
       productos,
     })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -415,7 +416,7 @@ router.get('/tracking/:pedidoId', async (req, res) => {
       tiempoEstimadoMin:  pedido.estado === 'pendiente' ? (config?.tiempoEstimadoMin || 0) : 0,
     })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 

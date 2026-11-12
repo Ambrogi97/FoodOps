@@ -1,4 +1,11 @@
 require('dotenv').config()
+// Límites de validación para todos los modelos: tiene que cargarse antes que ellos
+require('./config/validacion')
+
+// Sin una clave fuerte cualquiera podría fabricar sesiones válidas
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 16) {
+  console.warn('[startup] ⚠️ JWT_SECRET falta o es demasiado corto (mínimo 16 caracteres): cambialo en Render')
+}
 const express = require('express')
 const cors = require('cors')
 const connectDB = require('./config/database')
@@ -63,7 +70,18 @@ app.use(cors({
   },
   credentials: true,
 }))
-app.use(express.json())
+app.use(express.json({ limit: '200kb' }))
+
+// Límite de operaciones de escritura por IP (frena scripts que crean cientos de registros)
+const rateLimit = require('express-rate-limit')
+app.use('/api', rateLimit({
+  windowMs: 60_000,
+  max: 120,
+  skip: (req) => req.method === 'GET' || req.method === 'OPTIONS',
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Demasiadas operaciones seguidas. Esperá un minuto e intentá de nuevo.' },
+}))
 // express-mongo-sanitize reasigna req.query, que en Express 5 es solo getter.
 // Sanitizamos body/params in-place y redefinimos query como propiedad propia.
 app.use((req, res, next) => {

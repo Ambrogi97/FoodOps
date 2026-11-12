@@ -405,6 +405,8 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
   const totalPago = mesaPago?.items?.reduce((acc, i) => acc + i.precio * i.cantidad, 0) || 0
   const montoNum = parseFloat(montoPago.replace(',', '.')) || 0
   const vuelto   = metodoPago === 'Efectivo' && montoPago ? Math.max(0, montoNum - totalPago) : 0
+  // Si se carga un monto recibido en efectivo, tiene que cubrir el total
+  const montoInsuficiente = metodoPago === 'Efectivo' && montoPago !== '' && montoNum < totalPago
 
   if (cargando) return (
     <div className="mesas-layout" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
@@ -715,9 +717,14 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
                   style={{ marginBottom: 0 }}
                   autoFocus
                 />
-                {montoPago && (
+                {montoPago && !montoInsuficiente && (
                   <div className="pago-vuelto">
                     Vuelto: <strong>${vuelto.toLocaleString('es-AR')}</strong>
+                  </div>
+                )}
+                {montoInsuficiente && (
+                  <div className="pago-vuelto" style={{ color: '#dc2626' }}>
+                    Faltan <strong>${(totalPago - montoNum).toLocaleString('es-AR')}</strong> para cubrir el total
                   </div>
                 )}
               </div>
@@ -725,7 +732,12 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
 
             <div className="mesas-modal-actions" style={{ marginTop: 16 }}>
               <button className="mesa-btn mesa-btn--secondary" onClick={() => setShowPagoModal(null)}>Cancelar</button>
-              <button className="mesa-btn mesa-btn--confirm-danger" onClick={() => cerrarMesa(showPagoModal.mesaId)}>
+              <button
+                className="mesa-btn mesa-btn--confirm-danger"
+                onClick={() => cerrarMesa(showPagoModal.mesaId)}
+                disabled={montoInsuficiente}
+                style={montoInsuficiente ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+              >
                 Cerrar Pedido
               </button>
             </div>

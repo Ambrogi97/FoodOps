@@ -1,5 +1,6 @@
 const express   = require('express')
 const router    = express.Router()
+const { responderError } = require('../utils/security')
 const auth      = require('../middleware/auth')
 const Categoria = require('../models/Categoria')
 const Producto  = require('../models/Producto')
@@ -9,7 +10,7 @@ router.get('/', auth, async (req, res) => {
     const categorias = await Categoria.find({ usuario: req.propietarioId }).sort('nombre')
     res.json(categorias)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -25,7 +26,7 @@ router.post('/', auth, async (req, res) => {
     })
     res.status(201).json(categoria)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -41,7 +42,7 @@ router.put('/:id', auth, async (req, res) => {
     if (!categoria) return res.status(404).json({ message: 'Categoría no encontrada' })
     res.json(categoria)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -52,7 +53,7 @@ router.delete('/:id', auth, async (req, res) => {
     await Producto.deleteMany({ categoria: req.params.id, usuario: req.propietarioId })
     res.json({ message: 'Categoría eliminada' })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 

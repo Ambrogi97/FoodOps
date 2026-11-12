@@ -1,5 +1,6 @@
 const express = require('express')
 const router  = express.Router()
+const { responderError } = require('../utils/security')
 const auth    = require('../middleware/auth')
 const Venta   = require('../models/Venta')
 
@@ -8,7 +9,7 @@ router.get('/', auth, async (req, res) => {
     const ventas = await Venta.find({ usuario: req.propietarioId }).sort('-createdAt')
     res.json(ventas)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -33,7 +34,7 @@ router.post('/', auth, async (req, res) => {
     })
     res.status(201).json(venta)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 

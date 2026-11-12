@@ -1,5 +1,6 @@
 const express  = require('express')
 const router   = express.Router()
+const { responderError } = require('../utils/security')
 const auth     = require('../middleware/auth')
 const Cliente  = require('../models/Cliente')
 
@@ -7,7 +8,7 @@ router.get('/', auth, async (req, res) => {
   try {
     const clientes = await Cliente.find({ usuario: req.propietarioId }).sort('nombre')
     res.json(clientes)
-  } catch (e) { { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) } }
+  } catch (e) { return responderError(req, res, e) }
 })
 
 router.post('/', auth, async (req, res) => {
@@ -27,7 +28,7 @@ router.post('/', auth, async (req, res) => {
       usuario: req.propietarioId,
     })
     res.status(201).json(cliente)
-  } catch (e) { { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) } }
+  } catch (e) { return responderError(req, res, e) }
 })
 
 router.put('/:id', auth, async (req, res) => {
@@ -52,7 +53,7 @@ router.put('/:id', auth, async (req, res) => {
     )
     if (!cliente) return res.status(404).json({ message: 'Cliente no encontrado' })
     res.json(cliente)
-  } catch (e) { { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) } }
+  } catch (e) { return responderError(req, res, e) }
 })
 
 router.delete('/:id', auth, async (req, res) => {
@@ -60,7 +61,7 @@ router.delete('/:id', auth, async (req, res) => {
     const cliente = await Cliente.findOneAndDelete({ _id: req.params.id, usuario: req.propietarioId })
     if (!cliente) return res.status(404).json({ message: 'Cliente no encontrado' })
     res.json({ message: 'Cliente eliminado' })
-  } catch (e) { { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) } }
+  } catch (e) { return responderError(req, res, e) }
 })
 
 module.exports = router

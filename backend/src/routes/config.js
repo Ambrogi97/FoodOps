@@ -1,5 +1,6 @@
 const express    = require('express')
 const router     = express.Router()
+const { responderError } = require('../utils/security')
 const multer     = require('multer')
 const auth       = require('../middleware/auth')
 const ConfigTienda = require('../models/ConfigTienda')
@@ -30,7 +31,7 @@ router.get('/tienda', auth, async (req, res) => {
     }
     res.json(config)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -49,7 +50,7 @@ router.put('/tienda', auth, async (req, res) => {
     )
     res.json(config)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -68,7 +69,7 @@ router.post('/tienda/logo', auth, upload.single('logo'), async (req, res) => {
     )
     res.json({ url: updated.logo })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -79,7 +80,7 @@ router.delete('/tienda/logo', auth, async (req, res) => {
     await ConfigTienda.findOneAndUpdate({ usuario: req.propietarioId }, { $set: { logo: null } })
     res.json({ ok: true })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -98,7 +99,7 @@ router.post('/tienda/portada', auth, upload.single('portada'), async (req, res) 
     )
     res.json({ url: updated.portada })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -109,7 +110,7 @@ router.delete('/tienda/portada', auth, async (req, res) => {
     await ConfigTienda.findOneAndUpdate({ usuario: req.propietarioId }, { $set: { portada: null } })
     res.json({ ok: true })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -128,7 +129,7 @@ router.post('/tienda/fondo-imagen', auth, upload.single('fondoImagen'), async (r
     )
     res.json({ url: updated.fondoImagen })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -139,7 +140,7 @@ router.delete('/tienda/fondo-imagen', auth, async (req, res) => {
     await ConfigTienda.findOneAndUpdate({ usuario: req.propietarioId }, { $set: { fondoImagen: null } })
     res.json({ ok: true })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -155,7 +156,7 @@ router.put('/tienda/tiempo-estimado', auth, async (req, res) => {
     )
     res.json({ tiempoEstimadoMin: config.tiempoEstimadoMin })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -171,7 +172,7 @@ router.put('/tienda/zona-delivery', auth, async (req, res) => {
     )
     res.json(config.zonaDelivery)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -188,7 +189,7 @@ router.put('/tienda/formas-pago', auth, async (req, res) => {
     )
     res.json(config.formasPago)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 

@@ -1,5 +1,6 @@
 const express    = require('express')
 const router     = express.Router()
+const { responderError } = require('../utils/security')
 const auth       = require('../middleware/auth')
 const Proveedor  = require('../models/Proveedor')
 
@@ -8,7 +9,7 @@ router.get('/', auth, async (req, res) => {
     const proveedores = await Proveedor.find({ usuario: req.propietarioId }).sort('nombre')
     res.json(proveedores)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -31,7 +32,7 @@ router.post('/', auth, async (req, res) => {
     })
     res.status(201).json(proveedor)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -58,7 +59,7 @@ router.put('/:id', auth, async (req, res) => {
     if (!proveedor) return res.status(404).json({ message: 'Proveedor no encontrado' })
     res.json(proveedor)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -68,7 +69,7 @@ router.delete('/:id', auth, async (req, res) => {
     if (!proveedor) return res.status(404).json({ message: 'Proveedor no encontrado' })
     res.json({ message: 'Proveedor eliminado' })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 

@@ -1,5 +1,6 @@
 const express         = require('express')
 const router          = express.Router()
+const { responderError } = require('../utils/security')
 const auth            = require('../middleware/auth')
 const Ingrediente     = require('../models/Ingrediente')
 const MovimientoStock = require('../models/MovimientoStock')
@@ -10,7 +11,7 @@ router.get('/', auth, async (req, res) => {
     const ingredientes = await Ingrediente.find({ usuario: req.propietarioId }).sort('nombre')
     res.json(ingredientes)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -19,6 +20,9 @@ router.post('/:id/movimiento', auth, async (req, res) => {
   try {
     const { tipo, cantidad, descripcion, fecha } = req.body
     if (!tipo || !cantidad || !fecha) return res.status(400).json({ message: 'Faltan campos requeridos' })
+    if (!['entrada', 'salida'].includes(tipo)) return res.status(400).json({ message: 'Tipo de movimiento inválido' })
+    if (!Number.isFinite(Number(cantidad)) || Number(cantidad) <= 0 || Number(cantidad) > 100000)
+      return res.status(400).json({ message: 'La cantidad debe ser un número entre 0 y 100.000' })
 
     const ingrediente = await Ingrediente.findOne({ _id: req.params.id, usuario: req.propietarioId })
     if (!ingrediente) return res.status(404).json({ message: 'Ingrediente no encontrado' })
@@ -38,7 +42,7 @@ router.post('/:id/movimiento', auth, async (req, res) => {
 
     res.status(201).json({ ingrediente, movimiento })
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -54,7 +58,7 @@ router.put('/:id/minimo', auth, async (req, res) => {
     if (!ingrediente) return res.status(404).json({ message: 'Ingrediente no encontrado' })
     res.json(ingrediente)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -71,7 +75,7 @@ router.put('/:id/unidad', auth, async (req, res) => {
     if (!ingrediente) return res.status(404).json({ message: 'Ingrediente no encontrado' })
     res.json(ingrediente)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
@@ -83,7 +87,7 @@ router.get('/:id/movimientos', auth, async (req, res) => {
       .limit(30)
     res.json(movimientos)
   } catch (e) {
-    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
+    return responderError(req, res, e)
   }
 })
 
