@@ -55,7 +55,7 @@ export default function FAQ() {
   const toggle = (i) => setOpenIdx(o => (o === i ? null : i))
 
   return (
-    <section className="faq">
+    <section className="faq" id="faq">
       <div className="container">
         <div ref={ref} className={`faq__inner reveal${visible ? ' visible' : ''}`}>
           <div className="faq__header">

@@ -15,6 +15,7 @@ export default function Navbar() {
           <li><a href="#caracteristicas">Características</a></li>
           <li><a href="#como-funciona">Cómo funciona</a></li>
           <li><a href="#planes">Planes</a></li>
+          <li><a href="#faq">Preguntas frecuentes</a></li>
         </ul>
 
         <div className="navbar__actions">
