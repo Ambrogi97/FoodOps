@@ -2,8 +2,22 @@ import { Rocket, UtensilsCrossed, Salad, Zap, QrCode, CheckCircle } from 'lucide
 import './Hero.css'
 
 export default function Hero() {
+  const handleVideoLoad = (e) => e.target.classList.add('loaded')
+
   return (
     <section className="hero">
+      <video
+        className="hero__video"
+        autoPlay
+        muted
+        loop
+        playsInline
+        poster="/hero-poster.jpg"
+        onCanPlayThrough={handleVideoLoad}
+      >
+        <source src="/hero.mp4" type="video/mp4" />
+      </video>
+      <div className="hero__overlay" />
       <div className="container hero__container">
         <div className="hero__content">
           <span className="section-tag"><Rocket size={14} /> La revolución gastronómica digital</span>
