@@ -12,10 +12,10 @@ export default function Hero() {
         muted
         loop
         playsInline
-        poster="/hero-poster.jpg"
         onCanPlayThrough={handleVideoLoad}
       >
-        <source src="/hero.mp4" type="video/mp4" />
+        {/* Pexels: "Waiter serving food at a fine dining restaurant" — free to use */}
+        <source src="https://videos.pexels.com/video-files/3843431/3843431-uhd_2732_1440_25fps.mp4" type="video/mp4" />
       </video>
       <div className="hero__overlay" />
       <div className="container hero__container">
