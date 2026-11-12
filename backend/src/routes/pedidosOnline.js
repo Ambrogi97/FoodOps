@@ -4,6 +4,7 @@ const crypto        = require('crypto')
 const auth          = require('../middleware/auth')
 const PedidoOnline  = require('../models/PedidoOnline')
 const { enviarEmail } = require('../utils/email')
+const { escapeHtml } = require('../utils/security')
 const { enviarPushNuevoPedido } = require('./push')
 
 const fmt = (n) => `$${Number(n).toLocaleString('es-AR')}`
@@ -28,7 +29,7 @@ function emailResena({ numero, clienteNombre, resenaUrl }) {
       </td></tr>
       <tr><td style="padding:36px 48px;text-align:center;">
         <p style="font-size:32px;margin:0 0 12px;">⭐</p>
-        <h2 style="margin:0 0 12px;font-size:22px;font-weight:800;color:#1a1a2e;">Hola ${clienteNombre || 'cliente'}!</h2>
+        <h2 style="margin:0 0 12px;font-size:22px;font-weight:800;color:#1a1a2e;">Hola ${escapeHtml(clienteNombre || 'cliente')}!</h2>
         <p style="margin:0 0 24px;font-size:15px;color:#6b7280;line-height:1.5;">
           Tu pedido <strong>#${numero}</strong> fue entregado.<br>¿Qué te pareció? Tu opinión nos ayuda a mejorar.
         </p>
@@ -60,6 +61,9 @@ router.get('/', auth, async (req, res) => {
 router.put('/:id/estado', auth, async (req, res) => {
   try {
     const { estado } = req.body
+    if (!['pendiente', 'preparando', 'listo', 'entregado'].includes(estado)) {
+      return res.status(400).json({ message: 'Estado inválido' })
+    }
     const pedido = await PedidoOnline.findOneAndUpdate(
       { _id: req.params.id, usuario: req.propietarioId },
       { estado },

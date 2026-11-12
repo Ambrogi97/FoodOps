@@ -50,11 +50,10 @@ export default function Admin() {
   }
 
   const toggleAdmin = async (u) => {
-    const nuevoRol = u.role === 'admin' ? 'user' : 'admin'
     setCambiando(u._id)
     try {
-      const actualizado = await adminService.cambiarRol(u._id, nuevoRol)
-      setUsuarios(prev => prev.map(x => x._id === u._id ? { ...x, role: actualizado.role } : x))
+      const actualizado = await adminService.cambiarSuperadmin(u._id, !u.superadmin)
+      setUsuarios(prev => prev.map(x => x._id === u._id ? { ...x, superadmin: actualizado.superadmin } : x))
     } catch (e) {
       console.error(e)
     } finally {
@@ -187,10 +186,10 @@ export default function Admin() {
                   <td className="adm-td-fecha">{fmt(u.createdAt)}</td>
                   <td>
                     <button
-                      className={`adm-role-btn ${u.role === 'admin' ? 'adm-role-btn--active' : ''}`}
+                      className={`adm-role-btn ${u.superadmin ? 'adm-role-btn--active' : ''}`}
                       onClick={() => toggleAdmin(u)}
                       disabled={cambiando === u._id}
-                      title={u.role === 'admin' ? 'Quitar admin' : 'Hacer admin'}
+                      title={u.superadmin ? 'Quitar admin de FoodOps' : 'Hacer admin de FoodOps'}
                     >
                       <ShieldCheck size={15} />
                     </button>

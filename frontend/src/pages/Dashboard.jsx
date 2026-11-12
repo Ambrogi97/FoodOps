@@ -42,7 +42,7 @@ export default function Dashboard() {
   const { user } = getSession()
   const [active, setActive]                   = useState('restaurante')
   const [showLogoutModal, setShowLogoutModal] = useState(false)
-  const isAdmin = user?.role === 'admin'
+  const isAdmin = user?.superadmin === true
   const [menuOpen, setMenuOpen]               = useState(false)
   const [permisosData, setPermisosData]       = useState(null) // null = cargando
   const [productos, setProductos]             = useState([])

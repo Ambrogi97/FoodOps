@@ -1,6 +1,7 @@
 const jwt  = require('jsonwebtoken')
 const User = require('../models/User')
 const { enviarEmail } = require('../utils/email')
+const { escapeHtml } = require('../utils/security')
 
 async function enviarEmailBienvenida(user) {
   const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`
@@ -32,16 +33,16 @@ async function enviarEmailBienvenida(user) {
             </h1>
 
             <p style="margin:24px 0 8px;font-size:15px;color:#444;text-align:center;">
-              Hola <strong>${user.nombre}</strong>, tu cuenta fue creada con éxito.<br>
+              Hola <strong>${escapeHtml(user.nombre)}</strong>, tu cuenta fue creada con éxito.<br>
               Iniciá sesión con tu email:
             </p>
 
             <div style="background:#f8f8f8;border-radius:8px;padding:14px 20px;text-align:center;margin:16px 0 24px;">
-              <span style="font-size:16px;font-weight:700;color:#222;">${user.email}</span>
+              <span style="font-size:16px;font-weight:700;color:#222;">${escapeHtml(user.email)}</span>
             </div>
 
             <p style="margin:0 0 24px;font-size:14px;color:#666;text-align:center;">
-              Tu restaurante registrado es <strong>${user.restaurante}</strong>.<br>
+              Tu restaurante registrado es <strong>${escapeHtml(user.restaurante)}</strong>.<br>
               Tenés <strong>7 días de prueba gratuita</strong> con acceso completo.
             </p>
 
@@ -145,7 +146,7 @@ const login = async (req, res) => {
 
     res.json({
       token,
-      user: { id: user._id, nombre: user.nombre, email: user.email, restaurante: user.restaurante, plan, role: user.role, trialEndsAt }
+      user: { id: user._id, nombre: user.nombre, email: user.email, restaurante: user.restaurante, plan, role: user.role, trialEndsAt, superadmin: !!user.superadmin }
     })
   } catch (error) {
     res.status(500).json({ message: 'Error al iniciar sesión' })

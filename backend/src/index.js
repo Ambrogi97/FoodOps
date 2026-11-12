@@ -45,10 +45,7 @@ connectDB().then(async () => {
   }
 })
 
-const allowedOrigins = [
-  'http://localhost:5173',
-  process.env.FRONTEND_URL,
-].filter(Boolean)
+const allowedOrigins = require('./utils/security').allowedOrigins()
 
 app.use(cors({
   origin: (origin, callback) => {

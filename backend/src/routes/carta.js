@@ -8,8 +8,8 @@ const Producto       = require('../models/Producto')
 const PedidoOnline   = require('../models/PedidoOnline')
 const ConfigTienda   = require('../models/ConfigTienda')
 const { enviarEmail } = require('../utils/email')
+const { escapeHtml, safeFrontendUrl, str } = require('../utils/security')
 const { enviarPushNuevoPedido } = require('./push')
-const ClienteHistorial = require('../models/ClienteHistorial')
 
 const DIAS_KEY_AR = ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab']
 function estaAbiertaAhora(seccion) {
@@ -30,11 +30,15 @@ const cartaLimiter = rateLimit({ windowMs: 60_000, max: 60, standardHeaders: tru
 
 const fmt = (n) => `$${Number(n).toLocaleString('es-AR')}`
 
-function emailConfirmacionPedido({ restaurante, numero, pedido, totalFinal, descuento, trackingUrl }) {
-  const tipoLabel = pedido.tipo === 'delivery' ? 'Delivery' : pedido.tipo === 'takeaway' ? 'Retiro en el local' : `Mesa ${pedido.mesaNumero}`
+function emailConfirmacionPedido({ restaurante: restauranteRaw, numero, pedido, totalFinal, descuento, trackingUrl: trackingUrlRaw }) {
+  // Todo texto que viene del cliente o del restaurante se escapa antes de ir al HTML
+  const e           = escapeHtml
+  const restaurante = e(restauranteRaw)
+  const trackingUrl = trackingUrlRaw ? e(trackingUrlRaw) : ''
+  const tipoLabel = pedido.tipo === 'delivery' ? 'Delivery' : pedido.tipo === 'takeaway' ? 'Retiro en el local' : `Mesa ${e(pedido.mesaNumero)}`
   const itemsHtml = pedido.items.map(i => `
     <tr>
-      <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;color:#374151;font-size:14px;">(${i.cantidad}) ${i.nombre}</td>
+      <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;color:#374151;font-size:14px;">(${i.cantidad}) ${e(i.nombre)}</td>
       <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;color:#374151;font-size:14px;text-align:right;font-weight:600;">${fmt(i.precio * i.cantidad)}</td>
     </tr>`).join('')
 
@@ -67,7 +71,7 @@ function emailConfirmacionPedido({ restaurante, numero, pedido, totalFinal, desc
           </table>
           <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#e85d2b;">¡Pedido confirmado!</h1>
           <p style="margin:0;color:#6b7280;font-size:15px;line-height:1.5;">
-            Hola <strong style="color:#1a1a2e;">${pedido.clienteNombre}</strong>, tu pedido ya fue confirmado<br>y está próximo a prepararse.
+            Hola <strong style="color:#1a1a2e;">${e(pedido.clienteNombre)}</strong>, tu pedido ya fue confirmado<br>y está próximo a prepararse.
           </p>
         </td>
       </tr>
@@ -95,11 +99,11 @@ function emailConfirmacionPedido({ restaurante, numero, pedido, totalFinal, desc
                 </tr>
                 ${pedido.tipo === 'delivery' && pedido.direccion ? `<tr>
                   <td style="padding:6px 0;color:#6b7280;font-size:13px;">Dirección</td>
-                  <td style="padding:6px 0;color:#1a1a2e;font-size:13px;font-weight:600;">${pedido.direccion}</td>
+                  <td style="padding:6px 0;color:#1a1a2e;font-size:13px;font-weight:600;">${e(pedido.direccion)}</td>
                 </tr>` : ''}
                 ${pedido.formaPago ? `<tr>
                   <td style="padding:6px 0 16px;color:#6b7280;font-size:13px;">Forma de pago</td>
-                  <td style="padding:6px 0 16px;color:#1a1a2e;font-size:13px;font-weight:600;">${pedido.formaPago}</td>
+                  <td style="padding:6px 0 16px;color:#1a1a2e;font-size:13px;font-weight:600;">${e(pedido.formaPago)}</td>
                 </tr>` : '<tr><td colspan="2" style="padding-bottom:16px;"></td></tr>'}
               </table>
             </td></tr>
@@ -170,7 +174,7 @@ router.get('/:userId', cartaLimiter, async (req, res) => {
     const [categorias, productos] = await Promise.all([
       Categoria.find({ usuario: req.params.userId }).sort('nombre'),
       Producto.find({ usuario: req.params.userId })
-        .select('nombre descripcion precio imagen categoria activo')
+        .select('nombre descripcion precio imagen categoria activo opciones')
         .sort('nombre'),
     ])
 
@@ -194,38 +198,108 @@ router.get('/:userId', cartaLimiter, async (req, res) => {
   }
 })
 
+// Límite de pedidos por IP y restaurante (los clientes de una misma mesa pueden compartir wifi)
+const pedidoLimiter = rateLimit({
+  windowMs: 10 * 60_000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => `${rateLimit.ipKeyGenerator(req.ip)}|${req.params.userId}`,
+  message: { message: 'Demasiados pedidos seguidos. Esperá unos minutos e intentá de nuevo.' },
+})
+
+const EMAIL_RE    = /^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+$/
+const TELEFONO_RE = /^\+?[0-9\s()-]{6,20}$/
+const TIPOS       = ['mesa', 'takeaway', 'delivery']
+
+// Arma los ítems del pedido con precios de la base de datos (nunca los del cliente)
+async function construirItems(itemsBody, usuarioId) {
+  if (!Array.isArray(itemsBody) || itemsBody.length === 0 || itemsBody.length > 100) return null
+
+  const ids = itemsBody.map(i => i?.productoId)
+  if (!ids.every(id => mongoose.isValidObjectId(id))) return null
+
+  const productos = await Producto.find({ _id: { $in: ids }, usuario: usuarioId, activo: true })
+    .select('nombre precio opciones').lean()
+  const porId = new Map(productos.map(p => [String(p._id), p]))
+
+  const items = []
+  for (const it of itemsBody) {
+    const producto = porId.get(String(it.productoId))
+    const cantidad = Number(it.cantidad)
+    if (!producto || !Number.isInteger(cantidad) || cantidad < 1 || cantidad > 99) return null
+
+    let precio = producto.precio
+    const labels = []
+    const opciones = Array.isArray(it.opciones) ? it.opciones : []
+
+    // Una opción por cada grupo que tenga ítems (igual que en la carta)
+    const gruposRequeridos = (producto.opciones || []).filter(g => g.items?.length).map(g => g.grupo)
+    const gruposElegidos   = opciones.map(op => op?.grupo)
+    if (gruposElegidos.length !== gruposRequeridos.length ||
+        new Set(gruposElegidos).size !== gruposElegidos.length ||
+        !gruposRequeridos.every(g => gruposElegidos.includes(g))) return null
+
+    for (const op of opciones) {
+      const grupo = (producto.opciones || []).find(g => g.grupo === op?.grupo)
+      const item  = grupo?.items?.find(x => x.label === op?.label)
+      if (!item) return null
+      precio += item.precio || 0
+      labels.push(item.label)
+    }
+    const nombre = labels.length ? `${producto.nombre} (${labels.join(', ')})` : producto.nombre
+    items.push({ nombre, cantidad, precio })
+  }
+  return items
+}
+
 // Enviar pedido desde la carta
-router.post('/:userId/pedido', async (req, res) => {
+router.post('/:userId/pedido', pedidoLimiter, async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.userId))
       return res.status(404).json({ message: 'Restaurante no encontrado' })
 
-    const {
-      items, tipo, mesaNumero, direccion,
-      clienteNombre, clienteEmail, clienteTelefono,
-      notas, formaPago, descuento = 0, frontendOrigin,
-    } = req.body
+    const tipo            = str(req.body.tipo, 20)
+    const mesaNumero      = str(req.body.mesaNumero, 20)
+    const direccion       = str(req.body.direccion, 200)
+    const clienteNombre   = str(req.body.clienteNombre, 80)
+    const clienteEmail    = str(req.body.clienteEmail, 120).toLowerCase()
+    const clienteTelefono = str(req.body.clienteTelefono, 25)
+    const notas           = str(req.body.notas, 500)
+    const formaPago       = str(req.body.formaPago, 60)
 
-    if (!items?.length)  return res.status(400).json({ message: 'El pedido está vacío' })
-    if (!tipo)           return res.status(400).json({ message: 'Indicá el tipo de pedido' })
-    if (tipo === 'mesa'     && !mesaNumero?.trim())     return res.status(400).json({ message: 'Indicá el número de mesa' })
-    if (tipo === 'delivery' && !direccion?.trim())      return res.status(400).json({ message: 'Indicá la dirección de entrega' })
-    if (tipo !== 'mesa'    && !clienteEmail?.trim())    return res.status(400).json({ message: 'El email es requerido' })
-    if (tipo !== 'mesa'    && !clienteNombre?.trim())   return res.status(400).json({ message: 'El nombre es requerido' })
-    if (tipo !== 'mesa'    && !clienteTelefono?.trim()) return res.status(400).json({ message: 'El teléfono es requerido' })
+    if (!TIPOS.includes(tipo)) return res.status(400).json({ message: 'Indicá el tipo de pedido' })
+    if (tipo === 'mesa'     && !mesaNumero)      return res.status(400).json({ message: 'Indicá el número de mesa' })
+    if (tipo === 'delivery' && !direccion)       return res.status(400).json({ message: 'Indicá la dirección de entrega' })
+    if (tipo !== 'mesa'     && !clienteEmail)    return res.status(400).json({ message: 'El email es requerido' })
+    if (tipo !== 'mesa'     && !clienteNombre)   return res.status(400).json({ message: 'El nombre es requerido' })
+    if (tipo !== 'mesa'     && !clienteTelefono) return res.status(400).json({ message: 'El teléfono es requerido' })
+    if (clienteEmail    && !EMAIL_RE.test(clienteEmail))       return res.status(400).json({ message: 'El email no es válido' })
+    if (clienteTelefono && !TELEFONO_RE.test(clienteTelefono)) return res.status(400).json({ message: 'El teléfono no es válido' })
 
-    // Incrementa contador atómico y verifica que la carta esté habilitada
-    const config = await ConfigTienda.findOneAndUpdate(
-      { usuario: req.params.userId },
-      { $inc: { pedidoCounter: 1 } },
-      { new: true }
-    )
-    if (!config?.habilitado)
+    const configActual = await ConfigTienda.findOne({ usuario: req.params.userId }).lean()
+    if (!configActual?.habilitado)
       return res.status(403).json({ message: 'Este restaurante no está aceptando pedidos online' })
 
+    const items = await construirItems(req.body.items, req.params.userId)
+    if (!items) return res.status(400).json({ message: 'El pedido tiene productos inválidos o no disponibles. Actualizá la carta e intentá de nuevo.' })
+
+    // El descuento sale de la forma de pago configurada por el restaurante, no del cliente
+    const formasHabilitadas = (configActual.formasPago || []).filter(f => f.habilitado)
+    let descuento = 0
+    if (formaPago) {
+      const fp = formasHabilitadas.find(f => f.nombre === formaPago)
+      if (!fp) return res.status(400).json({ message: 'Forma de pago inválida' })
+      descuento = Math.min(Math.max(Number(fp.descuento) || 0, 0), 100)
+    } else if (formasHabilitadas.length > 0 && tipo !== 'mesa') {
+      return res.status(400).json({ message: 'Elegí una forma de pago' })
+    }
+
     // Validar zona de delivery si está configurada y viene coordenadas del cliente
+    const config = configActual
     if (tipo === 'delivery' && config.zonaDelivery?.radioKm && req.body.clienteLat && req.body.clienteLng) {
-      const { clienteLat, clienteLng } = req.body
+      const clienteLat = Number(req.body.clienteLat)
+      const clienteLng = Number(req.body.clienteLng)
       const { lat, lng, radioKm } = config.zonaDelivery
       const R = 6371
       const dLat = (clienteLat - lat) * Math.PI / 180
@@ -239,39 +313,37 @@ router.post('/:userId/pedido', async (req, res) => {
     const total       = subtotal + costoEnvio
     const totalFinal  = descuento > 0 ? Math.round(total * (1 - descuento / 100)) : total
 
+    // Contador atómico: se incrementa recién cuando el pedido es válido
+    const configCounter = await ConfigTienda.findOneAndUpdate(
+      { usuario: req.params.userId },
+      { $inc: { pedidoCounter: 1 } },
+      { new: true, projection: { pedidoCounter: 1 } }
+    )
+    const numero = String(configCounter.pedidoCounter).padStart(4, '0')
+
     const pedido = await PedidoOnline.create({
       usuario:         req.params.userId,
       items,
       tipo,
-      mesaNumero:      mesaNumero?.trim()      || '',
-      direccion:       direccion?.trim()        || '',
-      clienteNombre:   clienteNombre?.trim()    || '',
-      clienteEmail:    clienteEmail?.trim()     || '',
-      clienteTelefono: clienteTelefono?.trim()  || '',
-      formaPago:       formaPago?.trim()        || '',
+      mesaNumero,
+      direccion,
+      clienteNombre,
+      clienteEmail,
+      clienteTelefono,
+      formaPago,
       descuento,
       costoEnvio,
-      notas:           notas?.trim()            || '',
+      notas,
       total,
       totalFinal,
       numero,
     })
 
-    const numero = String(config.pedidoCounter).padStart(4, '0')
-
-    const frontendUrl = frontendOrigin || process.env.FRONTEND_URL || 'http://localhost:5173'
+    // Solo se aceptan orígenes propios para el link del email (evita links de phishing)
+    const frontendUrl = safeFrontendUrl(req.body.frontendOrigin)
     const trackingUrl = `${frontendUrl}/tracking/${pedido._id}`
 
     const user = await User.findById(req.params.userId).select('restaurante email')
-
-    // Guardar/actualizar historial del cliente
-    if (pedido.clienteEmail) {
-      ClienteHistorial.findOneAndUpdate(
-        { usuario: req.params.userId, email: pedido.clienteEmail },
-        { nombre: pedido.clienteNombre, telefono: pedido.clienteTelefono, direccion: pedido.direccion || '' },
-        { upsert: true }
-      ).catch(() => {})
-    }
 
     // Push notification al restaurante
     enviarPushNuevoPedido(req.params.userId, { numero, tipo }).catch(() => {})
@@ -304,22 +376,13 @@ router.post('/:userId/pedido', async (req, res) => {
 
     res.status(201).json({ id: pedido._id, numero, trackingUrl })
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    console.error('Error creando pedido online:', e)
+    res.status(500).json({ message: 'No se pudo enviar el pedido. Intentá de nuevo.' })
   }
 })
 
-// Historial del cliente por email (auto-fill)
-router.get('/:userId/cliente/:email', async (req, res) => {
-  try {
-    if (!mongoose.isValidObjectId(req.params.userId))
-      return res.status(404).json({})
-    const h = await ClienteHistorial.findOne({ usuario: req.params.userId, email: req.params.email.toLowerCase() })
-    if (!h) return res.json({})
-    res.json({ nombre: h.nombre, telefono: h.telefono, direccion: h.direccion })
-  } catch {
-    res.json({})
-  }
-})
+// El auto-completado de datos del cliente ahora se guarda en su propio navegador
+// (antes había un endpoint público que devolvía nombre/teléfono/dirección por email).
 
 // Tracking público del pedido (sin auth)
 router.get('/tracking/:pedidoId', async (req, res) => {

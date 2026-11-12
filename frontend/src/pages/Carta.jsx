@@ -1,10 +1,26 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { UtensilsCrossed, Frown, CheckCircle, Armchair, ShoppingBag, Store, Bike, MapPin, Phone, Mail, FileText } from 'lucide-react'
 import './Carta.css'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 const fmt = (n) => `$${Number(n).toLocaleString('es-AR')}`
+const DATOS_CLIENTE_KEY = 'foodops_datos_cliente'
+
+// Datos que el cliente usó la última vez (guardados solo en su navegador)
+function leerDatosCliente() {
+  try {
+    const h = JSON.parse(localStorage.getItem(DATOS_CLIENTE_KEY) || 'null') || {}
+    return {
+      clienteNombre:   typeof h.clienteNombre   === 'string' ? h.clienteNombre   : '',
+      clienteEmail:    typeof h.clienteEmail    === 'string' ? h.clienteEmail    : '',
+      clienteTelefono: typeof h.clienteTelefono === 'string' ? h.clienteTelefono : '',
+      direccion:       typeof h.direccion       === 'string' ? h.direccion       : '',
+    }
+  } catch {
+    return { clienteNombre: '', clienteEmail: '', clienteTelefono: '', direccion: '' }
+  }
+}
 
 function ProductoCard({ p, cant, onClick }) {
   return (
@@ -40,18 +56,14 @@ export default function Carta() {
   const [error, setError]               = useState('')
   const [numeroPedido, setNumeroPedido] = useState('')
   const [trackingUrl, setTrackingUrl]   = useState('')
-  const historialRef                    = useRef(null) // timer para debounce email
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(() => ({
     tipo:            'takeaway',
     mesaNumero:      '',
-    direccion:       '',
-    clienteNombre:   '',
-    clienteEmail:    '',
-    clienteTelefono: '',
     formaPago:       '',
     notas:           '',
-  })
+    ...leerDatosCliente(),
+  }))
 
   useEffect(() => {
     if (!userId) { setError('Enlace inválido'); return }
@@ -72,28 +84,8 @@ export default function Carta() {
       .catch(() => setError('No se pudo cargar el menú'))
   }, [userId])
 
-  // Auto-fill historial del cliente al ingresar email
-  const buscarHistorial = useCallback((email) => {
-    if (!email || !email.includes('@')) return
-    fetch(`${API}/api/carta/${userId}/cliente/${encodeURIComponent(email)}`)
-      .then(r => r.json())
-      .then(h => {
-        if (h.nombre || h.telefono || h.direccion) {
-          setForm(f => ({
-            ...f,
-            clienteNombre:   f.clienteNombre   || h.nombre   || '',
-            clienteTelefono: f.clienteTelefono || h.telefono || '',
-            direccion:       f.direccion       || h.direccion || '',
-          }))
-        }
-      })
-      .catch(() => {})
-  }, [userId])
-
   const onEmailChange = (email) => {
     setForm(f => ({ ...f, clienteEmail: email }))
-    clearTimeout(historialRef.current)
-    historialRef.current = setTimeout(() => buscarHistorial(email), 700)
   }
 
   if (error) return (
@@ -159,6 +151,10 @@ export default function Carta() {
     const precio = precioConOpciones(p)
     const sufijo = opcionesTexto()
     const nombre = p.nombre + sufijo
+    // El servidor recalcula el precio a partir de estas opciones
+    const opciones = Object.entries(opcionesSeleccionadas)
+      .filter(([, v]) => v?.label)
+      .map(([grupo, v]) => ({ grupo, label: v.label }))
 
     if (cantModal === 0) {
       setCarrito(prev => prev.filter(i => i.id !== p._id))
@@ -166,8 +162,8 @@ export default function Carta() {
       setCarrito(prev => {
         const existe = prev.find(i => i.id === p._id)
         return existe
-          ? prev.map(i => i.id === p._id ? { ...i, cantidad: cantModal, precio, nombre } : i)
-          : [...prev, { id: p._id, nombre, precio, cantidad: cantModal }]
+          ? prev.map(i => i.id === p._id ? { ...i, cantidad: cantModal, precio, nombre, opciones } : i)
+          : [...prev, { id: p._id, nombre, precio, cantidad: cantModal, opciones }]
       })
     }
     setProductoOpen(null)
@@ -219,7 +215,7 @@ export default function Carta() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items:           carrito.map(i => ({ nombre: i.nombre, cantidad: i.cantidad, precio: i.precio })),
+          items:           carrito.map(i => ({ productoId: i.id, cantidad: i.cantidad, opciones: i.opciones || [] })),
           tipo:            form.tipo,
           mesaNumero:      form.mesaNumero,
           direccion:       form.direccion,
@@ -227,7 +223,6 @@ export default function Carta() {
           clienteEmail:    form.clienteEmail,
           clienteTelefono: form.clienteTelefono,
           formaPago:       form.formaPago,
-          descuento:       descuentoActual,
           notas:           form.notas,
           frontendOrigin:  window.location.origin,
           clienteLat,
@@ -238,6 +233,16 @@ export default function Carta() {
       if (!res.ok) throw new Error(data.message || 'Error al enviar')
       setNumeroPedido(data.numero || '')
       setTrackingUrl(data.id ? `${window.location.origin}/tracking/${data.id}` : '')
+      if (form.tipo !== 'mesa') {
+        try {
+          localStorage.setItem(DATOS_CLIENTE_KEY, JSON.stringify({
+            clienteNombre:   form.clienteNombre,
+            clienteEmail:    form.clienteEmail,
+            clienteTelefono: form.clienteTelefono,
+            direccion:       form.direccion,
+          }))
+        } catch { /* storage no disponible */ }
+      }
       setCarrito([])
       setStep('ok')
     } catch (e) {

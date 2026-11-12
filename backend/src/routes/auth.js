@@ -5,6 +5,7 @@ const rateLimit    = require('express-rate-limit')
 const { register, login } = require('../controllers/authController')
 const auth         = require('../middleware/auth')
 const User         = require('../models/User')
+const { escapeHtml } = require('../utils/security')
 
 const router = express.Router()
 
@@ -99,7 +100,7 @@ router.post('/recuperar', resetLimiter, async (req, res) => {
             </h1>
 
             <p style="margin:16px 0 8px;font-size:15px;color:#444;text-align:center;">
-              Hola <strong>${user.nombre}</strong>, recibimos una solicitud para restablecer la contraseña de tu cuenta.
+              Hola <strong>${escapeHtml(user.nombre)}</strong>, recibimos una solicitud para restablecer la contraseña de tu cuenta.
             </p>
 
             <p style="margin:0 0 28px;font-size:13px;color:#888;text-align:center;">

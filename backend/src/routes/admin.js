@@ -18,7 +18,7 @@ const PLANES = ['gratuito', 'basico', 'profesional', 'premium']
 // GET /api/admin/usuarios
 router.get('/usuarios', adminAuth, async (req, res) => {
   try {
-    const usuarios = await User.find({}, '-password').sort({ createdAt: -1 })
+    const usuarios = await User.find({}, '-password -resetToken -resetTokenExpiry').sort({ createdAt: -1 })
     res.json(usuarios)
   } catch {
     res.status(500).json({ message: 'Error al obtener usuarios' })
@@ -47,6 +47,25 @@ router.put('/usuarios/:id/plan', adminAuth, async (req, res) => {
     res.json(user)
   } catch {
     res.status(500).json({ message: 'Error al actualizar plan' })
+  }
+})
+
+// PUT /api/admin/usuarios/:id/superadmin
+router.put('/usuarios/:id/superadmin', adminAuth, async (req, res) => {
+  try {
+    const superadmin = req.body.superadmin === true
+    if (req.params.id === req.usuario.id) {
+      return res.status(400).json({ message: 'No podés cambiar tu propio acceso de admin' })
+    }
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { superadmin },
+      { new: true, select: '-password -resetToken -resetTokenExpiry' }
+    )
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
+    res.json(user)
+  } catch {
+    res.status(500).json({ message: 'Error al actualizar acceso de admin' })
   }
 })
 
@@ -95,6 +114,7 @@ router.delete('/usuarios/:id', adminAuth, async (req, res) => {
       Proveedor.deleteMany({ usuario: uid }),
       PedidoOnline.deleteMany({ usuario: uid }),
     ])
+    await User.deleteMany({ cuentaPadreId: uid })
     await user.deleteOne()
 
     res.json({ message: 'Usuario y todos sus datos eliminados' })
