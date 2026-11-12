@@ -7,6 +7,8 @@
     <meta name="theme-color" content="#e85d2b" />
     <link rel="manifest" href="/manifest.json" />
     <title>FoodOps</title>
+    <!-- Anti-FOUC: aplica el tema guardado antes de que React monte -->
+    <script>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)})()</script>
   </head>
   <body>
     <div id="root"></div>
