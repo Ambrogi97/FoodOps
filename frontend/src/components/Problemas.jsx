@@ -1,4 +1,5 @@
 import { ClipboardList, Frown, Timer, AlertTriangle } from 'lucide-react'
+import { useInView } from '../hooks/useInView'
 import './Problemas.css'
 
 const problemas = [
@@ -20,10 +21,12 @@ const problemas = [
 ]
 
 export default function Problemas() {
+  const [headerRef, headerVisible] = useInView()
+  const [gridRef, gridVisible] = useInView()
   return (
     <section className="problemas">
       <div className="container problemas__container">
-        <div className="problemas__header">
+        <div ref={headerRef} className={`problemas__header reveal${headerVisible ? ' visible' : ''}`}>
           <span className="section-tag"><AlertTriangle size={14} /> El problema</span>
           <h2 className="section-title">¿Qué frena a tu restaurante?</h2>
           <p className="section-subtitle">
@@ -31,7 +34,7 @@ export default function Problemas() {
             que impactan en tus ganancias y en la experiencia de tus clientes.
           </p>
         </div>
-        <div className="problemas__grid">
+        <div ref={gridRef} className={`problemas__grid reveal${gridVisible ? ' visible' : ''}`}>
           {problemas.map((p, i) => (
             <div className="problema-card" key={i}>
               <div className="problema-card__icon"><p.Icon size={28} /></div>

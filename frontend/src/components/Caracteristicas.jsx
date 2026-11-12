@@ -1,4 +1,5 @@
 import { Pencil, QrCode, Truck, CreditCard, BarChart2, Globe, Sparkles } from 'lucide-react'
+import { useInView } from '../hooks/useInView'
 import './Caracteristicas.css'
 
 const features = [
@@ -35,10 +36,12 @@ const features = [
 ]
 
 export default function Caracteristicas() {
+  const [headerRef, headerVisible] = useInView()
+  const [gridRef, gridVisible] = useInView()
   return (
     <section className="caracteristicas" id="caracteristicas">
       <div className="container">
-        <div className="caracteristicas__header">
+        <div ref={headerRef} className={`caracteristicas__header reveal${headerVisible ? ' visible' : ''}`}>
           <span className="section-tag"><Sparkles size={14} /> Características</span>
           <h2 className="section-title">Todo lo que tu restaurante necesita</h2>
           <p className="section-subtitle">
@@ -46,7 +49,7 @@ export default function Caracteristicas() {
             ágil y pensada para el mundo gastronómico.
           </p>
         </div>
-        <div className="features__grid">
+        <div ref={gridRef} className={`features__grid reveal${gridVisible ? ' visible' : ''}`}>
           {features.map((f, i) => (
             <div className="feature-card" key={i}>
               <div className="feature-card__icon"><f.Icon size={28} /></div>

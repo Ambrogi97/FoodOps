@@ -1,10 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
+import SocialProof from './components/SocialProof'
 import Problemas from './components/Problemas'
 import ComoFunciona from './components/ComoFunciona'
 import Caracteristicas from './components/Caracteristicas'
 import Planes from './components/Planes'
+import CTAFinal from './components/CTAFinal'
 import Footer from './components/Footer'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -20,10 +22,12 @@ function Landing() {
       <Navbar />
       <main>
         <Hero />
+        <SocialProof />
         <Problemas />
         <ComoFunciona />
         <Caracteristicas />
         <Planes />
+        <CTAFinal />
       </main>
       <Footer />
     </>

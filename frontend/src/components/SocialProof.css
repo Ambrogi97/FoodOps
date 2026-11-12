@@ -1,0 +1,43 @@
+.social-proof {
+  background: var(--secondary);
+  border-top: 1px solid rgba(255,255,255,0.07);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  padding: 36px 0;
+}
+.social-proof__inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.social-proof__stat {
+  flex: 1;
+  text-align: center;
+  padding: 12px 24px;
+  position: relative;
+}
+.social-proof__stat:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 10%; height: 80%;
+  width: 1px;
+  background: rgba(255,255,255,0.1);
+}
+.social-proof__num {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--primary);
+  line-height: 1;
+  letter-spacing: -1.5px;
+}
+.social-proof__label {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.45);
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+@media (max-width: 600px) {
+  .social-proof__inner { flex-direction: column; gap: 20px; }
+  .social-proof__stat:not(:last-child)::after { display: none; }
+  .social-proof { padding: 32px 0; }
+}

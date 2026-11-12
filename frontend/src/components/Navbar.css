@@ -64,3 +64,11 @@
     padding: 7px 12px;
   }
 }
+
+/* Dark hero awareness — white links when navbar is transparent (over dark hero) */
+.navbar:not(.navbar--scrolled) .navbar__logo { color: #fff; }
+.navbar:not(.navbar--scrolled) .navbar__logo-text strong { color: var(--primary); }
+.navbar:not(.navbar--scrolled) .navbar__links a { color: rgba(255,255,255,0.65); }
+.navbar:not(.navbar--scrolled) .navbar__links a:hover { color: #fff; }
+.navbar:not(.navbar--scrolled) .btn--ghost { color: rgba(255,255,255,0.72); }
+.navbar:not(.navbar--scrolled) .btn--ghost:hover { color: #fff; }

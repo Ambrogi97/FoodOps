@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Briefcase, Check } from 'lucide-react'
+import { useInView } from '../hooks/useInView'
 import './Planes.css'
 
 const planes = [
@@ -47,17 +48,19 @@ const planes = [
 ]
 
 export default function Planes() {
+  const [headerRef, headerVisible] = useInView()
+  const [gridRef, gridVisible] = useInView()
   return (
     <section className="planes" id="planes">
       <div className="container">
-        <div className="planes__header">
+        <div ref={headerRef} className={`planes__header reveal${headerVisible ? ' visible' : ''}`}>
           <span className="section-tag"><Briefcase size={14} /> Planes</span>
           <h2 className="section-title">Elegí el plan para tu negocio</h2>
           <p className="section-subtitle">
             Sin contratos ni permanencia. Cambiá de plan cuando quieras.
           </p>
         </div>
-        <div className="planes__grid">
+        <div ref={gridRef} className={`planes__grid reveal${gridVisible ? ' visible' : ''}`}>
           {planes.map((p, i) => (
             <div className={`plan-card${p.destacado ? ' plan-card--destacado' : ''}`} key={i}>
               {p.badge && <div className={`plan-card__badge${p.destacado ? ' plan-card__badge--popular' : ''}`}>{p.badge}</div>}

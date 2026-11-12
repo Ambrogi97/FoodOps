@@ -1,4 +1,5 @@
 import { FolderOpen, QrCode, Smartphone, BarChart2, Zap } from 'lucide-react'
+import { useInView } from '../hooks/useInView'
 import './ComoFunciona.css'
 
 const pasos = [
@@ -28,11 +29,40 @@ const pasos = [
   },
 ]
 
+function PasoRow({ paso, index }) {
+  const [ref, visible] = useInView()
+  const isReverse = index % 2 !== 0
+  return (
+    <div
+      ref={ref}
+      className={`paso-row reveal${isReverse ? ' paso-row--reverse' : ''}${visible ? ' visible' : ''}`}
+    >
+      <div className="paso-visual">
+        <div className="paso-visual__card">
+          <span className="paso-visual__bg-num">{paso.num}</span>
+          <div className="paso-visual__icon-wrap">
+            <paso.Icon size={40} />
+          </div>
+        </div>
+      </div>
+      <div className="paso-text">
+        <span className="paso-text__step">PASO {paso.num}</span>
+        <h3 className="paso-text__title">{paso.titulo}</h3>
+        <p className="paso-text__desc">{paso.desc}</p>
+      </div>
+    </div>
+  )
+}
+
 export default function ComoFunciona() {
+  const [headerRef, headerVisible] = useInView()
   return (
     <section className="como-funciona" id="como-funciona">
       <div className="container">
-        <div className="como-funciona__header">
+        <div
+          ref={headerRef}
+          className={`como-funciona__header reveal${headerVisible ? ' visible' : ''}`}
+        >
           <span className="section-tag"><Zap size={14} /> Proceso simple</span>
           <h2 className="section-title">Empezá en minutos</h2>
           <p className="section-subtitle">
@@ -40,15 +70,9 @@ export default function ComoFunciona() {
             restaurante ya opera en modo digital.
           </p>
         </div>
-        <div className="pasos__grid">
+        <div className="pasos-lista">
           {pasos.map((p, i) => (
-            <div className="paso-card" key={i}>
-              <div className="paso-card__num">{p.num}</div>
-              <div className="paso-card__icon"><p.Icon size={28} /></div>
-              <h3 className="paso-card__title">{p.titulo}</h3>
-              <p className="paso-card__desc">{p.desc}</p>
-              {i < pasos.length - 1 && <div className="paso-card__arrow">→</div>}
-            </div>
+            <PasoRow key={p.num} paso={p} index={i} />
           ))}
         </div>
       </div>
