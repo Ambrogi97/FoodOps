@@ -1,17 +1,8 @@
-import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Sun, Moon } from 'lucide-react'
 import Logo from './Logo'
 import './Navbar.css'
 
 export default function Navbar() {
-  const [dark, setDark] = useState(() => localStorage.getItem('theme') === 'dark')
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
-    localStorage.setItem('theme', dark ? 'dark' : 'light')
-  }, [dark])
-
   return (
     <nav className="navbar">
       <div className="navbar__inner">
@@ -28,17 +19,6 @@ export default function Navbar() {
         </ul>
 
         <div className="navbar__actions">
-          <button
-            className={`theme-toggle${dark ? ' theme-toggle--dark' : ''}`}
-            onClick={() => setDark(d => !d)}
-            aria-label="Cambiar tema"
-          >
-            <span className="theme-toggle__icons">
-              <Sun size={13} className="theme-toggle__sun" />
-              <Moon size={13} className="theme-toggle__moon" />
-            </span>
-            <span className="theme-toggle__thumb" />
-          </button>
           <Link to="/login" className="btn btn--ghost navbar__login">Iniciar sesión</Link>
           <Link to="/register" className="btn btn--primary">Registrarse</Link>
         </div>

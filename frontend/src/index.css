@@ -201,53 +201,6 @@ button { cursor: pointer; font-family: inherit; border: none; outline: none; }
   padding-bottom: 8px;
 }
 
-/* ── Dark mode ── */
-[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #0d0d1a;
-  --surface: #141428;
-  --text: #f0f0f5;
-  --text-muted: #9ca3af;
-  --border: rgba(255,255,255,0.1);
-  --primary-light: rgba(255,107,53,0.15);
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.4);
-  --shadow-md: 0 8px 32px rgba(0,0,0,0.5);
-  --shadow-lg: 0 24px 64px rgba(0,0,0,0.6);
-}
-
-/* Títulos que usan --secondary como color de texto */
-[data-theme="dark"] .section-title,
-[data-theme="dark"] .paso-text__title,
-[data-theme="dark"] .feature-card__title,
-[data-theme="dark"] .plan-card__nombre,
-[data-theme="dark"] .plan-card__monto { color: var(--text); }
-
-/* section-tag: naranja más claro sobre fondo oscuro */
-[data-theme="dark"] .section-tag { color: #FF9068; }
-
-/* Navbar pill oscura */
-[data-theme="dark"] .navbar__inner {
-  background: rgba(20,20,45,0.97);
-  box-shadow: 0 2px 20px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.07);
-}
-[data-theme="dark"] .navbar__links a { color: rgba(255,255,255,0.6); }
-[data-theme="dark"] .navbar__logo { color: rgba(255,255,255,0.9); }
-[data-theme="dark"] .navbar__login { color: rgba(255,255,255,0.6); }
-
-/* ComoFunciona: borde en las tarjetas para que se distingan del fondo oscuro */
-[data-theme="dark"] .paso-visual__card {
-  border: 1px solid rgba(255,255,255,0.1);
-}
-
-/* Toggle mensual/anual en Planes */
-[data-theme="dark"] .planes__toggle { background: rgba(255,255,255,0.1); }
-[data-theme="dark"] .planes__toggle-opt { color: rgba(255,255,255,0.45); }
-[data-theme="dark"] .planes__toggle-opt--active {
-  background: rgba(255,255,255,0.15);
-  color: var(--text);
-  box-shadow: 0 1px 6px rgba(0,0,0,0.5);
-}
-
 /* ── Scroll reveal ── */
 .reveal {
   opacity: 0;
