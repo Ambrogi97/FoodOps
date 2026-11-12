@@ -1,17 +1,21 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Briefcase, Check } from 'lucide-react'
 import { useInView } from '../hooks/useInView'
 import './Planes.css'
 
+const fmt = (n) => '$' + n.toLocaleString('es-AR')
+
 const planes = [
   {
     id: 'basico',
     nombre: 'Básico',
-    precio: '$20.000',
-    periodo: '/mes',
+    mensual: 20000,
+    anualMes: 16000,
+    totalAnual: 192000,
+    ahorroAnual: 48000,
     desc: 'Para empezar a digitalizar tu restaurante sin complicaciones.',
     destacado: false,
-    badge: '7 días gratis',
     items: [
       'Punto de venta (Restaurante)',
       'Monitor de cocina',
@@ -26,11 +30,12 @@ const planes = [
   {
     id: 'premium',
     nombre: 'Premium',
-    precio: '$35.000',
-    periodo: '/mes',
+    mensual: 35000,
+    anualMes: 28000,
+    totalAnual: 336000,
+    ahorroAnual: 84000,
     desc: 'Operación completa: ventas, finanzas, proveedores y más.',
     destacado: true,
-    badge: 'Más popular',
     items: [
       'Todo lo del plan Básico',
       'Gestión de ventas e historial',
@@ -48,8 +53,10 @@ const planes = [
 ]
 
 export default function Planes() {
+  const [anual, setAnual] = useState(false)
   const [headerRef, headerVisible] = useInView()
   const [gridRef, gridVisible] = useInView()
+
   return (
     <section className="planes" id="planes">
       <div className="container">
@@ -59,36 +66,69 @@ export default function Planes() {
           <p className="section-subtitle">
             Sin contratos ni permanencia. Cambiá de plan cuando quieras.
           </p>
+
+          <div className="planes__toggle">
+            <button
+              className={`planes__toggle-opt${!anual ? ' planes__toggle-opt--active' : ''}`}
+              onClick={() => setAnual(false)}
+            >
+              Mensual
+            </button>
+            <button
+              className={`planes__toggle-opt${anual ? ' planes__toggle-opt--active' : ''}`}
+              onClick={() => setAnual(true)}
+            >
+              Anual
+              <span className="planes__toggle-badge">2 meses gratis</span>
+            </button>
+          </div>
         </div>
+
         <div ref={gridRef} className={`planes__grid reveal${gridVisible ? ' visible' : ''}`}>
-          {planes.map((p, i) => (
-            <div className={`plan-card${p.destacado ? ' plan-card--destacado' : ''}`} key={i}>
-              {p.badge && <div className={`plan-card__badge${p.destacado ? ' plan-card__badge--popular' : ''}`}>{p.badge}</div>}
-              <div className="plan-card__header">
-                <h3 className="plan-card__nombre">{p.nombre}</h3>
-                <div className="plan-card__precio">
-                  <span className="plan-card__monto">{p.precio}</span>
-                  <span className="plan-card__periodo">{p.periodo}</span>
+          {planes.map((p) => {
+            const badge = p.destacado
+              ? 'Más popular'
+              : (anual ? `Ahorrás ${fmt(p.ahorroAnual)}` : '7 días gratis')
+            const badgeClass = p.destacado ? ' plan-card__badge--popular' : (anual ? ' plan-card__badge--ahorro' : '')
+            const precio = anual ? p.anualMes : p.mensual
+
+            return (
+              <div className={`plan-card${p.destacado ? ' plan-card--destacado' : ''}`} key={p.id}>
+                <div className={`plan-card__badge${badgeClass}`}>{badge}</div>
+
+                <div className="plan-card__header">
+                  <h3 className="plan-card__nombre">{p.nombre}</h3>
+                  <div className="plan-card__precio">
+                    <span className="plan-card__monto">{fmt(precio)}</span>
+                    <span className="plan-card__periodo">/mes</span>
+                  </div>
+                  {anual && (
+                    <p className="plan-card__anual-note">
+                      Facturado anualmente · {fmt(p.totalAnual)}/año
+                    </p>
+                  )}
+                  <p className="plan-card__desc">{p.desc}</p>
                 </div>
-                <p className="plan-card__desc">{p.desc}</p>
+
+                <ul className="plan-card__items">
+                  {p.items.map((item, j) => (
+                    <li key={j}>
+                      <span className="plan-card__check"><Check size={13} strokeWidth={3} /></span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+
+                <Link
+                  to={`/register?plan=${p.id}${anual ? '&periodo=anual' : ''}`}
+                  className={`btn btn--lg${p.destacado ? ' btn--primary' : ' btn--outline'}`}
+                  style={{ width: '100%', marginTop: 'auto' }}
+                >
+                  {p.cta}
+                </Link>
               </div>
-              <ul className="plan-card__items">
-                {p.items.map((item, j) => (
-                  <li key={j}>
-                    <span className="plan-card__check"><Check size={13} strokeWidth={3} /></span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                to={`/register?plan=${p.id}`}
-                className={`btn btn--lg${p.destacado ? ' btn--primary' : ' btn--outline'}`}
-                style={{ width: '100%', marginTop: 'auto' }}
-              >
-                {p.cta}
-              </Link>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </section>

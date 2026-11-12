@@ -6,6 +6,7 @@ import Problemas from './components/Problemas'
 import ComoFunciona from './components/ComoFunciona'
 import Caracteristicas from './components/Caracteristicas'
 import Planes from './components/Planes'
+import FAQ from './components/FAQ'
 import CTAFinal from './components/CTAFinal'
 import Footer from './components/Footer'
 import Login from './pages/Login'
@@ -27,6 +28,7 @@ function Landing() {
         <ComoFunciona />
         <Caracteristicas />
         <Planes />
+        <FAQ />
         <CTAFinal />
       </main>
       <Footer />
