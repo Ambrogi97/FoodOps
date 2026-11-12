@@ -93,6 +93,12 @@ app.get('/', (req, res) => {
   res.json({ message: 'FoodOps API running' })
 })
 
+// Error handler global — siempre devuelve JSON (nunca HTML)
+app.use((err, req, res, _next) => {
+  console.error('[error]', err.message)
+  const status = err.status || err.statusCode || 500
+  res.status(status).json({ message: err.message || 'Error interno del servidor' })
+})
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`)
