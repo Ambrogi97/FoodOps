@@ -147,7 +147,8 @@ export default function Dashboard() {
   if (!user) return null
 
   const trialActivo   = user.plan === 'gratuito' && user.trialEndsAt
-  const trialExpirado = trialActivo && new Date(user.trialEndsAt) < new Date()
+  // Vence la prueba gratuita o el período pago (el servidor bloquea la API igual)
+  const trialExpirado = !!user.trialEndsAt && new Date(user.trialEndsAt) < new Date()
   const diasTrial     = trialActivo && !trialExpirado
     ? Math.ceil((new Date(user.trialEndsAt) - new Date()) / (1000 * 60 * 60 * 24))
     : 0
@@ -266,7 +267,7 @@ export default function Dashboard() {
               <div className="dash-upgrade-icon" style={{ background: 'linear-gradient(135deg, #ef4444, #b91c1c)' }}>
                 <Lock size={36} />
               </div>
-              <h2 className="dash-upgrade-title">Tu prueba gratuita terminó</h2>
+              <h2 className="dash-upgrade-title">{user.plan === 'gratuito' ? 'Tu prueba gratuita terminó' : 'Tu plan venció'}</h2>
               <p className="dash-upgrade-desc">
                 Elegí un plan para seguir usando FoodOps con <strong>{user.restaurante}</strong>.
               </p>

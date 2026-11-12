@@ -30,7 +30,7 @@ router.post('/subscribe', auth, async (req, res) => {
     )
     res.json({ ok: true })
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -44,7 +44,7 @@ router.post('/unsubscribe', auth, async (req, res) => {
     )
     res.json({ ok: true })
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 

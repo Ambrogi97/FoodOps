@@ -2,7 +2,7 @@ const express      = require('express')
 const bcrypt       = require('bcryptjs')
 const crypto       = require('crypto')
 const rateLimit    = require('express-rate-limit')
-const { register, login } = require('../controllers/authController')
+const { register, login, generateToken } = require('../controllers/authController')
 const auth         = require('../middleware/auth')
 const User         = require('../models/User')
 const { escapeHtml } = require('../utils/security')
@@ -151,8 +151,10 @@ router.post('/recuperar', resetLimiter, async (req, res) => {
 router.post('/reset', resetLimiter, async (req, res) => {
   try {
     const { token, password } = req.body
-    if (!token || !password) return res.status(400).json({ message: 'Datos incompletos' })
-    if (password.length < 6)  return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres' })
+    if (typeof token !== 'string' || typeof password !== 'string' || !token || !password) {
+      return res.status(400).json({ message: 'Datos incompletos' })
+    }
+    if (password.length < 8)  return res.status(400).json({ message: 'La contraseña debe tener al menos 8 caracteres' })
 
     const user = await User.findOne({
       resetToken:       hashToken(token),
@@ -183,11 +185,27 @@ const registerLimiter = rateLimit({
 router.post('/register', registerLimiter, register)
 router.post('/login', loginLimiter, login)
 
+const CAMPOS_PRIVADOS = '-password -resetToken -resetTokenExpiry -passwordChangedAt'
+
+// Perfil con el plan efectivo (el de la cuenta dueña si es sub-usuario)
+async function perfilPublico(user) {
+  const data = user.toObject ? user.toObject() : { ...user }
+  delete data.password; delete data.resetToken; delete data.resetTokenExpiry; delete data.passwordChangedAt
+  data.id = String(data._id)
+  if (data.cuentaPadreId) {
+    const owner = await User.findById(data.cuentaPadreId, 'plan trialEndsAt').lean()
+    data.plan        = owner?.plan        ?? 'basico'
+    data.trialEndsAt = owner?.trialEndsAt ?? null
+  }
+  data.superadmin = !!data.superadmin
+  return data
+}
+
 router.get('/me', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.usuario.id, '-password -resetToken -resetTokenExpiry')
+    const user = await User.findById(req.usuario.id, CAMPOS_PRIVADOS)
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
-    res.json(user)
+    res.json(await perfilPublico(user))
   } catch {
     res.status(500).json({ message: 'Error al obtener perfil' })
   }
@@ -195,23 +213,31 @@ router.get('/me', auth, async (req, res) => {
 
 router.put('/me', auth, async (req, res) => {
   try {
-    const { nombre, restaurante, password, newPassword } = req.body
+    const nombre      = typeof req.body.nombre      === 'string' ? req.body.nombre.trim()      : ''
+    const restaurante = typeof req.body.restaurante === 'string' ? req.body.restaurante.trim() : ''
+    const { password, newPassword } = req.body
     const user = await User.findById(req.usuario.id)
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
 
     if (nombre)      user.nombre      = nombre
     if (restaurante) user.restaurante = restaurante
 
+    let token
     if (newPassword) {
-      if (!password) return res.status(400).json({ message: 'Ingresá la contraseña actual' })
+      if (typeof newPassword !== 'string' || newPassword.length < 8) {
+        return res.status(400).json({ message: 'La nueva contraseña debe tener al menos 8 caracteres' })
+      }
+      if (typeof password !== 'string' || !password) return res.status(400).json({ message: 'Ingresá la contraseña actual' })
       const ok = await user.comparePassword(password)
       if (!ok) return res.status(400).json({ message: 'Contraseña actual incorrecta' })
       user.password = newPassword
     }
 
     await user.save()
-    const { password: _, resetToken: __, resetTokenExpiry: ___, ...data } = user.toObject()
-    res.json(data)
+    // Cambiar la contraseña cierra las demás sesiones: este dispositivo recibe un token nuevo
+    if (newPassword) token = generateToken(user._id, user.role, user.cuentaPadreId ?? null, user.plan)
+    const data = await perfilPublico(user)
+    res.json(token ? { ...data, token } : data)
   } catch {
     res.status(500).json({ message: 'Error al actualizar perfil' })
   }

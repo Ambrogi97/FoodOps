@@ -8,7 +8,7 @@ const upload = multer({
   storage: multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
     const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-    allowed.includes(file.mimetype) ? cb(null, true) : cb(new Error('Tipo de archivo no permitido'))
+    allowed.includes(file.mimetype) ? cb(null, true) : cb(Object.assign(new Error('Tipo de archivo no permitido'), { status: 400 }))
   },
   limits: { fileSize: 5 * 1024 * 1024 },
 })

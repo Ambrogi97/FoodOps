@@ -34,6 +34,11 @@ export default function Register() {
     e.preventDefault()
     setError('')
 
+    if (form.password.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres')
+      return
+    }
+
     if (form.password !== form.confirmar) {
       setError('Las contraseñas no coinciden')
       return

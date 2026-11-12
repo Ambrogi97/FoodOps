@@ -91,6 +91,12 @@ const register = async (req, res) => {
     if (!nombre || !email || !password || !restaurante) {
       return res.status(400).json({ message: 'Todos los campos son obligatorios' })
     }
+    if (password.length < 8) {
+      return res.status(400).json({ message: 'La contraseña debe tener al menos 8 caracteres' })
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ message: 'El email no es válido' })
+    }
 
     const existingUser = await User.findOne({ email: email.toLowerCase() })
     if (existingUser) {
@@ -153,4 +159,4 @@ const login = async (req, res) => {
   }
 }
 
-module.exports = { register, login }
+module.exports = { register, login, generateToken }

@@ -27,7 +27,7 @@ router.get('/:pedidoId', async (req, res) => {
       comentario:    existente?.comentario || '',
     })
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -59,7 +59,7 @@ router.post('/:pedidoId', async (req, res) => {
     )
     res.json({ ok: true })
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -72,7 +72,7 @@ router.get('/', auth, async (req, res) => {
       .populate('pedido', 'numero clienteNombre createdAt')
     res.json(resenas)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 

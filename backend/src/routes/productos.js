@@ -8,7 +8,7 @@ router.get('/', auth, async (req, res) => {
     const productos = await Producto.find({ usuario: req.propietarioId }).sort('nombre')
     res.json(productos)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -35,7 +35,7 @@ router.post('/', auth, async (req, res) => {
     })
     res.status(201).json(producto)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -62,7 +62,7 @@ router.put('/:id', auth, async (req, res) => {
     if (!producto) return res.status(404).json({ message: 'Producto no encontrado' })
     res.json(producto)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -77,7 +77,7 @@ router.put('/:id/stock', auth, async (req, res) => {
     if (!producto) return res.status(404).json({ message: 'Producto no encontrado' })
     res.json(producto)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -87,7 +87,7 @@ router.delete('/:id', auth, async (req, res) => {
     if (!producto) return res.status(404).json({ message: 'Producto no encontrado' })
     res.json({ message: 'Producto eliminado' })
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 

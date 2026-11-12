@@ -54,7 +54,7 @@ router.get('/', auth, async (req, res) => {
       .limit(100)
     res.json(pedidos)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -91,7 +91,7 @@ router.put('/:id/estado', auth, async (req, res) => {
 
     res.json(pedido)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 

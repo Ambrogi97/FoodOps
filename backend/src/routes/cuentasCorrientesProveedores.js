@@ -10,7 +10,7 @@ router.get('/', auth, async (req, res) => {
       .sort('-createdAt')
       .populate('proveedorId', 'nombre')
     res.json(txs)
-  } catch (e) { res.status(500).json({ message: e.message }) }
+  } catch (e) { { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) } }
 })
 
 router.get('/proveedor/:proveedorId', auth, async (req, res) => {
@@ -19,7 +19,7 @@ router.get('/proveedor/:proveedorId', auth, async (req, res) => {
       .find({ proveedorId: req.params.proveedorId, usuario: req.propietarioId })
       .sort('-createdAt')
     res.json(txs)
-  } catch (e) { res.status(500).json({ message: e.message }) }
+  } catch (e) { { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) } }
 })
 
 router.post('/', auth, async (req, res) => {
@@ -36,7 +36,7 @@ router.post('/', auth, async (req, res) => {
       usuario: req.propietarioId,
     })
     res.status(201).json(tx)
-  } catch (e) { res.status(500).json({ message: e.message }) }
+  } catch (e) { { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) } }
 })
 
 router.delete('/:id', auth, async (req, res) => {
@@ -44,7 +44,7 @@ router.delete('/:id', auth, async (req, res) => {
     const tx = await CuentaCorrienteProveedor.findOneAndDelete({ _id: req.params.id, usuario: req.propietarioId })
     if (!tx) return res.status(404).json({ message: 'Transacción no encontrada' })
     res.json({ message: 'Transacción eliminada' })
-  } catch (e) { res.status(500).json({ message: e.message }) }
+  } catch (e) { { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) } }
 })
 
 module.exports = router

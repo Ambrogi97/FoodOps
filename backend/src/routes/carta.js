@@ -194,7 +194,7 @@ router.get('/:userId', cartaLimiter, async (req, res) => {
       productos,
     })
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -415,7 +415,7 @@ router.get('/tracking/:pedidoId', async (req, res) => {
       tiempoEstimadoMin:  pedido.estado === 'pendiente' ? (config?.tiempoEstimadoMin || 0) : 0,
     })
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 

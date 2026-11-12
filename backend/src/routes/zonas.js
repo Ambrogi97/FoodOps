@@ -9,7 +9,7 @@ router.get('/', auth, async (req, res) => {
     const zonas = await Zona.find({ usuario: req.propietarioId }).sort('createdAt')
     res.json(zonas)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -20,7 +20,7 @@ router.post('/', auth, async (req, res) => {
     const zona = await Zona.create({ label: label.trim(), removible: removible !== false, usuario: req.propietarioId })
     res.status(201).json(zona)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -31,7 +31,7 @@ router.delete('/:id', auth, async (req, res) => {
     await Mesa.deleteMany({ zona: req.params.id, usuario: req.propietarioId })
     res.json({ message: 'Zona eliminada' })
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 

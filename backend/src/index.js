@@ -37,6 +37,15 @@ const app = express()
 const PORT = process.env.PORT || 3000
 
 app.set('trust proxy', 1)
+app.disable('x-powered-by')
+
+// Cabeceras básicas de seguridad para la API
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+  res.setHeader('X-Frame-Options', 'DENY')
+  next()
+})
 
 connectDB().then(async () => {
   const deleted = await User.deleteMany({ email: /@seed\.local$/i })
@@ -100,9 +109,12 @@ app.get('/', (req, res) => {
 
 // Error handler global — siempre devuelve JSON (nunca HTML)
 app.use((err, req, res, _next) => {
-  console.error('[error]', err.message)
-  const status = err.status || err.statusCode || 500
-  res.status(status).json({ message: err.message || 'Error interno del servidor' })
+  console.error('[error]', req.method, req.originalUrl, err.message)
+  let status = err.status || err.statusCode || 500
+  if (err.name === 'MulterError' || err.message === 'Tipo de archivo no permitido') status = 400
+  // Los errores 5xx no exponen detalles internos al cliente
+  const message = status >= 500 ? 'Error interno del servidor' : (err.expose === false ? 'Solicitud inválida' : err.message)
+  res.status(status).json({ message })
 })
 
 app.listen(PORT, () => {

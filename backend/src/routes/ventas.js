@@ -8,7 +8,7 @@ router.get('/', auth, async (req, res) => {
     const ventas = await Venta.find({ usuario: req.propietarioId }).sort('-createdAt')
     res.json(ventas)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -33,7 +33,7 @@ router.post('/', auth, async (req, res) => {
     })
     res.status(201).json(venta)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 

@@ -8,7 +8,7 @@ router.get('/', auth, async (req, res) => {
     const mesas = await Mesa.find({ usuario: req.propietarioId }).sort('numero')
     res.json(mesas)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -22,7 +22,7 @@ router.post('/bulk', auth, async (req, res) => {
     const result = await Mesa.insertMany(docs)
     res.status(201).json(result)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -32,7 +32,7 @@ router.post('/', auth, async (req, res) => {
     const mesa = await Mesa.create({ numero, zona, col, row, usuario: req.propietarioId })
     res.status(201).json(mesa)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -55,7 +55,7 @@ router.put('/:id', auth, async (req, res) => {
     if (!mesa) return res.status(404).json({ message: 'Mesa no encontrada' })
     res.json(mesa)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -64,7 +64,7 @@ router.delete('/all', auth, async (req, res) => {
     const result = await Mesa.deleteMany({ usuario: req.propietarioId })
     res.json({ message: `${result.deletedCount} mesas eliminadas` })
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -78,7 +78,7 @@ router.delete('/:id', auth, async (req, res) => {
     )
     res.json({ message: 'Mesa eliminada' })
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 

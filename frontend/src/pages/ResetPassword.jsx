@@ -19,7 +19,7 @@ export default function ResetPassword() {
     e.preventDefault()
     setError('')
     if (password !== confirmar) return setError('Las contraseñas no coinciden')
-    if (password.length < 6)   return setError('Debe tener al menos 6 caracteres')
+    if (password.length < 8)   return setError('Debe tener al menos 8 caracteres')
 
     setLoading(true)
     try {

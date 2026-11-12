@@ -127,6 +127,7 @@ function SeccionUsuarios() {
   const handleCreate = async e => {
     e.preventDefault()
     if (!form.email || !form.nombre || !form.password) { setErr('Completá todos los campos requeridos'); return }
+    if (form.password.length < 8) { setErr('La contraseña debe tener al menos 8 caracteres'); return }
     if (form.password !== form.confirm) { setErr('Las contraseñas no coinciden'); return }
     setSaving(true); setErr('')
     try {
@@ -164,6 +165,7 @@ function SeccionUsuarios() {
   const handleUpdate = async e => {
     e.preventDefault()
     if (!form.nombre) { setErr('El nombre es obligatorio'); return }
+    if (form.password && form.password.length < 8) { setErr('La contraseña debe tener al menos 8 caracteres'); return }
     if (form.password && form.password !== form.confirm) { setErr('Las contraseñas no coinciden'); return }
     setSaving(true); setErr('')
     try {

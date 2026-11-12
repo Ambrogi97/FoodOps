@@ -8,7 +8,7 @@ router.get('/', auth, async (req, res) => {
     const ingredientes = await Ingrediente.find({ usuario: req.propietarioId }).sort('nombre')
     res.json(ingredientes)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -28,7 +28,7 @@ router.post('/', auth, async (req, res) => {
     })
     res.status(201).json(ingrediente)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -50,7 +50,7 @@ router.put('/:id', auth, async (req, res) => {
     if (!ingrediente) return res.status(404).json({ message: 'Ingrediente no encontrado' })
     res.json(ingrediente)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -60,7 +60,7 @@ router.delete('/:id', auth, async (req, res) => {
     if (!ingrediente) return res.status(404).json({ message: 'Ingrediente no encontrado' })
     res.json({ message: 'Ingrediente eliminado' })
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 

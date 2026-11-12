@@ -38,6 +38,21 @@ const request = async (path, options = {}) => {
     window.location.href = '/login'
     return
   }
+  if (res.status === 402) {
+    // Plan vencido: refrescar el perfil para que el dashboard muestre la pantalla de pago
+    const { user } = getSession()
+    const yaSabiaVencido = user?.trialEndsAt && new Date(user.trialEndsAt) < new Date()
+    if (!yaSabiaVencido && path !== '/auth/me') {
+      try {
+        const me = await request('/auth/me')
+        if (me) {
+          localStorage.setItem('user', JSON.stringify(me))
+          window.location.reload()
+        }
+      } catch { /* sin conexión: se muestra el error */ }
+    }
+    throw new Error('Tu plan venció. Elegí un plan para seguir usando FoodOps.')
+  }
   const json = await res.json()
   if (!res.ok) throw new Error(json.message || 'Error en la solicitud')
   return json
@@ -482,7 +497,16 @@ export const cuentasCorrientesProveedoresService = {
 
 export const perfilService = {
   getMe:    async ()       => request('/auth/me'),
-  updateMe: async (data)   => request('/auth/me', { method: 'PUT', body: JSON.stringify(data) }),
+  updateMe: async (data)   => {
+    const res = await request('/auth/me', { method: 'PUT', body: JSON.stringify(data) })
+    // Al cambiar la contraseña el servidor emite un token nuevo (las otras sesiones se cierran)
+    if (res?.token) {
+      const { token, ...user } = res
+      saveSession(token, user)
+      return user
+    }
+    return res
+  },
 }
 
 // ── Usuarios del restaurante ──────────────────────────────────────────────────

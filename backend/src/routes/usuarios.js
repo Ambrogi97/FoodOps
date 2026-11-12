@@ -29,8 +29,12 @@ router.get('/', auth, async (req, res) => {
 router.post('/', auth, soloOwner, async (req, res) => {
   try {
     const { nombre, email, password, role } = req.body
-    if (!nombre || !email || !password) {
+    if (typeof nombre !== 'string' || typeof email !== 'string' || typeof password !== 'string' ||
+        !nombre.trim() || !email.trim() || !password) {
       return res.status(400).json({ message: 'Nombre, email y contraseña son obligatorios' })
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ message: 'La contraseña debe tener al menos 8 caracteres' })
     }
 
     if (req.usuario.plan === 'basico') {
@@ -72,7 +76,10 @@ router.put('/:id', auth, soloOwner, async (req, res) => {
     if (!usuario) return res.status(404).json({ message: 'Usuario no encontrado' })
 
     const { nombre, role, password } = req.body
-    if (nombre) usuario.nombre = nombre.trim()
+    if (password !== undefined && password !== '' && (typeof password !== 'string' || password.length < 8)) {
+      return res.status(400).json({ message: 'La contraseña debe tener al menos 8 caracteres' })
+    }
+    if (typeof nombre === 'string' && nombre.trim()) usuario.nombre = nombre.trim()
     if (role) {
       const safeRole = ['encargado', 'camarero', 'repartidor'].includes(role) ? role : usuario.role
       usuario.role = safeRole

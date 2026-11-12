@@ -16,10 +16,13 @@ const userSchema = new mongoose.Schema({
   subscriptionStatus: { type: String, default: null },
   resetToken:         { type: String, default: null },
   resetTokenExpiry:   { type: Date,   default: null },
+  // Invalida los tokens emitidos antes de cambiar la contraseña
+  passwordChangedAt:  { type: Date,   default: null },
 }, { timestamps: true })
 
 userSchema.pre('save', async function () {
   if (!this.isModified('password')) return
+  if (!this.isNew) this.passwordChangedAt = new Date()
   this.password = await bcrypt.hash(this.password, 10)
 })
 

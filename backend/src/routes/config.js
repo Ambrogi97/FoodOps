@@ -11,7 +11,14 @@ const DIAS_DEFAULT = ['dom','lun','mar','mie','jue','vie','sab'].map(dia => ({
   franjas: [{ desde: '00:00', hasta: '23:59' }],
 }))
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } })
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+    allowed.includes(file.mimetype) ? cb(null, true) : cb(Object.assign(new Error('Tipo de archivo no permitido'), { status: 400 }))
+  },
+})
 
 // ── Config tienda ─────────────────────────────────────────────────────────────
 
@@ -23,7 +30,7 @@ router.get('/tienda', auth, async (req, res) => {
     }
     res.json(config)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -42,7 +49,7 @@ router.put('/tienda', auth, async (req, res) => {
     )
     res.json(config)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -61,7 +68,7 @@ router.post('/tienda/logo', auth, upload.single('logo'), async (req, res) => {
     )
     res.json({ url: updated.logo })
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -72,7 +79,7 @@ router.delete('/tienda/logo', auth, async (req, res) => {
     await ConfigTienda.findOneAndUpdate({ usuario: req.propietarioId }, { $set: { logo: null } })
     res.json({ ok: true })
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -91,7 +98,7 @@ router.post('/tienda/portada', auth, upload.single('portada'), async (req, res) 
     )
     res.json({ url: updated.portada })
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -102,7 +109,7 @@ router.delete('/tienda/portada', auth, async (req, res) => {
     await ConfigTienda.findOneAndUpdate({ usuario: req.propietarioId }, { $set: { portada: null } })
     res.json({ ok: true })
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -121,7 +128,7 @@ router.post('/tienda/fondo-imagen', auth, upload.single('fondoImagen'), async (r
     )
     res.json({ url: updated.fondoImagen })
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -132,7 +139,7 @@ router.delete('/tienda/fondo-imagen', auth, async (req, res) => {
     await ConfigTienda.findOneAndUpdate({ usuario: req.propietarioId }, { $set: { fondoImagen: null } })
     res.json({ ok: true })
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -148,7 +155,7 @@ router.put('/tienda/tiempo-estimado', auth, async (req, res) => {
     )
     res.json({ tiempoEstimadoMin: config.tiempoEstimadoMin })
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -164,7 +171,7 @@ router.put('/tienda/zona-delivery', auth, async (req, res) => {
     )
     res.json(config.zonaDelivery)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
@@ -181,7 +188,7 @@ router.put('/tienda/formas-pago', auth, async (req, res) => {
     )
     res.json(config.formasPago)
   } catch (e) {
-    res.status(500).json({ message: e.message })
+    { console.error('[' + req.method + ' ' + req.originalUrl + ']', e); res.status(500).json({ message: 'Error interno del servidor' }) }
   }
 })
 
