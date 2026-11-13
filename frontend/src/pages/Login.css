@@ -327,3 +327,11 @@
     font-size: 1rem;
   }
 }
+
+/* Botón principal usado como link (pantallas de recuperación) */
+.login-submit--link {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  box-sizing: border-box;
+}
