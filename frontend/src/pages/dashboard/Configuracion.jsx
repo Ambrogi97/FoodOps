@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import {
-  ShoppingBag, ShieldCheck, Users,
+  ShoppingBag, ShieldCheck, Users, UserCog,
   Plus, X, ChevronLeft, Check,
 } from 'lucide-react'
 import TiendaOnline from './TiendaOnline'
 import ConfigSalasYMesas from './ConfigSalasYMesas'
-import { getSession, usuariosService, rolesService } from '../../services/api'
+import { getSession, usuariosService, rolesService, perfilService } from '../../services/api'
 import './Configuracion.css'
 
 /* ── Top tabs ─────────────────────────────────────────────────────── */
@@ -16,6 +16,7 @@ const TOP_TABS = [
 
 /* ── Sidebar sections ─────────────────────────────────────────────── */
 const SECCIONES = [
+  { id: 'cuenta',    label: 'Mi cuenta',       Icon: UserCog },
   { id: 'tienda',    label: 'Tienda Online',   Icon: ShoppingBag },
   { id: 'usuarios',  label: 'Usuarios',         Icon: Users },
   { id: 'roles',     label: 'Roles de usuario', Icon: ShieldCheck },
@@ -598,6 +599,124 @@ function SeccionRoles() {
   )
 }
 
+/* ── Mi cuenta: nombre del restaurante, nombre propio y contraseña ── */
+function SeccionCuenta() {
+  const { user } = getSession()
+  const esDueno = !user?.cuentaPadreId
+
+  const [datos, setDatos]       = useState({ restaurante: user?.restaurante || '', nombre: user?.nombre || '' })
+  const [guardandoDatos, setGD] = useState(false)
+  const [msgDatos, setMsgDatos] = useState({ tipo: '', texto: '' })
+
+  const PASS_VACIO = { actual: '', nueva: '', confirmar: '' }
+  const [pass, setPass]         = useState(PASS_VACIO)
+  const [guardandoPass, setGP]  = useState(false)
+  const [msgPass, setMsgPass]   = useState({ tipo: '', texto: '' })
+
+  const guardarDatos = async e => {
+    e.preventDefault()
+    const restaurante = datos.restaurante.trim()
+    const nombre      = datos.nombre.trim()
+    if (!nombre || (esDueno && !restaurante)) {
+      setMsgDatos({ tipo: 'err', texto: 'Completá los campos obligatorios' }); return
+    }
+    setGD(true); setMsgDatos({ tipo: '', texto: '' })
+    try {
+      const actualizado = await perfilService.updateMe(esDueno ? { nombre, restaurante } : { nombre })
+      setDatos({ restaurante: actualizado.restaurante || '', nombre: actualizado.nombre || '' })
+      setMsgDatos({ tipo: 'ok', texto: 'Datos guardados' })
+    } catch (err) {
+      setMsgDatos({ tipo: 'err', texto: err.message })
+    } finally {
+      setGD(false)
+    }
+  }
+
+  const cambiarPassword = async e => {
+    e.preventDefault()
+    if (!pass.actual || !pass.nueva) { setMsgPass({ tipo: 'err', texto: 'Completá todos los campos' }); return }
+    if (pass.nueva.length < 8)        { setMsgPass({ tipo: 'err', texto: 'La nueva contraseña debe tener al menos 8 caracteres' }); return }
+    if (pass.nueva !== pass.confirmar){ setMsgPass({ tipo: 'err', texto: 'Las contraseñas no coinciden' }); return }
+    setGP(true); setMsgPass({ tipo: '', texto: '' })
+    try {
+      await perfilService.updateMe({ password: pass.actual, newPassword: pass.nueva })
+      setPass(PASS_VACIO)
+      setMsgPass({ tipo: 'ok', texto: 'Contraseña actualizada. Se cerró la sesión en tus otros dispositivos.' })
+    } catch (err) {
+      setMsgPass({ tipo: 'err', texto: err.message })
+    } finally {
+      setGP(false)
+    }
+  }
+
+  const mensaje = (msg) => msg.texto
+    ? <p className={msg.tipo === 'err' ? 'cfg-err' : ''} style={msg.tipo === 'ok' ? { color: '#16a34a', fontSize: '0.85rem', margin: 0 } : undefined}>{msg.texto}</p>
+    : null
+
+  return (
+    <div className="cfg-form" style={{ maxWidth: 520, display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <form onSubmit={guardarDatos} className="cfg-form-section" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <h3 className="cfg-section-heading">Datos de la cuenta</h3>
+        <div className="cfg-field">
+          <label>Nombre del restaurante *</label>
+          <input
+            className="cfg-input"
+            maxLength={80}
+            value={datos.restaurante}
+            disabled={!esDueno}
+            onChange={e => setDatos(d => ({ ...d, restaurante: e.target.value }))}
+          />
+          {!esDueno && <p className="cfg-section-desc">Solo el dueño de la cuenta puede cambiarlo.</p>}
+        </div>
+        <div className="cfg-field">
+          <label>Tu nombre *</label>
+          <input
+            className="cfg-input"
+            maxLength={80}
+            value={datos.nombre}
+            onChange={e => setDatos(d => ({ ...d, nombre: e.target.value }))}
+          />
+        </div>
+        <div className="cfg-field">
+          <label>Email</label>
+          <input className="cfg-input" value={user?.email || ''} disabled />
+        </div>
+        {mensaje(msgDatos)}
+        <div>
+          <button type="submit" className="cfg-btn-save" disabled={guardandoDatos}>
+            {guardandoDatos ? 'Guardando...' : 'Guardar cambios'}
+          </button>
+        </div>
+      </form>
+
+      <form onSubmit={cambiarPassword} className="cfg-form-section" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <h3 className="cfg-section-heading">Cambiar contraseña</h3>
+        <div className="cfg-field">
+          <label>Contraseña actual</label>
+          <input className="cfg-input" type="password" autoComplete="current-password"
+            value={pass.actual} onChange={e => setPass(p => ({ ...p, actual: e.target.value }))} />
+        </div>
+        <div className="cfg-field">
+          <label>Nueva contraseña</label>
+          <input className="cfg-input" type="password" autoComplete="new-password" placeholder="Mínimo 8 caracteres"
+            value={pass.nueva} onChange={e => setPass(p => ({ ...p, nueva: e.target.value }))} />
+        </div>
+        <div className="cfg-field">
+          <label>Confirmar nueva contraseña</label>
+          <input className="cfg-input" type="password" autoComplete="new-password"
+            value={pass.confirmar} onChange={e => setPass(p => ({ ...p, confirmar: e.target.value }))} />
+        </div>
+        {mensaje(msgPass)}
+        <div>
+          <button type="submit" className="cfg-btn-save" disabled={guardandoPass}>
+            {guardandoPass ? 'Cambiando...' : 'Cambiar contraseña'}
+          </button>
+        </div>
+      </form>
+    </div>
+  )
+}
+
 /* ── Main component ───────────────────────────────────────────────── */
 const SPLIT_SECS = new Set(['usuarios', 'roles'])
 
@@ -642,6 +761,7 @@ export default function Configuracion({ tabInicial = 'general' }) {
           </nav>
 
           <div className={`config-content${isSplit ? ' config-content--flush' : ''}`}>
+            {activa === 'cuenta'    && <SeccionCuenta />}
             {activa === 'tienda'    && <TiendaOnline />}
             {activa === 'usuarios'  && <SeccionUsuarios />}
             {activa === 'roles'     && <SeccionRoles />}

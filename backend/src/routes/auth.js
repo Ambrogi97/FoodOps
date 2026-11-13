@@ -5,7 +5,7 @@ const rateLimit    = require('express-rate-limit')
 const { register, login, generateToken } = require('../controllers/authController')
 const auth         = require('../middleware/auth')
 const User         = require('../models/User')
-const { escapeHtml } = require('../utils/security')
+const { escapeHtml, responderError } = require('../utils/security')
 
 const router = express.Router()
 
@@ -219,8 +219,17 @@ router.put('/me', auth, async (req, res) => {
     const user = await User.findById(req.usuario.id)
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
 
-    if (nombre)      user.nombre      = nombre
-    if (restaurante) user.restaurante = restaurante
+    if (nombre.length > 80)      return res.status(400).json({ message: 'El nombre puede tener hasta 80 caracteres' })
+    if (restaurante.length > 80) return res.status(400).json({ message: 'El nombre del restaurante puede tener hasta 80 caracteres' })
+
+    // El nombre del restaurante es de la cuenta: solo lo cambia el dueño
+    const cambiaRestaurante = restaurante && restaurante !== user.restaurante
+    if (cambiaRestaurante && user.cuentaPadreId) {
+      return res.status(403).json({ message: 'Solo el dueño de la cuenta puede cambiar el nombre del restaurante' })
+    }
+
+    if (nombre)            user.nombre      = nombre
+    if (cambiaRestaurante) user.restaurante = restaurante
 
     let token
     if (newPassword) {
@@ -234,12 +243,14 @@ router.put('/me', auth, async (req, res) => {
     }
 
     await user.save()
+    // Los sub-usuarios guardan una copia del nombre del restaurante: se actualiza también
+    if (cambiaRestaurante) await User.updateMany({ cuentaPadreId: user._id }, { restaurante })
     // Cambiar la contraseña cierra las demás sesiones: este dispositivo recibe un token nuevo
     if (newPassword) token = generateToken(user._id, user.role, user.cuentaPadreId ?? null, user.plan)
     const data = await perfilPublico(user)
     res.json(token ? { ...data, token } : data)
-  } catch {
-    res.status(500).json({ message: 'Error al actualizar perfil' })
+  } catch (e) {
+    return responderError(req, res, e)
   }
 })
 

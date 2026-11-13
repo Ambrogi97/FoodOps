@@ -52,6 +52,14 @@ export default function Dashboard() {
   const [pagando, setPagando]                 = useState(false)
   const [pagoOk, setPagoOk]                  = useState(false)
   const [pagoError, setPagoError]             = useState('')
+  const [, setPerfilVersion]                  = useState(0)
+
+  // Cuando se edita el perfil (p. ej. el nombre del restaurante), re-render para mostrarlo
+  useEffect(() => {
+    const onPerfil = () => setPerfilVersion(v => v + 1)
+    window.addEventListener('foodops:perfil-actualizado', onPerfil)
+    return () => window.removeEventListener('foodops:perfil-actualizado', onPerfil)
+  }, [])
 
   const irAConfiguracion = (tab = 'general') => {
     setConfigTab(tab)

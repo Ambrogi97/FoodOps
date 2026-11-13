@@ -152,7 +152,7 @@ const login = async (req, res) => {
 
     res.json({
       token,
-      user: { id: user._id, nombre: user.nombre, email: user.email, restaurante: user.restaurante, plan, role: user.role, trialEndsAt, superadmin: !!user.superadmin }
+      user: { id: user._id, nombre: user.nombre, email: user.email, restaurante: user.restaurante, plan, role: user.role, trialEndsAt, superadmin: !!user.superadmin, cuentaPadreId: user.cuentaPadreId ?? null }
     })
   } catch (error) {
     res.status(500).json({ message: 'Error al iniciar sesión' })

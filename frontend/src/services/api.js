@@ -499,13 +499,13 @@ export const perfilService = {
   getMe:    async ()       => request('/auth/me'),
   updateMe: async (data)   => {
     const res = await request('/auth/me', { method: 'PUT', body: JSON.stringify(data) })
+    if (!res) return res
     // Al cambiar la contraseña el servidor emite un token nuevo (las otras sesiones se cierran)
-    if (res?.token) {
-      const { token, ...user } = res
-      saveSession(token, user)
-      return user
-    }
-    return res
+    const { token, ...user } = res
+    saveSession(token || localStorage.getItem('token'), user)
+    // Avisa al dashboard para que muestre el nombre nuevo sin recargar
+    window.dispatchEvent(new Event('foodops:perfil-actualizado'))
+    return user
   },
 }
 
