@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { authService, saveSession } from '../services/api'
-import AuthLayout from '../components/AuthLayout'
+import Logo from '../components/Logo'
+import './Register.css'
 
 const ESPERA_REENVIO = 60 // segundos
 
 export default function VerificarEmail() {
   const [searchParams] = useSearchParams()
   const navigate       = useNavigate()
+  const emailUrl       = searchParams.get('email')
 
-  const [email, setEmail]       = useState(searchParams.get('email') || '')
+  const [email, setEmail]       = useState(emailUrl || '')
   const [codigo, setCodigo]     = useState('')
   const [error, setError]       = useState('')
   const [info, setInfo]         = useState('')
@@ -55,57 +57,64 @@ export default function VerificarEmail() {
   }
 
   return (
-    <AuthLayout>
-      <h1 className="login-title">Confirmá tu email</h1>
-      <p className="login-subtitle">
-        {searchParams.get('email')
-          ? <>Te enviamos un código de 6 dígitos a <strong>{searchParams.get('email')}</strong>. Ingresalo para activar tu cuenta.</>
-          : 'Ingresá tu email y el código de 6 dígitos que te enviamos para activar tu cuenta.'}
-      </p>
+    <div className="register-page">
+      <div className="register-card">
+        <Link to="/" className="register-logo">
+          <Logo size={34} />
+          <span>Food<strong>Ops</strong></span>
+        </Link>
 
-      <form className="login-form" onSubmit={verificar}>
-        {!searchParams.get('email') && (
-          <div className="login-field">
-            <label htmlFor="email">Email</label>
-            <input id="email" type="email" autoComplete="email" placeholder="Ingresá tu email"
-              value={email} onChange={e => setEmail(e.target.value)} required />
+        <h1 className="register-title">Confirmá tu email</h1>
+        <p className="register-subtitle">
+          {emailUrl
+            ? <>Te enviamos un código de 6 dígitos a <strong>{emailUrl}</strong>. Ingresalo para activar tu cuenta.</>
+            : 'Ingresá tu email y el código de 6 dígitos que te enviamos para activar tu cuenta.'}
+        </p>
+
+        <form className="register-form" onSubmit={verificar}>
+          {!emailUrl && (
+            <div className="register-field">
+              <label htmlFor="email">Email</label>
+              <input id="email" type="email" autoComplete="email" placeholder="tu@email.com"
+                value={email} onChange={e => setEmail(e.target.value)} required />
+            </div>
+          )}
+
+          <div className="register-field">
+            <label htmlFor="codigo">Código de verificación</label>
+            <input
+              id="codigo"
+              className="register-codigo"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              placeholder="000000"
+              maxLength={6}
+              value={codigo}
+              onChange={e => setCodigo(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              autoFocus
+              required
+            />
           </div>
-        )}
 
-        <div className="login-field">
-          <label htmlFor="codigo">Código de verificación</label>
-          <input
-            id="codigo"
-            className="login-codigo"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            placeholder="000000"
-            maxLength={6}
-            value={codigo}
-            onChange={e => setCodigo(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            autoFocus
-            required
-          />
-        </div>
+          {error && <p className="register-error">{error}</p>}
+          {info  && <p className="register-info">{info}</p>}
 
-        {error && <p className="login-error">{error}</p>}
-        {info  && <p className="login-info">{info}</p>}
+          <button type="submit" className="btn btn--primary btn--lg register-submit" disabled={loading || codigo.length !== 6}>
+            {loading ? 'Verificando...' : 'Confirmar y entrar'}
+          </button>
+        </form>
 
-        <button type="submit" className="login-submit" disabled={loading || codigo.length !== 6}>
-          {loading ? 'Verificando...' : 'Confirmar y entrar'}
-        </button>
-      </form>
+        <p className="register-login">
+          ¿No te llegó?{' '}
+          {espera > 0
+            ? <span>Podés pedir otro en {espera} s</span>
+            : <button type="button" className="register-link-btn" onClick={reenviar}>Reenviar código</button>}
+        </p>
 
-      <p className="login-reenviar">
-        ¿No te llegó?{' '}
-        {espera > 0
-          ? <span>Podés pedir otro en {espera} s</span>
-          : <button type="button" className="login-forgot-link" onClick={reenviar}>Reenviar código</button>}
-      </p>
-
-      <div className="login-divider"><span>o</span></div>
-
-      <Link to="/login" className="login-register-btn">Volver al login</Link>
-    </AuthLayout>
+        <p className="register-login">
+          <Link to="/login">Volver al login</Link>
+        </p>
+      </div>
+    </div>
   )
 }

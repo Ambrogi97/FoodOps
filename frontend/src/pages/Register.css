@@ -236,3 +236,25 @@
   line-height: 1.5;
   margin: -0.5rem 0 0;
 }
+
+/* Verificación de email */
+.register-field input.register-codigo {
+  font-size: 1.6rem;
+  letter-spacing: 0.6em;
+  text-align: center;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.register-info { color: #16a34a; font-size: 0.875rem; margin: 0; }
+
+.register-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--primary);
+  font-weight: 500;
+  font-size: inherit;
+  cursor: pointer;
+}
+.register-link-btn:hover { text-decoration: underline; }

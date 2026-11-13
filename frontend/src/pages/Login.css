@@ -328,30 +328,3 @@
   }
 }
 
-/* Botón principal usado como link (pantallas de recuperación) */
-.login-submit--link {
-  display: block;
-  text-align: center;
-  text-decoration: none;
-  box-sizing: border-box;
-}
-
-/* Verificación de email */
-.login-field input.login-codigo {
-  font-size: 1.6rem;
-  letter-spacing: 0.6em;
-  text-align: center;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.login-info { color: #16a34a; font-size: 0.875rem; margin: 0; }
-
-.login-reenviar {
-  margin: 1.25rem 0 0;
-  text-align: center;
-  font-size: 0.9rem;
-  color: var(--text-muted);
-}
-
-.login-reenviar .login-forgot-link { align-self: auto; }
