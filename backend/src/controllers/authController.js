@@ -2,6 +2,7 @@ const jwt  = require('jsonwebtoken')
 const User = require('../models/User')
 const { enviarEmail } = require('../utils/email')
 const { escapeHtml } = require('../utils/security')
+const { enviarCodigo, puedeReenviar, comprobarCodigo, esEmailDescartable, SEGUNDOS_REENVIO } = require('../utils/verificacion')
 
 async function enviarEmailBienvenida(user) {
   const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`
@@ -97,26 +98,109 @@ const register = async (req, res) => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res.status(400).json({ message: 'El email no es válido' })
     }
+    if (esEmailDescartable(email)) {
+      return res.status(400).json({ message: 'No se aceptan emails temporales o descartables. Usá tu email real.' })
+    }
+    if (nombre.length > 80 || restaurante.length > 80) {
+      return res.status(400).json({ message: 'El nombre y el restaurante pueden tener hasta 80 caracteres' })
+    }
 
-    const existingUser = await User.findOne({ email: email.toLowerCase() })
-    if (existingUser) {
+    let user = await User.findOne({ email: email.toLowerCase() })
+    if (user && user.emailVerificado !== false) {
       return res.status(400).json({ message: 'El email ya está registrado' })
     }
 
-    const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-    const user = await User.create({ nombre, email, password, restaurante, plan: 'gratuito', trialEndsAt, role: 'admin' })
-    const token = generateToken(user._id, user.role, null, user.plan)
+    if (user) {
+      // Registro previo sin verificar: se reemplazan los datos (quien verifique el email se queda con la cuenta)
+      if (!puedeReenviar(user)) {
+        return res.status(429).json({ message: 'Ya te enviamos un código hace un momento. Esperá un minuto e intentá de nuevo.' })
+      }
+      Object.assign(user, { nombre, password, restaurante })
+      await user.save()
+    } else {
+      user = await User.create({ nombre, email, password, restaurante, plan: 'gratuito', role: 'admin', emailVerificado: false })
+    }
 
-    // Enviar email de bienvenida (no bloqueante — si falla no interrumpe el registro)
-    enviarEmailBienvenida(user).catch(e => console.error('Email bienvenida error:', e))
+    try {
+      await enviarCodigo(user)
+    } catch (e) {
+      console.error('Error enviando código de verificación:', e)
+      return res.status(502).json({ message: 'No pudimos enviarte el email de verificación. Intentá de nuevo en unos minutos.' })
+    }
 
-    res.status(201).json({
-      token,
-      user: { id: user._id, nombre: user.nombre, email: user.email, restaurante: user.restaurante, plan: user.plan, role: user.role, trialEndsAt: user.trialEndsAt }
-    })
+    // Sin token: la cuenta se activa recién al confirmar el código
+    res.status(201).json({ pendienteVerificacion: true, email: user.email })
   } catch (error) {
     console.error('Register error:', error)
     res.status(500).json({ message: 'Error al crear la cuenta. Intentá de nuevo.' })
+  }
+}
+
+// Datos de sesión que recibe el frontend
+async function respuestaSesion(user) {
+  let plan = user.plan
+  let trialEndsAt = user.trialEndsAt ?? null
+  if (user.cuentaPadreId) {
+    const owner = await User.findById(user.cuentaPadreId, 'plan trialEndsAt')
+    plan        = owner?.plan        ?? 'basico'
+    trialEndsAt = owner?.trialEndsAt ?? null
+  }
+  return {
+    token: generateToken(user._id, user.role, user.cuentaPadreId ?? null, plan),
+    user: { id: user._id, nombre: user.nombre, email: user.email, restaurante: user.restaurante, plan, role: user.role, trialEndsAt, superadmin: !!user.superadmin, cuentaPadreId: user.cuentaPadreId ?? null },
+  }
+}
+
+// POST /auth/verificar — confirma el código y activa la cuenta (inicia sesión)
+const verificarEmail = async (req, res) => {
+  try {
+    const email  = typeof req.body.email  === 'string' ? req.body.email.trim().toLowerCase() : ''
+    const codigo = typeof req.body.codigo === 'string' ? req.body.codigo.replace(/\D/g, '') : ''
+    if (!email || codigo.length !== 6) return res.status(400).json({ message: 'Ingresá el código de 6 dígitos' })
+
+    const user = await User.findOne({ email })
+    if (!user || user.emailVerificado !== false) {
+      return res.status(400).json({ message: 'El código es incorrecto o venció' })
+    }
+
+    const resultado = await comprobarCodigo(user, codigo)
+    if (resultado === 'vencido')   return res.status(400).json({ code: 'CODIGO_VENCIDO', message: 'El código venció. Pedí uno nuevo.' })
+    if (resultado === 'bloqueado') return res.status(400).json({ code: 'CODIGO_BLOQUEADO', message: 'Demasiados intentos con este código. Pedí uno nuevo.' })
+    if (resultado === 'invalido')  return res.status(400).json({ message: 'El código es incorrecto' })
+
+    user.emailVerificado    = true
+    user.codigoVerificacion = null
+    user.codigoExpira       = null
+    user.codigoIntentos     = 0
+    // La prueba gratis empieza al activar la cuenta
+    user.trialEndsAt        = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    await user.save({ validateBeforeSave: false })
+
+    enviarEmailBienvenida(user).catch(e => console.error('Email bienvenida error:', e))
+    res.json(await respuestaSesion(user))
+  } catch (error) {
+    console.error('Verificar email error:', error)
+    res.status(500).json({ message: 'Error al verificar el código' })
+  }
+}
+
+// POST /auth/reenviar-codigo — respuesta genérica para no revelar qué emails existen
+const reenviarCodigo = async (req, res) => {
+  const generico = { message: 'Si hay una cuenta pendiente con ese email, te enviamos un código nuevo.' }
+  try {
+    const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : ''
+    if (!email) return res.status(400).json({ message: 'El email es obligatorio' })
+
+    const user = await User.findOne({ email })
+    if (!user || user.emailVerificado !== false) return res.json(generico)
+    if (!puedeReenviar(user)) {
+      return res.status(429).json({ message: `Esperá ${SEGUNDOS_REENVIO} segundos entre cada envío.` })
+    }
+    await enviarCodigo(user)
+    res.json(generico)
+  } catch (error) {
+    console.error('Reenviar código error:', error)
+    res.status(502).json({ message: 'No pudimos enviar el email. Intentá de nuevo en unos minutos.' })
   }
 }
 
@@ -139,24 +223,21 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Credenciales inválidas' })
     }
 
-    // Sub-usuarios no tienen plan propio — heredan el del dueño
-    let plan = user.plan
-    let trialEndsAt = user.trialEndsAt ?? null
-    if (user.cuentaPadreId) {
-      const owner = await User.findById(user.cuentaPadreId, 'plan trialEndsAt')
-      plan        = owner?.plan        ?? 'basico'
-      trialEndsAt = owner?.trialEndsAt ?? null
+    // Cuenta registrada pero sin confirmar el email: no entra (se le reenvía el código si corresponde)
+    if (user.emailVerificado === false) {
+      if (puedeReenviar(user)) enviarCodigo(user).catch(e => console.error('Reenvío de código en login:', e))
+      return res.status(403).json({
+        code:    'EMAIL_NO_VERIFICADO',
+        email:   user.email,
+        message: 'Tenés que confirmar tu email antes de entrar. Te enviamos un código.',
+      })
     }
 
-    const token = generateToken(user._id, user.role, user.cuentaPadreId ?? null, plan)
-
-    res.json({
-      token,
-      user: { id: user._id, nombre: user.nombre, email: user.email, restaurante: user.restaurante, plan, role: user.role, trialEndsAt, superadmin: !!user.superadmin, cuentaPadreId: user.cuentaPadreId ?? null }
-    })
+    // Sub-usuarios no tienen plan propio — heredan el del dueño
+    res.json(await respuestaSesion(user))
   } catch (error) {
     res.status(500).json({ message: 'Error al iniciar sesión' })
   }
 }
 
-module.exports = { register, login, generateToken }
+module.exports = { register, login, verificarEmail, reenviarCodigo, generateToken }

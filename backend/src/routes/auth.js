@@ -2,7 +2,7 @@ const express      = require('express')
 const bcrypt       = require('bcryptjs')
 const crypto       = require('crypto')
 const rateLimit    = require('express-rate-limit')
-const { register, login, generateToken } = require('../controllers/authController')
+const { register, login, verificarEmail, reenviarCodigo, generateToken } = require('../controllers/authController')
 const auth         = require('../middleware/auth')
 const User         = require('../models/User')
 const { escapeHtml, responderError } = require('../utils/security')
@@ -165,6 +165,13 @@ router.post('/reset', resetLimiter, async (req, res) => {
     user.password         = password
     user.resetToken       = null
     user.resetTokenExpiry = null
+    // Recibir el link en su casilla demuestra que el email es suyo
+    if (user.emailVerificado === false) {
+      user.emailVerificado = true
+      user.codigoVerificacion = null
+      user.codigoExpira = null
+      user.trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    }
     await user.save({ validateBeforeSave: false })
 
     res.json({ message: 'Contraseña actualizada correctamente' })
@@ -185,12 +192,23 @@ const registerLimiter = rateLimit({
 router.post('/register', registerLimiter, register)
 router.post('/login', loginLimiter, login)
 
-const CAMPOS_PRIVADOS = '-password -resetToken -resetTokenExpiry -passwordChangedAt'
+const verificarLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Demasiados intentos. Esperá 15 minutos e intentá de nuevo.' },
+})
+router.post('/verificar', verificarLimiter, verificarEmail)
+router.post('/reenviar-codigo', resetLimiter, reenviarCodigo)
+
+const CAMPOS_PRIVADOS = '-password -resetToken -resetTokenExpiry -passwordChangedAt -codigoVerificacion -codigoExpira -codigoEnviadoAt -codigoIntentos'
 
 // Perfil con el plan efectivo (el de la cuenta dueña si es sub-usuario)
 async function perfilPublico(user) {
   const data = user.toObject ? user.toObject() : { ...user }
   delete data.password; delete data.resetToken; delete data.resetTokenExpiry; delete data.passwordChangedAt
+  delete data.codigoVerificacion; delete data.codigoExpira; delete data.codigoEnviadoAt; delete data.codigoIntentos
   data.id = String(data._id)
   if (data.cuentaPadreId) {
     const owner = await User.findById(data.cuentaPadreId, 'plan trialEndsAt').lean()

@@ -59,7 +59,21 @@ connectDB().then(async () => {
   if (deleted.deletedCount > 0) {
     console.log(`[startup] Eliminados ${deleted.deletedCount} usuarios de prueba (@seed.local)`)
   }
+  limpiarCuentasSinVerificar()
+  setInterval(limpiarCuentasSinVerificar, 60 * 60 * 1000) // cada hora
 })
+
+// Borra cuentas que se registraron y nunca confirmaron el email (bots, emails falsos)
+async function limpiarCuentasSinVerificar() {
+  try {
+    const { HORAS_SIN_VERIFICAR } = require('./utils/verificacion')
+    const limite = new Date(Date.now() - HORAS_SIN_VERIFICAR * 60 * 60 * 1000)
+    const r = await User.deleteMany({ emailVerificado: false, createdAt: { $lt: limite } })
+    if (r.deletedCount > 0) console.log(`[limpieza] ${r.deletedCount} cuentas sin verificar eliminadas`)
+  } catch (e) {
+    console.error('[limpieza] error:', e.message)
+  }
+}
 
 const allowedOrigins = require('./utils/security').allowedOrigins()
 

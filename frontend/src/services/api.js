@@ -79,7 +79,32 @@ export const authService = {
       body: JSON.stringify(data),
     })
     const json = await res.json()
-    if (!res.ok) throw new Error(json.message || 'Error al iniciar sesión')
+    if (!res.ok) {
+      // code permite distinguir, p. ej., EMAIL_NO_VERIFICADO
+      throw Object.assign(new Error(json.message || 'Error al iniciar sesión'), { code: json.code, email: json.email })
+    }
+    return json
+  },
+
+  async verificarEmail(email, codigo) {
+    const res = await fetch(`${API_URL}/auth/verificar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, codigo }),
+    })
+    const json = await res.json()
+    if (!res.ok) throw Object.assign(new Error(json.message || 'Error al verificar'), { code: json.code })
+    return json
+  },
+
+  async reenviarCodigo(email) {
+    const res = await fetch(`${API_URL}/auth/reenviar-codigo`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    })
+    const json = await res.json()
+    if (!res.ok) throw new Error(json.message || 'Error al reenviar el código')
     return json
   },
 

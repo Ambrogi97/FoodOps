@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
-import { authService, saveSession } from '../services/api'
+import { authService } from '../services/api'
 import Logo from '../components/Logo'
 import './Register.css'
 
@@ -24,7 +24,6 @@ export default function Register() {
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [exitoso, setExitoso] = useState(false)
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -46,15 +45,15 @@ export default function Register() {
 
     setLoading(true)
     try {
-      const { token, user } = await authService.register({
+      const { email } = await authService.register({
         nombre: form.nombre,
         email: form.email,
         password: form.password,
         restaurante: form.restaurante,
         plan: planId,
       })
-      saveSession(token, user)
-      setExitoso(true)
+      // La cuenta se activa al confirmar el código que llega por email
+      navigate(`/verificar-email?email=${encodeURIComponent(email)}`)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -64,18 +63,6 @@ export default function Register() {
 
   return (
     <div className="register-page">
-      {exitoso && (
-        <div className="register-overlay">
-          <div className="register-success-modal">
-            <div className="register-success-icon">✅</div>
-            <h2>¡Cuenta creada exitosamente!</h2>
-            <p>Tu cuenta fue registrada. Podés iniciar sesión cuando quieras.</p>
-            <button className="btn btn--primary btn--lg" onClick={() => navigate('/login')}>
-              Ir al login
-            </button>
-          </div>
-        </div>
-      )}
     <div className="register-page-inner">
       <div className="register-card">
         <Link to="/" className="register-logo">

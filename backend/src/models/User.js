@@ -16,6 +16,13 @@ const userSchema = new mongoose.Schema({
   subscriptionStatus: { type: String, default: null },
   resetToken:         { type: String, default: null },
   resetTokenExpiry:   { type: Date,   default: null },
+  // Verificación de email: false = registrada pero sin confirmar.
+  // Sin valor (cuentas viejas y sub-usuarios) cuenta como verificada.
+  emailVerificado:    { type: Boolean },
+  codigoVerificacion: { type: String, default: null },
+  codigoExpira:       { type: Date,   default: null },
+  codigoEnviadoAt:    { type: Date,   default: null },
+  codigoIntentos:     { type: Number, default: 0 },
   // Invalida los tokens emitidos antes de cambiar la contraseña
   passwordChangedAt:  { type: Date,   default: null },
 }, { timestamps: true })

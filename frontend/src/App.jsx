@@ -16,6 +16,7 @@ import Carta from './pages/Carta'
 import Tracking from './pages/Tracking'
 import Resena from './pages/Resena'
 import ResetPassword from './pages/ResetPassword'
+import VerificarEmail from './pages/VerificarEmail'
 
 function Landing() {
   return (
@@ -50,6 +51,7 @@ function App() {
         <Route path="/tracking/:pedidoId" element={<Tracking />} />
         <Route path="/resena/:pedidoId" element={<Resena />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verificar-email" element={<VerificarEmail />} />
       </Routes>
     </BrowserRouter>
   )

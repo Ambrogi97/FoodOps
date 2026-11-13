@@ -34,6 +34,11 @@ export default function Login() {
       saveSession(token, user)
       navigate('/dashboard')
     } catch (err) {
+      // Cuenta sin confirmar: el servidor ya reenvió el código → pantalla de verificación
+      if (err.code === 'EMAIL_NO_VERIFICADO') {
+        navigate(`/verificar-email?email=${encodeURIComponent(err.email || form.email)}`)
+        return
+      }
       setError(err.message)
     } finally {
       setLoading(false)
