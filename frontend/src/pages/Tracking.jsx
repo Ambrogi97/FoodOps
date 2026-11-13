@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { CheckCircle, Clock, ChefHat, PackageCheck, Bike, Frown } from 'lucide-react'
+import { cargarConReintentos } from '../services/reintentos'
 import './Tracking.css'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
@@ -25,21 +26,27 @@ export default function Tracking() {
   const [error, setError]   = useState('')
   const ivRef               = useRef(null)
 
-  const cargar = async () => {
-    try {
-      const r = await fetch(`${API}/api/carta/tracking/${pedidoId}`)
-      if (!r.ok) throw new Error()
-      const d = await r.json()
-      setDatos(d)
-    } catch {
-      setError('No se encontró el pedido.')
-    }
-  }
-
   useEffect(() => {
-    cargar()
-    ivRef.current = setInterval(cargar, 15_000)
-    return () => clearInterval(ivRef.current)
+    let cancelado = false
+    const url = `${API}/api/carta/tracking/${pedidoId}`
+
+    // Primera carga: reintenta si el servidor está despertando
+    cargarConReintentos(url, () => cancelado)
+      .then(d => { if (!cancelado) setDatos(d) })
+      .catch(e => {
+        if (cancelado) return
+        setError(e.status === 404 ? 'No se encontró el pedido.' : 'No pudimos cargar el estado del pedido. Revisá tu conexión e intentá de nuevo.')
+      })
+
+    // Actualización cada 15 s: si una falla, se mantiene lo que ya se ve
+    ivRef.current = setInterval(async () => {
+      try {
+        const r = await fetch(url, { cache: 'no-store' })
+        if (r.ok && !cancelado) setDatos(await r.json())
+      } catch { /* se reintenta en el próximo ciclo */ }
+    }, 15_000)
+
+    return () => { cancelado = true; clearInterval(ivRef.current) }
   }, [pedidoId])
 
   useEffect(() => {

@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { UtensilsCrossed, Frown, CheckCircle, Armchair, ShoppingBag, Store, Bike, MapPin, Phone, Mail, FileText } from 'lucide-react'
+import { cargarConReintentos } from '../services/reintentos'
 import './Carta.css'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 const fmt = (n) => `$${Number(n).toLocaleString('es-AR')}`
 const DATOS_CLIENTE_KEY = 'foodops_datos_cliente'
+
 
 // Datos que el cliente usó la última vez (guardados solo en su navegador)
 function leerDatosCliente() {
@@ -54,6 +56,7 @@ export default function Carta() {
   const [enviando, setEnviando]         = useState(false)
   const [errorEnvio, setErrorEnvio]     = useState('')
   const [error, setError]               = useState('')
+  const [despertando, setDespertando]   = useState(false)
   const [numeroPedido, setNumeroPedido] = useState('')
   const [trackingUrl, setTrackingUrl]   = useState('')
 
@@ -67,9 +70,12 @@ export default function Carta() {
 
   useEffect(() => {
     if (!userId) { setError('Enlace inválido'); return }
-    fetch(`${API}/api/carta/${userId}`, { cache: 'no-store' })
-      .then(r => { if (!r.ok) throw new Error(); return r.json() })
+    let cancelado = false
+    // Si el servidor está "dormido" (plan gratuito) tarda en despertar: avisamos y reintentamos solos
+    const avisoTimer = setTimeout(() => { if (!cancelado) setDespertando(true) }, 4000)
+    cargarConReintentos(`${API}/api/carta/${userId}`, () => cancelado)
       .then(data => {
+        if (cancelado) return
         if (data.habilitado === false) {
           setDatos({ cerrada: true, restaurante: data.restaurante })
         } else {
@@ -81,7 +87,9 @@ export default function Carta() {
           setForm(f => ({ ...f, formaPago: primeraForma, tipo: tipoInicial }))
         }
       })
-      .catch(() => setError('No se pudo cargar el menú'))
+      .catch(e => { if (!cancelado) setError(e.status === 404 ? 'Restaurante no encontrado' : 'No se pudo cargar el menú. Revisá tu conexión e intentá de nuevo.') })
+      .finally(() => clearTimeout(avisoTimer))
+    return () => { cancelado = true; clearTimeout(avisoTimer) }
   }, [userId])
 
   const onEmailChange = (email) => {
@@ -89,10 +97,19 @@ export default function Carta() {
   }
 
   if (error) return (
-    <div className="carta-error"><span><Frown size={40} color="#ef4444" /></span><p>{error}</p></div>
+    <div className="carta-error">
+      <span><Frown size={40} color="#ef4444" /></span>
+      <p>{error}</p>
+      {error.startsWith('No se pudo') && (
+        <button className="carta-reintentar" onClick={() => window.location.reload()}>Reintentar</button>
+      )}
+    </div>
   )
   if (!datos) return (
-    <div className="carta-loading"><div className="carta-spinner" /></div>
+    <div className="carta-loading">
+      <div className="carta-spinner" />
+      {despertando && <p className="carta-loading-msg">Cargando el menú… puede tardar unos segundos.</p>}
+    </div>
   )
   if (datos.cerrada) return (
     <div className="carta-cerrada">
