@@ -35,7 +35,14 @@ function getMeses(periodo, desdeC, hastaC) {
 }
 
 const ventaTotal  = v => (v.items || []).reduce((s, i) => s + (i.cantidad || 0) * (i.precio || 0), 0)
-const fechaMes    = f => { if (!f) return null; const d = new Date(f); return isNaN(d) ? null : { year: d.getFullYear(), month: d.getMonth() + 1 } }
+// Ventas y gastos guardan "dd/mm/aaaa" (con hora opcional): new Date() lo leería como mm/dd
+const fechaMes    = f => {
+  if (!f) return null
+  const dmy = String(f).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/)
+  if (dmy) return { year: Number(dmy[3]), month: Number(dmy[2]) }
+  const d = new Date(f)
+  return isNaN(d) ? null : { year: d.getFullYear(), month: d.getMonth() + 1 }
+}
 const pct         = (v, base) => base !== 0 ? Math.round((v / base) * 100) : 0
 const fmtDelta    = n => n > 0 ? `+${n}%` : `${n}%`
 
