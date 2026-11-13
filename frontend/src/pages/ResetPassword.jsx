@@ -1,7 +1,23 @@
 import { useState } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { authService } from '../services/api'
-import LayoutAuth from '../components/AuthLayout'
+import Logo from '../components/Logo'
+import './Register.css'
+
+// Misma tarjeta centrada que "Creá tu cuenta"
+function TarjetaAuth({ children }) {
+  return (
+    <div className="register-page">
+      <div className="register-card">
+        <Link to="/" className="register-logo">
+          <Logo size={34} />
+          <span>Food<strong>Ops</strong></span>
+        </Link>
+        {children}
+      </div>
+    </div>
+  )
+}
 
 export default function ResetPassword() {
   const [searchParams]  = useSearchParams()
@@ -33,49 +49,53 @@ export default function ResetPassword() {
 
   if (!token) {
     return (
-      <LayoutAuth>
-        <h1 className="login-title">Enlace inválido</h1>
-        <p className="login-subtitle">
+      <TarjetaAuth>
+        <h1 className="register-title">Enlace inválido</h1>
+        <p className="register-subtitle">
           El enlace para restablecer la contraseña es inválido o ya expiró.
           Podés pedir uno nuevo desde el login.
         </p>
-        <Link to="/login" className="login-submit login-submit--link">Volver al login</Link>
-      </LayoutAuth>
+        <button className="btn btn--primary btn--lg register-submit" onClick={() => navigate('/login')}>
+          Volver al login
+        </button>
+      </TarjetaAuth>
     )
   }
 
   if (success) {
     return (
-      <LayoutAuth>
-        <h1 className="login-title">¡Contraseña actualizada!</h1>
-        <p className="login-subtitle">Ya podés iniciar sesión con tu nueva contraseña.</p>
-        <button className="login-submit" onClick={() => navigate('/login')}>
+      <TarjetaAuth>
+        <div className="register-plan-badge register-plan-badge--trial" style={{ alignItems: 'center' }}>
+          <span className="register-plan-label">✅ ¡Contraseña actualizada!</span>
+          <span className="register-plan-desc">Ya podés iniciar sesión con tu nueva contraseña.</span>
+        </div>
+        <button className="btn btn--primary btn--lg register-submit" onClick={() => navigate('/login')}>
           Ir al login
         </button>
-      </LayoutAuth>
+      </TarjetaAuth>
     )
   }
 
   return (
-    <LayoutAuth>
-      <h1 className="login-title">Nueva contraseña</h1>
-      <p className="login-subtitle">Elegí una contraseña nueva para tu cuenta. Tiene que tener al menos 8 caracteres.</p>
+    <TarjetaAuth>
+      <h1 className="register-title">Nueva contraseña</h1>
+      <p className="register-subtitle">Elegí una contraseña nueva para tu cuenta. Tiene que tener al menos 8 caracteres.</p>
 
-      <form className="login-form" onSubmit={handleSubmit}>
-        <div className="login-field">
+      <form className="register-form" onSubmit={handleSubmit}>
+        <div className="register-field">
           <label htmlFor="password">Nueva contraseña</label>
           <input
             id="password"
             type="password"
             autoComplete="new-password"
-            placeholder="Ingresá tu nueva contraseña"
+            placeholder="Mínimo 8 caracteres"
             value={password}
             onChange={e => setPassword(e.target.value)}
             required
           />
         </div>
 
-        <div className="login-field">
+        <div className="register-field">
           <label htmlFor="confirmar">Confirmar contraseña</label>
           <input
             id="confirmar"
@@ -88,16 +108,16 @@ export default function ResetPassword() {
           />
         </div>
 
-        {error && <p className="login-error">{error}</p>}
+        {error && <p className="register-error">{error}</p>}
 
-        <button type="submit" className="login-submit" disabled={loading}>
+        <button type="submit" className="btn btn--primary btn--lg register-submit" disabled={loading}>
           {loading ? 'Guardando...' : 'Guardar contraseña'}
         </button>
       </form>
 
-      <div className="login-divider"><span>o</span></div>
-
-      <Link to="/login" className="login-register-btn">Volver al login</Link>
-    </LayoutAuth>
+      <p className="register-login">
+        ¿Te acordaste? <Link to="/login">Volver al login</Link>
+      </p>
+    </TarjetaAuth>
   )
 }
