@@ -44,7 +44,7 @@ async function enviarEmailBienvenida(user) {
 
             <p style="margin:0 0 24px;font-size:14px;color:#666;text-align:center;">
               Tu restaurante registrado es <strong>${escapeHtml(user.restaurante)}</strong>.<br>
-              Tenés <strong>7 días de prueba gratuita</strong> con acceso completo.
+              Tenés <strong>7 días de prueba gratuita</strong> con acceso completo a todas las funciones <strong>Premium</strong>.
             </p>
 
             <div style="text-align:center;">

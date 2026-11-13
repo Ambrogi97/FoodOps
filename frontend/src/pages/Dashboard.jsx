@@ -161,7 +161,8 @@ export default function Dashboard() {
     ? Math.ceil((new Date(user.trialEndsAt) - new Date()) / (1000 * 60 * 60 * 24))
     : 0
 
-  const esPlanBasico = user.plan !== 'premium'
+  // La prueba gratis da acceso a todo lo de Premium (cuando vence, se bloquea todo igual)
+  const esPlanBasico = !['premium', 'gratuito'].includes(user.plan)
   const bloqueadoPorPlan = (id) => esPlanBasico && !BASIC_IDS.has(id)
 
   const puedeVer = (label) => {

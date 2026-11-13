@@ -4,15 +4,9 @@ import { authService } from '../services/api'
 import Logo from '../components/Logo'
 import './Register.css'
 
-const PLANES = {
-  basico:  { nombre: 'Básico',   precio: '$20.000/mes' },
-  premium: { nombre: 'Premium',  precio: '$35.000/mes' },
-}
-
 export default function Register() {
   const [searchParams] = useSearchParams()
   const planId = searchParams.get('plan') || 'basico'
-  const plan = PLANES[planId] || PLANES.basico
   const navigate = useNavigate()
 
   const [form, setForm] = useState({
@@ -72,7 +66,7 @@ export default function Register() {
 
         <div className="register-plan-badge register-plan-badge--trial">
           <span className="register-plan-label">🎉 7 días gratis</span>
-          <span className="register-plan-desc">Sin tarjeta de crédito · Acceso completo al plan {plan.nombre}</span>
+          <span className="register-plan-desc">Sin tarjeta de crédito · Acceso completo a todas las funciones Premium</span>
         </div>
 
         <h1 className="register-title">Creá tu cuenta</h1>
