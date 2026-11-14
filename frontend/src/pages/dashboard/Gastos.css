@@ -533,3 +533,33 @@
   .gastos-periodo-pills { flex-wrap: wrap; gap: 4px; }
   .gastos-filtros-row1 { flex-direction: column; align-items: flex-start; }
 }
+
+/* ── Scroll de página completa ──────────────────────────────────────────
+   La página entera scrollea (rueda del mouse en cualquier lado); el
+   encabezado de la tabla queda fijo y el panel de detalle acompaña. */
+.gastos-page,
+.gastos-body,
+.gastos-left { height: auto; overflow: visible; }
+.gastos-page { min-height: 100%; }
+
+@media (min-width: 769px) {
+  .gastos-body { align-items: flex-start; }
+  .gastos-table-wrap { flex: none; overflow: visible; min-height: 280px; }
+  .gastos-right {
+    position: sticky;
+    top: 0;
+    height: calc(100vh - 150px);
+    overflow-y: auto;
+  }
+}
+
+/* El contenedor crece con la tabla (si no, el panel fijo no tiene recorrido) */
+.gastos-body { flex: 1 0 auto; min-height: auto; }
+
+/* Encabezado de la tabla pegado al borde superior (compensa el padding del panel) */
+@media (min-width: 769px) {
+  .gastos-table thead { top: -24px; }
+}
+@media (min-width: 769px) and (max-width: 1100px) {
+  .gastos-table thead { top: -16px; }
+}
