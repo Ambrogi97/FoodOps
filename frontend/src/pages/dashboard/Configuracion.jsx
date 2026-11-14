@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import {
-  ShoppingBag, ShieldCheck, Users, UserCog,
+  ShoppingBag, ShieldCheck, Users, UserCog, Printer,
   Plus, X, ChevronLeft, Check,
 } from 'lucide-react'
 import TiendaOnline from './TiendaOnline'
 import ConfigSalasYMesas from './ConfigSalasYMesas'
+import ConfigImpresion from './ConfigImpresion'
 import { getSession, usuariosService, rolesService, perfilService } from '../../services/api'
 import RequisitosPassword from '../../components/RequisitosPassword'
 import { passwordValida } from '../../utils/password'
@@ -20,6 +21,7 @@ const TOP_TABS = [
 const SECCIONES = [
   { id: 'cuenta',    label: 'Mi cuenta',       Icon: UserCog },
   { id: 'tienda',    label: 'Tienda Online',   Icon: ShoppingBag },
+  { id: 'impresion', label: 'Impresión',       Icon: Printer },
   { id: 'usuarios',  label: 'Usuarios',         Icon: Users },
   { id: 'roles',     label: 'Roles de usuario', Icon: ShieldCheck },
 ]
@@ -768,6 +770,7 @@ export default function Configuracion({ tabInicial = 'general' }) {
           <div className={`config-content${isSplit ? ' config-content--flush' : ''}`}>
             {activa === 'cuenta'    && <SeccionCuenta />}
             {activa === 'tienda'    && <TiendaOnline />}
+            {activa === 'impresion' && <ConfigImpresion />}
             {activa === 'usuarios'  && <SeccionUsuarios />}
             {activa === 'roles'     && <SeccionRoles />}
           </div>

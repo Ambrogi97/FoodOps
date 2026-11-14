@@ -389,6 +389,8 @@ const mapPedidoOnline = p => ({
   totalFinal:      p.totalFinal,
   estado:          p.estado,
   createdAt:       p.createdAt,
+  numero:          p.numero || '',
+  costoEnvio:      p.costoEnvio || 0,
 })
 
 export const pedidosOnlineService = {
@@ -452,6 +454,8 @@ const uploadFile = async (path, fieldName, file) => {
 export const configService = {
   getTienda:         async ()            => request('/api/config/tienda'),
   saveTienda:        async (data)        => request('/api/config/tienda', { method: 'PUT', body: JSON.stringify(data) }),
+  getImpresion:      async ()            => request('/api/config/impresion'),
+  saveImpresion:     async (data)        => request('/api/config/impresion', { method: 'PUT', body: JSON.stringify(data) }),
   saveColorFondo:    async (colorFondo)  => request('/api/config/tienda', { method: 'PUT', body: JSON.stringify({ colorFondo }) }),
   uploadLogo:     async (file) => uploadFile('/api/config/tienda/logo',    'logo',    file),
   deleteLogo:     async ()     => request('/api/config/tienda/logo',    { method: 'DELETE' }),

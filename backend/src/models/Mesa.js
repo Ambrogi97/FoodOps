@@ -5,6 +5,7 @@ const itemSchema = new mongoose.Schema({
   cantidad: Number,
   precio:   Number,
   listo:    { type: Boolean, default: false },
+  enviadoCant: { type: Number, default: 0 },   // unidades ya enviadas a cocina (comanda)
 }, { _id: false })
 
 const mesaSchema = new mongoose.Schema({

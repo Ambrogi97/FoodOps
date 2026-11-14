@@ -69,3 +69,34 @@
   .restaurante-tabs::-webkit-scrollbar { display: none; }
   .restaurante-tab { padding: 8px 14px; font-size: 0.82rem; min-height: 40px; }
 }
+
+/* ── Botones de impresión (Mostrador / Delivery) ── */
+.print-acciones {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.print-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface, #fff);
+  color: var(--text);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.print-btn:hover { background: #fff5f0; border-color: #ff6b35; color: #e85a20; }
+.print-btn--full { width: 100%; }
+.most-panel-footer,
+.del-panel-footer { flex-wrap: wrap; }
+.most-panel-footer .print-acciones,
+.del-panel-footer .print-acciones { flex-basis: 100%; }

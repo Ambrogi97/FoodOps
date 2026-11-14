@@ -60,6 +60,18 @@ const configTiendaSchema = new mongoose.Schema(
       radioKm: { type: Number, default: null },
     },
     pushSuscripciones: { type: [mongoose.Schema.Types.Mixed], default: [] },
+    // Impresión de comandas (cocina/barra) y tickets (cliente/cadete)
+    impresion: {
+      anchoPapel:       { type: Number,  enum: [58, 80], default: 80 },
+      encabezado:       { type: String,  default: '', maxlength: 60 },   // vacío = nombre del restaurante
+      datosLocal:       { type: String,  default: '', maxlength: 200 },  // dirección, teléfono, CUIT…
+      pie:              { type: String,  default: '¡Gracias por su compra!', maxlength: 120 },
+      leyenda:          { type: String,  default: 'Documento no válido como factura', maxlength: 120 },
+      comandaPorArea:   { type: Boolean, default: true },   // una comanda para Cocina y otra para Barra
+      comandaAlGuardar: { type: Boolean, default: false },  // imprime la comanda al crear/guardar el pedido
+      copiasComanda:    { type: Number,  default: 1, min: 1, max: 3 },
+      copiasTicket:     { type: Number,  default: 1, min: 1, max: 3 },
+    },
   },
   { timestamps: true }
 )

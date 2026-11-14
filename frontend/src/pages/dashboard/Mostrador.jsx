@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { mostradorService, descuentosService } from '../../services/api'
-import { Plus, Search, ChevronLeft, X, Minus, ShoppingBag, Tag } from 'lucide-react'
+import { Plus, Search, ChevronLeft, X, Minus, ShoppingBag, Tag, Printer, ChefHat } from 'lucide-react'
+import { imprimirComanda, imprimirTicket, obtenerConfigImpresion } from '../../utils/impresion'
 import './Mostrador.css'
 
 const fmt = (d) => {
@@ -14,7 +15,7 @@ const fmtPrecio = (n) => `$${Number(n || 0).toFixed(2).replace('.', ',')}`
 
 const METODOS = ['Efectivo', 'Tarjeta', 'Transferencia']
 
-export default function Mostrador({ productos = [] }) {
+export default function Mostrador({ productos = [], categorias = [] }) {
   const [enCurso, setEnCurso]   = useState([])
   const [cerradas, setCerradas] = useState([])
   const [busqueda, setBusqueda] = useState('')
@@ -119,6 +120,19 @@ export default function Mostrador({ productos = [] }) {
   })()
   const totalFinal = Math.max(0, totalTemp - montoDesc)
 
+  // ── Impresión ──
+  const datosComanda = (pedido) => ({
+    origen: 'MOSTRADOR', numero: pedido?.numero, cliente, items: itemsTemp,
+    fecha: pedido?.createdAt ? new Date(pedido.createdAt) : new Date(),
+  })
+  const enviarACocina = (pedido = panelPedido) => imprimirComanda(datosComanda(pedido), { productos, categorias })
+  const ticketCliente = () => imprimirTicket({
+    numero: panelPedido?.numero, fecha: panelPedido?.createdAt ? new Date(panelPedido.createdAt) : new Date(),
+    tipo: 'Mostrador', cliente, items: itemsTemp,
+    descuentoMonto: montoDesc, descuentoLabel: descuentoSel ? `Descuento (${descuentoSel.nombre})` : 'Descuento',
+    total: totalFinal, formaPago: esCerrado ? panelPedido?.metodoPago : '',
+  })
+
   const handleDescuento = (id) => {
     if (!id) { resetDescuento(); return }
     const d = descuentosActivos.find(x => x.id === id)
@@ -136,10 +150,12 @@ export default function Mostrador({ productos = [] }) {
         setEnCurso(prev => [...prev, nuevo])
         setPanelPedido(nuevo)
         setCreando(false)
+        if ((await obtenerConfigImpresion()).comandaAlGuardar) enviarACocina(nuevo)
       } else if (panelPedido) {
         const upd = await mostradorService.actualizar(panelPedido._id, body)
         setEnCurso(prev => prev.map(p => p._id === upd._id ? upd : p))
         setPanelPedido(upd)
+        if ((await obtenerConfigImpresion()).comandaAlGuardar) enviarACocina(upd)
       }
     } catch (e) {
       console.error(e)
@@ -450,6 +466,24 @@ export default function Mostrador({ productos = [] }) {
                     Cerrar y cobrar
                   </button>
                 )}
+                {itemsTemp.length > 0 && (
+                  <div className="print-acciones">
+                    <button className="print-btn" onClick={() => enviarACocina()} title="Imprimir comanda para cocina/barra">
+                      <ChefHat size={15} /> Enviar a cocina
+                    </button>
+                    <button className="print-btn" onClick={ticketCliente} title="Imprimir ticket con precios">
+                      <Printer size={15} /> Ticket
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {esCerrado && (
+              <div className="most-panel-footer">
+                <button className="print-btn print-btn--full" onClick={ticketCliente}>
+                  <Printer size={15} /> Reimprimir ticket
+                </button>
               </div>
             )}
 

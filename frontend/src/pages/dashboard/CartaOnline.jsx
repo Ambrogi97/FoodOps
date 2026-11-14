@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { pedidosOnlineService, configService, resenasService } from '../../services/api'
-import { Armchair, ShoppingBag, User, FileText, RefreshCw, Bike, MapPin, Printer, Mail, Phone, CreditCard, Plus, Trash2, GripVertical, Bell, BellOff, Star, Clock, Navigation } from 'lucide-react'
+import { pedidosOnlineService, configService, resenasService, productosService, categoriasService } from '../../services/api'
+import { imprimirComanda, imprimirTicket as imprimirTicketPapel } from '../../utils/impresion'
+import { Armchair, ShoppingBag, User, FileText, RefreshCw, Bike, MapPin, Printer, ChefHat, Mail, Phone, CreditCard, Plus, Trash2, GripVertical, Bell, BellOff, Star, Clock, Navigation } from 'lucide-react'
 import './CartaOnline.css'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
@@ -246,56 +247,28 @@ export default function CartaOnline() {
     }
   }
 
-  // Impresión de ticket 80mm
-  const imprimirTicket = (p) => {
-    const nombre      = user.restaurante || 'Restaurante'
-    const fecha       = new Date(p.createdAt).toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })
-    const tipoLabel   = p.tipo === 'mesa' ? `Mesa ${p.mesaNumero}` : p.tipo === 'delivery' ? `Delivery — ${p.direccion}` : 'Retiro en el local'
-    const itemsHtml   = p.items.map(i => `
-      <div class="row"><span>${i.cantidad}x ${i.nombre}</span><span>${fmt(i.precio * i.cantidad)}</span></div>`).join('')
-    const ventana = window.open('', '_blank', 'width=360,height=600')
-    ventana.document.write(`<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Ticket #${p.numero || p._id.slice(-6)}</title>
-<style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: 'Courier New', monospace; font-size:13px; padding:12px; max-width:80mm; }
-.center { text-align:center; }
-.titulo { font-size:16px; font-weight:700; margin-bottom:2px; }
-.sep { border-top:1px dashed #000; margin:8px 0; }
-.row { display:flex; justify-content:space-between; padding:2px 0; }
-.bold { font-weight:700; }
-.total { font-size:15px; }
-.pie { font-size:11px; color:#666; text-align:center; margin-top:8px; }
-@media print { body { padding:0; } }
-</style>
-</head>
-<body>
-<div class="center">
-  <div class="titulo">${nombre}</div>
-  <div style="font-size:11px;">${fecha}</div>
-</div>
-<div class="sep"></div>
-<div class="row"><span class="bold">Pedido</span><span class="bold">#${p.numero || p._id.slice(-6)}</span></div>
-<div style="font-size:12px; margin:2px 0;">${tipoLabel}</div>
-${p.clienteNombre ? `<div style="font-size:12px;">Cliente: ${p.clienteNombre}</div>` : ''}
-${p.clienteTelefono ? `<div style="font-size:12px;">Tel: ${p.clienteTelefono}</div>` : ''}
-<div class="sep"></div>
-${itemsHtml}
-<div class="sep"></div>
-${p.notas ? `<div style="font-size:12px; margin-bottom:6px;">Notas: ${p.notas}</div>` : ''}
-${p.descuento > 0 ? `<div class="row"><span>Descuento (${p.descuento}%)</span><span>-${fmt((p.total||0) - (p.totalFinal||p.total||0))}</span></div>` : ''}
-<div class="row total"><span class="bold">TOTAL</span><span class="bold">${fmt(p.totalFinal || p.total)}</span></div>
-${p.formaPago ? `<div style="font-size:12px; margin-top:4px;">Forma de pago: ${p.formaPago}</div>` : ''}
-<div class="sep"></div>
-<div class="pie">¡Gracias por tu pedido!</div>
-<script>window.onload = () => { window.print(); }</script>
-</body>
-</html>`)
-    ventana.document.close()
-  }
+  // Impresión: ticket (cliente/cadete) y comanda (cocina/barra)
+  const [productosImp, setProductosImp]   = useState([])
+  const [categoriasImp, setCategoriasImp] = useState([])
+  useEffect(() => {
+    productosService.listar().then(setProductosImp).catch(() => {})
+    categoriasService.listar().then(setCategoriasImp).catch(() => {})
+  }, [])
+
+  const imprimirTicket = (p) => imprimirTicketPapel({
+    numero: p.numero || p._id.slice(-6), fecha: new Date(p.createdAt),
+    tipo: p.tipo === "mesa" ? `Mesa ${p.mesaNumero} (carta online)` : p.tipo === "delivery" ? "Delivery (carta online)" : "Retiro en el local",
+    cliente: p.clienteNombre, telefono: p.clienteTelefono, direccion: p.tipo === "delivery" ? p.direccion : "",
+    items: p.items, envio: p.costoEnvio,
+    descuentoMonto: (p.total || 0) - (p.totalFinal || p.total || 0), descuentoLabel: `Descuento (${p.descuento}%)`,
+    total: p.totalFinal || p.total, formaPago: p.formaPago, notas: p.notas,
+  })
+
+  const imprimirComandaPedido = (p) => imprimirComanda({
+    origen: p.tipo === "mesa" ? `MESA ${p.mesaNumero}` : p.tipo === "delivery" ? "DELIVERY" : "RETIRO",
+    numero: p.numero || p._id.slice(-6), cliente: p.clienteNombre, detalle: "Pedido de la carta online",
+    items: p.items, notas: p.notas, fecha: new Date(p.createdAt),
+  }, { productos: productosImp, categorias: categoriasImp })
 
   const qrUrl      = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(cartaUrl)}`
   const qrPrintUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(cartaUrl)}`
@@ -543,6 +516,13 @@ ${p.formaPago ? `<div style="font-size:12px; margin-top:4px;">Forma de pago: ${p
                         {p.descuento > 0 && <span className="co-descuento-chip">-{p.descuento}%</span>}
                       </span>
                       <div className="co-card-actions">
+                        <button
+                          className="co-ticket-btn"
+                          onClick={() => imprimirComandaPedido(p)}
+                          title="Imprimir comanda para cocina"
+                        >
+                          <ChefHat size={13} />
+                        </button>
                         <button
                           className="co-ticket-btn"
                           onClick={() => imprimirTicket(p)}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { zonasService, mesasService, ventasService } from '../../services/api'
 import { Armchair, Receipt, Users } from 'lucide-react'
+import { imprimirComanda, imprimirTicket as imprimirTicketPapel } from '../../utils/impresion'
 import './Mesas.css'
 
 const COLS = 12
@@ -199,36 +200,27 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
   }
 
   /* ── Acciones de mesa ── */
-  const imprimirTicket = (mesa) => {
-    const fmtP = (n) => `$${Number(n).toLocaleString('es-AR')}`
-    const total = mesa.items.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
-    const filas = mesa.items.map(i =>
-      `<tr><td>${i.cantidad}× ${i.nombre}</td><td style="text-align:right">${fmtP(i.precio * i.cantidad)}</td></tr>`
-    ).join('')
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Mesa ${mesa.numero}</title>
-    <style>
-      body{font-family:monospace;width:300px;margin:0 auto;padding:12px;font-size:13px}
-      h2{text-align:center;margin:4px 0}p.sub{text-align:center;color:#666;font-size:11px;margin:2px 0 10px}
-      table{width:100%;border-collapse:collapse}td{padding:3px 0}
-      .sep{border-top:1px dashed #000;margin:8px 0}
-      .total td{font-size:15px;font-weight:bold;padding-top:6px}
-      .hora{text-align:center;font-size:11px;color:#666;margin-top:10px}
-    </style></head><body>
-    <h2>Mesa ${mesa.numero}</h2>
-    ${mesa.hora ? `<p class="sub">${mesa.hora}</p>` : ''}
-    ${mesa.personas ? `<p class="sub">${mesa.personas} personas</p>` : ''}
-    <div class="sep"></div>
-    <table>${filas}</table>
-    <div class="sep"></div>
-    <table><tr class="total"><td>TOTAL</td><td style="text-align:right">${fmtP(total)}</td></tr></table>
-    <p class="hora">¡Gracias!</p>
-    </body></html>`
-    const win = window.open('', '_blank', 'width=380,height=520')
-    if (!win) return
-    win.document.write(html)
-    win.document.close()
-    win.focus()
-    win.print()
+  const imprimirTicket = (mesa) => imprimirTicketPapel({
+    tipo: `Mesa ${mesa.numero}${mesa.personas ? ` · ${mesa.personas} personas` : ""}`,
+    fecha: new Date(), items: mesa.items || [],
+  })
+
+  // Comanda: solo lo que todavía no se mandó a cocina
+  const pendientesCocina = (mesa) => (mesa?.items || [])
+    .map(i => ({ ...i, cantidad: i.cantidad - (i.enviadoCant || 0) }))
+    .filter(i => i.cantidad > 0)
+
+  const enviarACocina = async (mesa) => {
+    const pendientes = pendientesCocina(mesa)
+    if (!pendientes.length) return
+    await imprimirComanda({ origen: `MESA ${mesa.numero}`, personas: mesa.personas, items: pendientes, fecha: new Date() }, { productos, categorias })
+    const items = mesa.items.map(i => ({ ...i, enviadoCant: i.cantidad }))
+    actualizarMesaEnState(mesa.id, { items })
+    try {
+      await mesasService.actualizar(mesa.id, { items })
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   const pedirCuenta = async (mesaId) => {
@@ -287,7 +279,7 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
     const mesaId = selected
     const m = zona.mesas.find(x => x.id === mesaId)
     const items = (m.items || [])
-      .map(i => i.nombre === nombre ? { ...i, cantidad: i.cantidad - 1 } : i)
+      .map(i => i.nombre === nombre ? { ...i, cantidad: i.cantidad - 1, enviadoCant: Math.min(i.enviadoCant || 0, i.cantidad - 1) } : i)
       .filter(i => i.cantidad > 0)
     actualizarMesaEnState(mesaId, { items })
     try {
@@ -622,6 +614,14 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
                   </button>
                   <button className="mesa-btn mesa-btn--ticket" onClick={() => pedirCuenta(mesa.id)}>
                     Imprimir ticket
+                  </button>
+                  <button
+                    className="mesa-btn mesa-btn--ticket"
+                    onClick={() => enviarACocina(mesa)}
+                    disabled={pendientesCocina(mesa).length === 0}
+                    title={pendientesCocina(mesa).length === 0 ? "No hay productos nuevos para enviar" : "Imprimir comanda con lo nuevo"}
+                  >
+                    Enviar a cocina{pendientesCocina(mesa).length > 0 ? ` (${pendientesCocina(mesa).reduce((s, i) => s + i.cantidad, 0)})` : ""}
                   </button>
                 </>
               )}

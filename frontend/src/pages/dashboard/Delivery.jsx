@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { deliveryService } from '../../services/api'
-import { Plus, ChevronLeft, X, Minus } from 'lucide-react'
+import { Plus, ChevronLeft, X, Minus, Printer, ChefHat } from 'lucide-react'
+import { imprimirComanda, imprimirTicket, obtenerConfigImpresion } from '../../utils/impresion'
 import './Delivery.css'
 
 const fmt = (d) => {
@@ -82,7 +83,7 @@ function SeccionDelivery({ titulo, icono, lista, color, conTiempo, activoId, onA
   )
 }
 
-export default function Delivery({ productos = [] }) {
+export default function Delivery({ productos = [], categorias = [] }) {
   const [datos, setDatos]     = useState({ enPreparacion: [], listoParaEntregar: [], enviados: [], entregados: [] })
   const [cargando, setCargando] = useState(true)
 
@@ -186,6 +187,23 @@ export default function Delivery({ productos = [] }) {
     ...(extraEstado || {}),
   })
 
+  // ── Impresión ──
+  const direccionTexto = () => [
+    [form.calle, form.numeroDireccion].filter(Boolean).join(' '),
+    form.piso, form.barrio,
+  ].filter(Boolean).join(', ')
+  const enviarACocina = (pedido = panelPedido) => imprimirComanda({
+    origen: 'DELIVERY', numero: pedido?.numero, cliente: form.nombre, items: itemsTemp,
+    detalle: form.tiempoEstimado ? `Entrega estimada: ${form.tiempoEstimado}` : '',
+    notas: form.comentario, fecha: pedido?.createdAt ? new Date(pedido.createdAt) : new Date(),
+  }, { productos, categorias })
+  const ticketCadete = () => imprimirTicket({
+    numero: panelPedido?.numero, fecha: panelPedido?.createdAt ? new Date(panelPedido.createdAt) : new Date(),
+    tipo: `Delivery${form.repartidor ? ` · Cadete: ${form.repartidor}` : ''}`,
+    cliente: form.nombre, telefono: form.telefono, direccion: direccionTexto(),
+    items: itemsTemp, envio: Number(form.costoEnvio || 0), total: totalConEnvio, notas: form.comentario,
+  })
+
   const actualizarEnLista = (upd) => {
     setDatos(prev => {
       const sin = arr => arr.filter(p => p._id !== upd._id)
@@ -211,10 +229,12 @@ export default function Delivery({ productos = [] }) {
         setDatos(prev => ({ ...prev, enPreparacion: [...prev.enPreparacion, nuevo] }))
         setPanelPedido(nuevo)
         setCreando(false)
+        if ((await obtenerConfigImpresion()).comandaAlGuardar) enviarACocina(nuevo)
       } else if (panelPedido) {
         const upd = await deliveryService.actualizar(panelPedido._id, buildBody())
         actualizarEnLista(upd)
         setPanelPedido(upd)
+        if ((await obtenerConfigImpresion()).comandaAlGuardar) enviarACocina(upd)
       }
     } catch (e) {
       console.error(e)
@@ -450,6 +470,16 @@ export default function Delivery({ productos = [] }) {
                 >
                   {estadoInfo.nextLabel} →
                 </button>
+              )}
+              {itemsTemp.length > 0 && (
+                <div className="print-acciones">
+                  <button className="print-btn" onClick={() => enviarACocina()} title="Imprimir comanda para cocina/barra">
+                    <ChefHat size={15} /> Enviar a cocina
+                  </button>
+                  <button className="print-btn" onClick={ticketCadete} title="Imprimir ticket para el cadete o el cliente">
+                    <Printer size={15} /> Ticket cadete
+                  </button>
+                </div>
               )}
             </div>
 

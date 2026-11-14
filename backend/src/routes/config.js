@@ -193,4 +193,39 @@ router.put('/tienda/formas-pago', auth, async (req, res) => {
   }
 })
 
+// ── Impresión (comandas y tickets) ───────────────────────────────────────────
+
+const CAMPOS_IMPRESION = ['anchoPapel', 'encabezado', 'datosLocal', 'pie', 'leyenda', 'comandaPorArea', 'comandaAlGuardar', 'copiasComanda', 'copiasTicket']
+
+router.get('/impresion', auth, async (req, res) => {
+  try {
+    const config = await ConfigTienda.findOne({ usuario: req.propietarioId }).select('impresion')
+    // Si todavía no hay configuración, se devuelven los valores por defecto del modelo
+    res.json((config || new ConfigTienda({ usuario: req.propietarioId })).impresion)
+  } catch (e) {
+    return responderError(req, res, e)
+  }
+})
+
+router.put('/impresion', auth, async (req, res) => {
+  try {
+    const update = {}
+    for (const campo of CAMPOS_IMPRESION) {
+      const v = req.body?.[campo]
+      if (v === undefined) continue
+      if (['comandaPorArea', 'comandaAlGuardar'].includes(campo)) update[`impresion.${campo}`] = v === true
+      else if (['anchoPapel', 'copiasComanda', 'copiasTicket'].includes(campo)) update[`impresion.${campo}`] = Number(v)
+      else update[`impresion.${campo}`] = typeof v === 'string' ? v.trim() : ''
+    }
+    const config = await ConfigTienda.findOneAndUpdate(
+      { usuario: req.propietarioId },
+      { $set: update },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    )
+    res.json(config.impresion)
+  } catch (e) {
+    return responderError(req, res, e)
+  }
+})
+
 module.exports = router

@@ -30,8 +30,8 @@ export default function Restaurante({ productos = [], categorias = [], onIrAConf
 
       <div className="restaurante-content">
         {tab === 'mesas'     && <Mesas productos={productos} categorias={categorias} onIrAConfiguracion={onIrAConfiguracion} />}
-        {tab === 'mostrador' && <Mostrador productos={productos} />}
-        {tab === 'delivery'  && <Delivery productos={productos} />}
+        {tab === 'mostrador' && <Mostrador productos={productos} categorias={categorias} />}
+        {tab === 'delivery'  && <Delivery productos={productos} categorias={categorias} />}
         {tab === 'mostrador-rapido' && <p className="restaurante-placeholder">Próximamente</p>}
       </div>
     </div>
