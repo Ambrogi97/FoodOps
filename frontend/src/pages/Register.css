@@ -258,3 +258,7 @@
   cursor: pointer;
 }
 .register-link-btn:hover { text-decoration: underline; }
+
+/* Los campos no se salen de la tarjeta (dos columnas de contraseña) */
+.register-field { min-width: 0; }
+.register-field input { width: 100%; box-sizing: border-box; }

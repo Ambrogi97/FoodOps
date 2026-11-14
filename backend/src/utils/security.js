@@ -30,6 +30,20 @@ function str(value, max = 200) {
 
 module.exports = { escapeHtml, allowedOrigins, safeFrontendUrl, str }
 
+// Requisitos de contraseña (los mismos que muestra el frontend).
+// Devuelve null si cumple, o un mensaje con lo que falta.
+function validarPassword(password) {
+  if (typeof password !== 'string') return 'La contraseña es obligatoria'
+  const faltan = []
+  if (password.length < 8)          faltan.push('al menos 8 caracteres')
+  if (!/[a-z]/.test(password))      faltan.push('una minúscula')
+  if (!/[A-Z]/.test(password))      faltan.push('una mayúscula')
+  if (!/[0-9]/.test(password))      faltan.push('un número')
+  if (!/[^A-Za-z0-9]/.test(password)) faltan.push('un carácter especial (por ej. ! @ # $ %)')
+  if (password.length > 128)        return 'La contraseña puede tener hasta 128 caracteres'
+  return faltan.length ? `La contraseña debe tener ${faltan.join(', ')}` : null
+}
+
 // Respuesta de error uniforme para las rutas:
 // datos inválidos → 400 con el motivo; cualquier otra cosa → 500 genérico
 function responderError(req, res, e) {
@@ -47,3 +61,4 @@ function responderError(req, res, e) {
 }
 
 module.exports.responderError = responderError
+module.exports.validarPassword = validarPassword

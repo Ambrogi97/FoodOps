@@ -6,6 +6,8 @@ import {
 import TiendaOnline from './TiendaOnline'
 import ConfigSalasYMesas from './ConfigSalasYMesas'
 import { getSession, usuariosService, rolesService, perfilService } from '../../services/api'
+import RequisitosPassword from '../../components/RequisitosPassword'
+import { passwordValida } from '../../utils/password'
 import './Configuracion.css'
 
 /* ── Top tabs ─────────────────────────────────────────────────────── */
@@ -128,7 +130,7 @@ function SeccionUsuarios() {
   const handleCreate = async e => {
     e.preventDefault()
     if (!form.email || !form.nombre || !form.password) { setErr('Completá todos los campos requeridos'); return }
-    if (form.password.length < 8) { setErr('La contraseña debe tener al menos 8 caracteres'); return }
+    if (!passwordValida(form.password)) { setErr('Revisá los requisitos de la contraseña'); return }
     if (form.password !== form.confirm) { setErr('Las contraseñas no coinciden'); return }
     setSaving(true); setErr('')
     try {
@@ -166,7 +168,7 @@ function SeccionUsuarios() {
   const handleUpdate = async e => {
     e.preventDefault()
     if (!form.nombre) { setErr('El nombre es obligatorio'); return }
-    if (form.password && form.password.length < 8) { setErr('La contraseña debe tener al menos 8 caracteres'); return }
+    if (form.password && !passwordValida(form.password)) { setErr('Revisá los requisitos de la contraseña'); return }
     if (form.password && form.password !== form.confirm) { setErr('Las contraseñas no coinciden'); return }
     setSaving(true); setErr('')
     try {
@@ -313,6 +315,7 @@ function SeccionUsuarios() {
                     value={form.password}
                     onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                   />
+                  <RequisitosPassword password={form.password} />
                 </div>
                 {form.password && (
                   <div className="cfg-field">
@@ -362,6 +365,7 @@ function SeccionUsuarios() {
                     value={form.password}
                     onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                   />
+                  <RequisitosPassword password={form.password} mostrarSiempre />
                 </div>
                 <div className="cfg-field">
                   <label>Reingresar contraseña *</label>
@@ -635,7 +639,7 @@ function SeccionCuenta() {
   const cambiarPassword = async e => {
     e.preventDefault()
     if (!pass.actual || !pass.nueva) { setMsgPass({ tipo: 'err', texto: 'Completá todos los campos' }); return }
-    if (pass.nueva.length < 8)        { setMsgPass({ tipo: 'err', texto: 'La nueva contraseña debe tener al menos 8 caracteres' }); return }
+    if (!passwordValida(pass.nueva))   { setMsgPass({ tipo: 'err', texto: 'Revisá los requisitos de la contraseña' }); return }
     if (pass.nueva !== pass.confirmar){ setMsgPass({ tipo: 'err', texto: 'Las contraseñas no coinciden' }); return }
     setGP(true); setMsgPass({ tipo: '', texto: '' })
     try {
@@ -698,8 +702,9 @@ function SeccionCuenta() {
         </div>
         <div className="cfg-field">
           <label>Nueva contraseña</label>
-          <input className="cfg-input" type="password" autoComplete="new-password" placeholder="Mínimo 8 caracteres"
+          <input className="cfg-input" type="password" autoComplete="new-password" placeholder="Elegí una contraseña segura"
             value={pass.nueva} onChange={e => setPass(p => ({ ...p, nueva: e.target.value }))} />
+          <RequisitosPassword password={pass.nueva} />
         </div>
         <div className="cfg-field">
           <label>Confirmar nueva contraseña</label>

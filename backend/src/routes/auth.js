@@ -5,7 +5,7 @@ const rateLimit    = require('express-rate-limit')
 const { register, login, verificarEmail, reenviarCodigo, generateToken } = require('../controllers/authController')
 const auth         = require('../middleware/auth')
 const User         = require('../models/User')
-const { escapeHtml, responderError } = require('../utils/security')
+const { escapeHtml, responderError, validarPassword } = require('../utils/security')
 
 const router = express.Router()
 
@@ -154,7 +154,8 @@ router.post('/reset', resetLimiter, async (req, res) => {
     if (typeof token !== 'string' || typeof password !== 'string' || !token || !password) {
       return res.status(400).json({ message: 'Datos incompletos' })
     }
-    if (password.length < 8)  return res.status(400).json({ message: 'La contraseña debe tener al menos 8 caracteres' })
+    const errPass = validarPassword(password)
+    if (errPass) return res.status(400).json({ message: errPass })
 
     const user = await User.findOne({
       resetToken:       hashToken(token),
@@ -251,9 +252,8 @@ router.put('/me', auth, async (req, res) => {
 
     let token
     if (newPassword) {
-      if (typeof newPassword !== 'string' || newPassword.length < 8) {
-        return res.status(400).json({ message: 'La nueva contraseña debe tener al menos 8 caracteres' })
-      }
+      const errPass = validarPassword(newPassword)
+      if (errPass) return res.status(400).json({ message: errPass })
       if (typeof password !== 'string' || !password) return res.status(400).json({ message: 'Ingresá la contraseña actual' })
       const ok = await user.comparePassword(password)
       if (!ok) return res.status(400).json({ message: 'Contraseña actual incorrecta' })

@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { authService } from '../services/api'
 import Logo from '../components/Logo'
+import RequisitosPassword from '../components/RequisitosPassword'
+import { passwordValida } from '../utils/password'
 import './Register.css'
 
 // Misma tarjeta centrada que "Creá tu cuenta"
@@ -33,7 +35,7 @@ export default function ResetPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    if (password.length < 8)   return setError('La contraseña debe tener al menos 8 caracteres')
+    if (!passwordValida(password)) return setError('Revisá los requisitos de la contraseña')
     if (password !== confirmar) return setError('Las contraseñas no coinciden')
 
     setLoading(true)
@@ -79,7 +81,7 @@ export default function ResetPassword() {
   return (
     <TarjetaAuth>
       <h1 className="register-title">Nueva contraseña</h1>
-      <p className="register-subtitle">Elegí una contraseña nueva para tu cuenta. Tiene que tener al menos 8 caracteres.</p>
+      <p className="register-subtitle">Elegí una contraseña nueva para tu cuenta. Tiene que cumplir los requisitos de seguridad.</p>
 
       <form className="register-form" onSubmit={handleSubmit}>
         <div className="register-field">
@@ -88,11 +90,12 @@ export default function ResetPassword() {
             id="password"
             type="password"
             autoComplete="new-password"
-            placeholder="Mínimo 8 caracteres"
+            placeholder="Elegí una contraseña segura"
             value={password}
             onChange={e => setPassword(e.target.value)}
             required
           />
+          <RequisitosPassword password={password} mostrarSiempre />
         </div>
 
         <div className="register-field">

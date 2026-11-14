@@ -1,6 +1,7 @@
 const express = require('express')
 const auth    = require('../middleware/auth')
 const User    = require('../models/User')
+const { validarPassword } = require('../utils/security')
 
 const router = express.Router()
 
@@ -33,9 +34,8 @@ router.post('/', auth, soloOwner, async (req, res) => {
         !nombre.trim() || !email.trim() || !password) {
       return res.status(400).json({ message: 'Nombre, email y contraseña son obligatorios' })
     }
-    if (password.length < 8) {
-      return res.status(400).json({ message: 'La contraseña debe tener al menos 8 caracteres' })
-    }
+    const errPass = validarPassword(password)
+    if (errPass) return res.status(400).json({ message: errPass })
 
     if (req.usuario.plan === 'basico') {
       const count = await User.countDocuments({ cuentaPadreId: req.usuario.id })
@@ -79,8 +79,9 @@ router.put('/:id', auth, soloOwner, async (req, res) => {
     if (!usuario) return res.status(404).json({ message: 'Usuario no encontrado' })
 
     const { nombre, role, password } = req.body
-    if (password !== undefined && password !== '' && (typeof password !== 'string' || password.length < 8)) {
-      return res.status(400).json({ message: 'La contraseña debe tener al menos 8 caracteres' })
+    if (password !== undefined && password !== '') {
+      const errPass = validarPassword(password)
+      if (errPass) return res.status(400).json({ message: errPass })
     }
     if (typeof nombre === 'string' && nombre.trim()) usuario.nombre = nombre.trim()
     if (role) {

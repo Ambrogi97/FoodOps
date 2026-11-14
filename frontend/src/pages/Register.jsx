@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { authService } from '../services/api'
 import Logo from '../components/Logo'
+import RequisitosPassword from '../components/RequisitosPassword'
+import { passwordValida } from '../utils/password'
 import './Register.css'
 
 export default function Register() {
@@ -27,8 +29,8 @@ export default function Register() {
     e.preventDefault()
     setError('')
 
-    if (form.password.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres')
+    if (!passwordValida(form.password)) {
+      setError('Revisá los requisitos de la contraseña')
       return
     }
 
@@ -118,7 +120,8 @@ export default function Register() {
                 id="password"
                 name="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="Elegí una contraseña segura"
+                autoComplete="new-password"
                 value={form.password}
                 onChange={handleChange}
                 required
@@ -137,6 +140,8 @@ export default function Register() {
               />
             </div>
           </div>
+
+          <RequisitosPassword password={form.password} mostrarSiempre />
 
           {error && <p className="register-error">{error}</p>}
 

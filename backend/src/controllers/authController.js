@@ -1,7 +1,7 @@
 const jwt  = require('jsonwebtoken')
 const User = require('../models/User')
 const { enviarEmail } = require('../utils/email')
-const { escapeHtml } = require('../utils/security')
+const { escapeHtml, validarPassword } = require('../utils/security')
 const { enviarCodigo, puedeReenviar, comprobarCodigo, esEmailDescartable, SEGUNDOS_REENVIO } = require('../utils/verificacion')
 
 async function enviarEmailBienvenida(user) {
@@ -92,9 +92,8 @@ const register = async (req, res) => {
     if (!nombre || !email || !password || !restaurante) {
       return res.status(400).json({ message: 'Todos los campos son obligatorios' })
     }
-    if (password.length < 8) {
-      return res.status(400).json({ message: 'La contraseña debe tener al menos 8 caracteres' })
-    }
+    const errPass = validarPassword(password)
+    if (errPass) return res.status(400).json({ message: errPass })
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res.status(400).json({ message: 'El email no es válido' })
     }
