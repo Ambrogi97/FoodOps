@@ -206,11 +206,10 @@
 .fin-row--sub:hover td { background: var(--bg-hover); }
 
 /* Label cell */
+/* Sigue siendo celda de tabla (con flex se desalineaban los bordes de la fila) */
 .fin-td-label {
   padding: 10px 20px;
-  display: flex !important;
-  align-items: center;
-  gap: 6px;
+  vertical-align: middle;
   font-size: 0.83rem;
   color: var(--text);
   white-space: nowrap;
@@ -226,6 +225,8 @@
   width: 16px;
   display: inline-flex;
   align-items: center;
+  vertical-align: middle;
+  margin-right: 6px;
   color: var(--text-muted);
   flex-shrink: 0;
 }
@@ -235,7 +236,7 @@
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 4px;
-  margin-right: 2px;
+  margin-right: 8px;
   flex-shrink: 0;
 }
 

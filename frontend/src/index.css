@@ -18,6 +18,12 @@
   --text: #1A1A1A;
   --text-muted: #6B7280;
   --border: #E5E7EB;
+  /* Alias que usan varias pantallas (antes no estaban definidos y quedaban transparentes) */
+  --bg-card: var(--surface);
+  --bg-hover: #F3F4F6;
+  --hover: #F3F4F6;
+  --surface-hover: #F3F4F6;
+  --muted: var(--text-muted);
   --success: #22C55E;
   --radius-sm: 8px;
   --radius-md: 14px;

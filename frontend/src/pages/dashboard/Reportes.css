@@ -483,3 +483,5 @@
   .re-kpis-4,
   .re-kpis-3 { grid-template-columns: 1fr 1fr; }
 }
+
+.re-badge--cat { background: #f1f5f9; color: #334155; }

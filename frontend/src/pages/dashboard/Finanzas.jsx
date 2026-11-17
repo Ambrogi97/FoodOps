@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { ventasService, gastosService, categoriasGastoService } from '../../services/api'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, ChevronDown } from 'lucide-react'
 import './Finanzas.css'
 
 const MESES_ABREV = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']

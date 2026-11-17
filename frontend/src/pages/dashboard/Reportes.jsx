@@ -1,49 +1,88 @@
 import { useState, useEffect } from 'react'
 import { Search } from 'lucide-react'
-import { ventasService, gastosService, ingredientesService } from '../../services/api'
+import { ventasService, gastosService, ingredientesService, categoriasGastoService } from '../../services/api'
 import './Reportes.css'
 
-const fmt    = n => `$${Number(n).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
-const fmtNum = n => Number(n).toLocaleString('es-AR')
+const fmt    = n => `$${Number(n || 0).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+const fmtNum = n => Number(n || 0).toLocaleString('es-AR')
 
 
 const SECCIONES = ['Ventas', 'Productos', 'Stock', 'Compras', 'Gastos', 'Balance', 'Mesas']
 const DOW       = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-
-const CAT_LABEL = { ingredientes:'Ingredientes', bebidas:'Bebidas', servicios:'Servicios', sueldos:'Sueldos', alquiler:'Alquiler', mantenimiento:'Mantenimiento', otro:'Otro' }
-const CAT_COLOR = { ingredientes:'#22c55e', bebidas:'#3b82f6', servicios:'#f97316', sueldos:'#8b5cf6', alquiler:'#ef4444', mantenimiento:'#eab308', otro:'#94a3b8' }
+const MESES     = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 const BAR_COLORS = ['#f97316','#22c55e','#3b82f6','#8b5cf6','#eab308','#ef4444','#06b6d4','#ec4899','#14b8a6','#f59e0b']
 
+// Las fechas se guardan como "dd/mm/aaaa hh:mm" (la hora es opcional)
 const parseFecha = str => {
-  if (!str) return new Date(0)
-  const [d, m, y] = str.split(' ')[0].split('/')
-  return new Date(+y, +m - 1, +d)
+  const m = String(str || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/)
+  return m ? new Date(+m[3], +m[2] - 1, +m[1]) : new Date(0)
 }
 
 const dateKey = str => (str ? str.split(' ')[0] : '')
-const subDays = (base, n) => { const d = new Date(base); d.setDate(d.getDate() - n); return d }
 
-const filtrar = (items, periodo, campo) => {
-  const hoy = new Date(); hoy.setHours(0, 0, 0, 0)
-  return items.filter(item => {
-    const f = parseFecha(item[campo])
-    if (periodo === 'hoy')    return f >= hoy
-    if (periodo === '7dias')  return f >= subDays(hoy, 7)
-    if (periodo === 'mes')    return f.getMonth() === hoy.getMonth() && f.getFullYear() === hoy.getFullYear()
-    if (periodo === '30dias') return f >= subDays(hoy, 30)
-    return true
-  })
+const sumaV   = v => (v.items || []).reduce((a, i) => a + (i.precio || 0) * (i.cantidad || 0), 0)
+const montoG  = g => Number(g.importe ?? g.monto ?? 0)
+
+// Agrupa registros { fecha: Date, monto, egreso, count } por día, semana o mes
+// según el largo del período, ordenados por fecha real (no como texto).
+const DIA_MS = 86_400_000
+function agruparTiempo(registros) {
+  const validos = registros.filter(r => r.fecha.getTime() > 0)
+  if (!validos.length) return { modo: 'dia', datos: [] }
+  const ts   = validos.map(r => r.fecha.getTime())
+  const dias = (Math.max(...ts) - Math.min(...ts)) / DIA_MS
+  const modo = dias > 120 ? 'mes' : dias > 45 ? 'semana' : 'dia'
+  const p2   = n => String(n).padStart(2, '0')
+  const map  = {}
+  for (const r of validos) {
+    const f = r.fecha
+    let ini
+    if (modo === 'mes')         ini = new Date(f.getFullYear(), f.getMonth(), 1)
+    else if (modo === 'semana') ini = new Date(f.getFullYear(), f.getMonth(), f.getDate() - ((f.getDay() + 6) % 7)) // lunes
+    else                        ini = new Date(f.getFullYear(), f.getMonth(), f.getDate())
+    const t = ini.getTime()
+    const b = map[t] ||= {
+      t, monto: 0, egreso: 0, count: 0,
+      l: modo === 'mes' ? `${MESES[ini.getMonth()]} ${String(ini.getFullYear()).slice(2)}` : `${p2(ini.getDate())}/${p2(ini.getMonth() + 1)}`,
+    }
+    b.monto += r.monto || 0; b.egreso += r.egreso || 0; b.count += r.count || 0
+  }
+  return { modo, datos: Object.values(map).sort((a, b) => a.t - b.t) }
+}
+const MODO_LBL = { dia: 'por día', semana: 'por semana', mes: 'por mes' }
+
+// Con muchas barras se muestra solo una etiqueta cada tanto para que no se pisen
+const pasoEtiquetas = n => Math.max(1, Math.ceil(n / 14))
+
+// Categorías de gasto: nombre y categoría financiera vienen de categoriaId
+const infoCategoria = (g, catGastos) => {
+  const c = g.categoriaId ? catGastos.find(x => x.id === g.categoriaId) : null
+  return { nombre: c?.nombre || g.categoria || 'Sin categoría', fin: c?.categoriaFinanciera || 'Gastos administrativos' }
 }
 
-const sumaV = v => v.items.reduce((a, i) => a + i.precio * i.cantidad, 0)
+// Exportación a CSV (se abre con Excel)
+function descargarCSV(nombre, filas) {
+  const celda = v => {
+    let s = String(v ?? '')
+    if (/^[=+\-@]/.test(s)) s = "'" + s   // evita fórmulas al abrirlo en Excel
+    return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+  }
+  const csv  = '﻿' + filas.map(f => f.map(celda).join(';')).join('\r\n')
+  const url  = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+  const a    = document.createElement('a')
+  a.href = url; a.download = nombre
+  document.body.appendChild(a); a.click(); a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
 
 /* ── SVG Bar chart (vertical) ─────────────────────────────────────────── */
 function BarChartSVG({ data, color = 'var(--primary)', h = 150 }) {
   if (!data.length) return <p className="rep-empty">Sin datos</p>
-  const max = Math.max(...data.map(d => d.v), 1)
-  const W   = data.length * 44
-  const PAD = { t: 8, b: 26, l: 4, r: 4 }
-  const ih  = h - PAD.t - PAD.b
+  const max  = Math.max(...data.map(d => d.v), 1)
+  const W    = data.length * 44
+  const PAD  = { t: 8, b: 26, l: 4, r: 4 }
+  const ih   = h - PAD.t - PAD.b
+  const paso = pasoEtiquetas(data.length)
   return (
     <svg viewBox={`0 0 ${W + PAD.l + PAD.r} ${h}`} className="rep-svg" preserveAspectRatio="xMidYMid meet">
       {data.map((d, i) => {
@@ -51,8 +90,10 @@ function BarChartSVG({ data, color = 'var(--primary)', h = 150 }) {
         const x  = PAD.l + i * 44 + 4
         return (
           <g key={i}>
-            <rect x={x} y={PAD.t + (ih - bh)} width={36} height={bh} fill={color} rx={3} opacity={0.85} />
-            <text x={x + 18} y={h - 6} textAnchor="middle" fontSize={9} fill="#94a3b8">{d.l}</text>
+            <rect x={x} y={PAD.t + (ih - bh)} width={36} height={bh} fill={color} rx={3} opacity={0.85}>
+              <title>{`${d.l}: ${fmt(d.v)}`}</title>
+            </rect>
+            {i % paso === 0 && <text x={x + 18} y={h - 6} textAnchor="middle" fontSize={9} fill="#94a3b8">{d.l}</text>}
           </g>
         )
       })}
@@ -66,27 +107,31 @@ function EvolucionSVG({ data, h = 180 }) {
   const maxM = Math.max(...data.map(d => d.monto), 1)
   const maxC = Math.max(...data.map(d => d.count), 1)
   const n    = data.length
-  const W    = Math.max(n * 52, 200)
+  // Ancho fijo: el gráfico ocupa la tarjeta tenga 3 barras o 60
+  const W    = 900
   const PAD  = { t: 10, b: 30, l: 4, r: 4 }
   const ih   = h - PAD.t - PAD.b
-  const cx   = i => PAD.l + i * (W / n) + (W / n) / 2
-  const fmtK = k => k.split('/').slice(0, 2).join('/')
+  const slot = (W - PAD.l - PAD.r) / n
+  const cx   = i => PAD.l + i * slot + slot / 2
+  const bw   = Math.min(slot * 0.6, 48)
+  const paso = pasoEtiquetas(n)
   const pts  = data.map((d, i) => `${cx(i)},${PAD.t + ih - (d.count / maxC) * ih}`).join(' ')
   return (
     <svg viewBox={`0 0 ${W} ${h}`} className="rep-svg" preserveAspectRatio="xMidYMid meet">
       {data.map((d, i) => {
         const bh = (d.monto / maxM) * ih
-        const bw = (W / n) * 0.6
         return (
           <g key={i}>
-            <rect x={cx(i) - bw / 2} y={PAD.t + ih - bh} width={bw} height={bh} fill="#1e3a5f" rx={3} opacity={0.85} />
-            <text x={cx(i)} y={h - 8} textAnchor="middle" fontSize={9} fill="#94a3b8">{fmtK(d.key)}</text>
+            <rect x={cx(i) - bw / 2} y={PAD.t + ih - bh} width={bw} height={bh} fill="#1e3a5f" rx={3} opacity={0.85}>
+              <title>{`${d.l}: ${fmt(d.monto)} · ${fmtNum(d.count)} ventas`}</title>
+            </rect>
+            {i % paso === 0 && <text x={cx(i)} y={h - 8} textAnchor="middle" fontSize={9} fill="#94a3b8">{d.l}</text>}
           </g>
         )
       })}
       <polyline points={pts} fill="none" stroke="var(--primary)" strokeWidth={2} />
       {data.map((d, i) => (
-        <circle key={i} cx={cx(i)} cy={PAD.t + ih - (d.count / maxC) * ih} r={3.5} fill="var(--primary)" />
+        <circle key={i} cx={cx(i)} cy={PAD.t + ih - (d.count / maxC) * ih} r={n > 40 ? 2 : 3.5} fill="var(--primary)" />
       ))}
     </svg>
   )
@@ -99,15 +144,15 @@ function LineChartSVG({ series, labels, h = 200 }) {
   const minV = Math.min(...allV, 0)
   const maxV = Math.max(...allV, 1)
   const n    = labels.length
-  const W    = 600
+  const W    = 900
   const H    = h
   const PAD  = { t: 12, b: 28, l: 64, r: 16 }
   const iw   = W - PAD.l - PAD.r
   const ih   = H - PAD.t - PAD.b
   const toX  = i => PAD.l + (n > 1 ? i * (iw / (n - 1)) : iw / 2)
   const toY  = v => PAD.t + ih - ((v - minV) / (maxV - minV || 1)) * ih
-  const fmtL = l => l.split('/').slice(0, 2).join('/')
-  const fmtY = v => `$${Math.abs(Math.round(v)).toLocaleString('es-AR')}`
+  const paso = pasoEtiquetas(n)
+  const fmtY = v => `${v < 0 ? '-' : ''}$${Math.abs(Math.round(v)).toLocaleString('es-AR')}`
   const GRIDS = 4
   const gridVals = Array.from({ length: GRIDS + 1 }, (_, i) => minV + ((maxV - minV) / GRIDS) * i)
   const anchor = i => i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'
@@ -132,13 +177,13 @@ function LineChartSVG({ series, labels, h = 200 }) {
           <g key={s.name}>
             {s.area && <polygon points={areaPts} fill={s.color} opacity={0.12} />}
             <polyline points={pts} fill="none" stroke={s.color} strokeWidth={2} />
-            {s.data.map((v, i) => <circle key={i} cx={toX(i)} cy={toY(v)} r={3.5} fill={s.color} />)}
+            {s.data.map((v, i) => <circle key={i} cx={toX(i)} cy={toY(v)} r={n > 40 ? 2 : 3.5} fill={s.color}><title>{`${labels[i]} · ${s.name}: ${fmtY(v)}`}</title></circle>)}
           </g>
         )
       })}
       {/* X labels */}
-      {labels.map((l, i) => (
-        <text key={i} x={toX(i)} y={H - 8} textAnchor={anchor(i)} fontSize={9} fill="#94a3b8">{fmtL(l)}</text>
+      {labels.map((l, i) => (i % paso === 0 || i === n - 1) && (
+        <text key={i} x={toX(i)} y={H - 8} textAnchor={anchor(i)} fontSize={9} fill="#94a3b8">{l}</text>
       ))}
     </svg>
   )
@@ -204,18 +249,12 @@ function TabVentas({ ventasFilt, lbl }) {
   const totalBruto = ventasFilt.reduce((a, v) => a + sumaV(v), 0)
   const cantidad   = ventasFilt.length
   const promedio   = cantidad ? totalBruto / cantidad : 0
+  const personas   = ventasFilt.reduce((a, v) => a + (v.personas || 1), 0)
 
-  const byDayMap = {}
-  ventasFilt.forEach(v => {
-    const k = dateKey(v.cierre)
-    if (!byDayMap[k]) byDayMap[k] = { key: k, monto: 0, count: 0 }
-    byDayMap[k].monto += sumaV(v)
-    byDayMap[k].count++
-  })
-  const byDay = Object.values(byDayMap).sort((a, b) => a.key.localeCompare(b.key))
+  const evol = agruparTiempo(ventasFilt.map(v => ({ fecha: parseFecha(v.cierre || v.inicio), monto: sumaV(v), count: 1 })))
 
   const byDow = Array(7).fill(0)
-  ventasFilt.forEach(v => { byDow[parseFecha(v.cierre).getDay()] += sumaV(v) })
+  ventasFilt.forEach(v => { byDow[parseFecha(v.cierre || v.inicio).getDay()] += sumaV(v) })
 
   const byHourMap = {}
   ventasFilt.forEach(v => {
@@ -237,19 +276,19 @@ function TabVentas({ ventasFilt, lbl }) {
   return (
     <div className="re-section">
       <div className="re-kpis-5">
-        <KpiCard label="Total de ventas brutas" value={fmt(totalBruto)} />
-        <KpiCard label="Total de ventas netas"  value={fmt(totalBruto)} />
-        <KpiCard label="Descuentos"              value={fmt(0)} />
-        <KpiCard label="Cantidad de ventas"      value={fmtNum(cantidad)} />
-        <KpiCard label="Promedio por ticket"     value={fmt(promedio)} />
+        <KpiCard label="Total vendido"          value={fmt(totalBruto)} />
+        <KpiCard label="Cantidad de ventas"     value={fmtNum(cantidad)} />
+        <KpiCard label="Promedio por ticket"    value={fmt(promedio)} />
+        <KpiCard label="Personas atendidas"     value={fmtNum(personas)} />
+        <KpiCard label="Promedio por persona"   value={fmt(personas ? totalBruto / personas : 0)} />
       </div>
 
-      <ReCard title="Evolución de ventas brutas" subtitle={lbl}>
+      <ReCard title="Evolución de ventas" subtitle={`${lbl} · ${MODO_LBL[evol.modo]}`}>
         <div className="re-chart-legends">
           <span className="re-legend"><span className="re-leg-dot" style={{ background: '#1e3a5f' }} />Ventas $</span>
           <span className="re-legend"><span className="re-leg-dot" style={{ background: 'var(--primary)' }} />Cantidad de ventas</span>
         </div>
-        <div className="re-chart-wrap re-chart-wrap--lg"><EvolucionSVG data={byDay} /></div>
+        <div className="re-chart-wrap re-chart-wrap--lg"><EvolucionSVG data={evol.datos} /></div>
       </ReCard>
 
       <div className="re-row2">
@@ -391,29 +430,26 @@ function TabStock({ ingredientes, lbl }) {
 /* ══════════════════════════════════════════════════════════════════════
    TAB: Compras
 ══════════════════════════════════════════════════════════════════════ */
-function TabCompras({ gastosFilt, lbl }) {
-  const byDayMap = {}
-  gastosFilt.forEach(g => {
-    const k = dateKey(g.fecha)
-    if (!byDayMap[k]) byDayMap[k] = { key: k, monto: 0 }
-    byDayMap[k].monto += g.monto
-  })
-  const byDay = Object.values(byDayMap).sort((a, b) => a.key.localeCompare(b.key))
+function TabCompras({ gastosFilt, catGastos, lbl }) {
+  // Compras = gastos cuya categoría financiera es "Compra de mercadería"
+  const compras = gastosFilt.filter(g => infoCategoria(g, catGastos).fin === 'Compra de mercadería')
+  const evol = agruparTiempo(compras.map(g => ({ fecha: parseFecha(g.fecha), monto: montoG(g) })))
 
   const byCat = {}
-  gastosFilt.forEach(g => { byCat[g.categoria] = (byCat[g.categoria] || 0) + g.monto })
-  const catData = Object.entries(byCat).sort((a, b) => b[1] - a[1]).map(([cat, v]) => ({ l: CAT_LABEL[cat] || cat, v, color: CAT_COLOR[cat] || '#94a3b8' }))
+  compras.forEach(g => { const n = infoCategoria(g, catGastos).nombre; byCat[n] = (byCat[n] || 0) + montoG(g) })
+  const catData = Object.entries(byCat).sort((a, b) => b[1] - a[1]).map(([l, v], i) => ({ l, v, color: BAR_COLORS[i % BAR_COLORS.length] }))
+  const ordenadas = [...compras].sort((a, b) => parseFecha(b.fecha) - parseFecha(a.fecha))
 
   return (
     <div className="re-section">
       <div className="re-info-banner">
         <span className="re-info-icon">ℹ</span>
-        <span>Para visualizar el reporte de compras correctamente, asegurate de tener todos los gastos registrados con su categoría correspondiente.</span>
+        <span>Acá se ven los gastos cuya categoría tiene como categoría financiera "Compra de mercadería".</span>
       </div>
       <div className="re-row2">
-        <ReCard title="Evolución de compras" subtitle={lbl}>
+        <ReCard title="Evolución de compras" subtitle={`${lbl} · ${MODO_LBL[evol.modo]}`}>
           <div className="re-chart-wrap">
-            <BarChartSVG data={byDay.map(d => ({ l: d.key.split('/').slice(0, 2).join('/'), v: d.monto }))} color="#1e3a5f" />
+            <BarChartSVG data={evol.datos.map(d => ({ l: d.l, v: d.monto }))} color="#1e3a5f" />
           </div>
         </ReCard>
         <ReCard title="Compras por categoría" subtitle={lbl}>
@@ -427,18 +463,14 @@ function TabCompras({ gastosFilt, lbl }) {
               <tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Monto</th></tr>
             </thead>
             <tbody>
-              {gastosFilt.length === 0
+              {ordenadas.length === 0
                 ? <tr><td colSpan={4} className="rep-empty">Sin datos</td></tr>
-                : gastosFilt.map(g => (
+                : ordenadas.map(g => (
                   <tr key={g.id}>
                     <td className="re-td-muted">{dateKey(g.fecha)}</td>
-                    <td>
-                      <span className="re-badge" style={{ background: `${CAT_COLOR[g.categoria] || '#94a3b8'}20`, color: CAT_COLOR[g.categoria] || '#94a3b8' }}>
-                        {CAT_LABEL[g.categoria] || g.categoria || '—'}
-                      </span>
-                    </td>
-                    <td className="re-td-bold">{g.descripcion || g.comentario || '—'}</td>
-                    <td>{fmt(g.monto)}</td>
+                    <td><span className="re-badge re-badge--cat">{infoCategoria(g, catGastos).nombre}</span></td>
+                    <td className="re-td-bold">{g.comentario || g.descripcion || g.proveedor || '—'}</td>
+                    <td>{fmt(montoG(g))}</td>
                   </tr>
                 ))}
             </tbody>
@@ -452,17 +484,18 @@ function TabCompras({ gastosFilt, lbl }) {
 /* ══════════════════════════════════════════════════════════════════════
    TAB: Gastos
 ══════════════════════════════════════════════════════════════════════ */
-function TabGastos({ gastosFilt, lbl }) {
-  const OP_CATS  = ['ingredientes', 'bebidas', 'mantenimiento']
-  const ADM_CATS = ['sueldos', 'alquiler', 'servicios']
-
-  const total = gastosFilt.reduce((a, g) => a + g.monto, 0)
-  const catMap = {}
-  gastosFilt.forEach(g => { catMap[g.categoria] = (catMap[g.categoria] || 0) + g.monto })
-  const maxCat         = Object.entries(catMap).sort((a, b) => b[1] - a[1])[0]
-  const operacionales   = gastosFilt.filter(g => OP_CATS.includes(g.categoria)).reduce((a, g) => a + g.monto, 0)
-  const administrativos = gastosFilt.filter(g => ADM_CATS.includes(g.categoria)).reduce((a, g) => a + g.monto, 0)
-  const catData = Object.entries(catMap).sort((a, b) => b[1] - a[1]).map(([cat, v]) => ({ l: CAT_LABEL[cat] || cat, v, color: CAT_COLOR[cat] || '#94a3b8' }))
+function TabGastos({ gastosFilt, catGastos, lbl }) {
+  const total  = gastosFilt.reduce((a, g) => a + montoG(g), 0)
+  const catMap = {}, finMap = {}
+  gastosFilt.forEach(g => {
+    const { nombre, fin } = infoCategoria(g, catGastos)
+    catMap[nombre] = (catMap[nombre] || 0) + montoG(g)
+    finMap[fin]    = (finMap[fin]    || 0) + montoG(g)
+  })
+  const maxCat          = Object.entries(catMap).sort((a, b) => b[1] - a[1])[0]
+  const operacionales   = finMap['Gastos operacionales']   || 0
+  const administrativos = finMap['Gastos administrativos'] || 0
+  const catData = Object.entries(catMap).sort((a, b) => b[1] - a[1]).map(([l, v], i) => ({ l, v, color: BAR_COLORS[i % BAR_COLORS.length] }))
 
   return (
     <div className="re-section">
@@ -472,7 +505,7 @@ function TabGastos({ gastosFilt, lbl }) {
       </div>
       <div className="re-kpis-4">
         <KpiCard label="Gastos totales"           value={fmt(total)} />
-        <KpiCard label="Categoría con más gastos" value={maxCat ? fmt(maxCat[1]) : fmt(0)} sub={maxCat ? (CAT_LABEL[maxCat[0]] || maxCat[0]) : '—'} />
+        <KpiCard label="Categoría con más gastos" value={maxCat ? fmt(maxCat[1]) : fmt(0)} sub={maxCat ? maxCat[0] : '—'} />
         <KpiCard label="Gastos operacionales"     value={fmt(operacionales)} />
         <KpiCard label="Gastos administrativos"   value={fmt(administrativos)} />
       </div>
@@ -487,17 +520,14 @@ function TabGastos({ gastosFilt, lbl }) {
    TAB: Balance
 ══════════════════════════════════════════════════════════════════════ */
 function TabBalance({ ventasFilt, gastosFilt, lbl }) {
-  const allDays = [...new Set([
-    ...ventasFilt.map(v => dateKey(v.cierre)),
-    ...gastosFilt.map(g => dateKey(g.fecha)),
-  ])].sort()
-
-  const ingMap = {}; ventasFilt.forEach(v => { const k = dateKey(v.cierre); ingMap[k] = (ingMap[k] || 0) + sumaV(v) })
-  const egrMap = {}; gastosFilt.forEach(g => { const k = dateKey(g.fecha);  egrMap[k] = (egrMap[k] || 0) + g.monto  })
-
-  const ingSeries = allDays.map(d => ingMap[d] || 0)
-  const egrSeries = allDays.map(d => egrMap[d] || 0)
-  const resSeries = allDays.map((_, i) => ingSeries[i] - egrSeries[i])
+  const evol = agruparTiempo([
+    ...ventasFilt.map(v => ({ fecha: parseFecha(v.cierre || v.inicio), monto: sumaV(v) })),
+    ...gastosFilt.map(g => ({ fecha: parseFecha(g.fecha), egreso: montoG(g) })),
+  ])
+  const allDays   = evol.datos.map(d => d.l)
+  const ingSeries = evol.datos.map(d => d.monto)
+  const egrSeries = evol.datos.map(d => d.egreso)
+  const resSeries = evol.datos.map(d => d.monto - d.egreso)
 
   const totalIng = ingSeries.reduce((a, b) => a + b, 0)
   const totalEgr = egrSeries.reduce((a, b) => a + b, 0)
@@ -510,7 +540,7 @@ function TabBalance({ ventasFilt, gastosFilt, lbl }) {
         <KpiCard label="Egresos"   value={fmt(totalEgr)} color="#ef4444" />
         <KpiCard label="Resultado" value={fmt(totalRes)} color={totalRes >= 0 ? '#22c55e' : '#ef4444'} />
       </div>
-      <ReCard title="Evolución del resultado" subtitle={lbl}>
+      <ReCard title="Evolución del resultado" subtitle={`${lbl} · ${MODO_LBL[evol.modo]}`}>
         <div className="re-chart-legends">
           <span className="re-legend"><span className="re-leg-dot" style={{ background: '#22c55e' }} />Ingresos</span>
           <span className="re-legend"><span className="re-leg-dot" style={{ background: '#ef4444' }} />Egresos</span>
@@ -592,12 +622,20 @@ export default function Reportes() {
   const [ventas,       setVentas]       = useState([])
   const [gastos,       setGastos]       = useState([])
   const [ingredientes, setIngredientes] = useState([])
+  const [catGastos,    setCatGastos]    = useState([])
   const [cargando,     setCargando]     = useState(true)
 
   useEffect(() => {
-    Promise.all([ventasService.listar(), gastosService.listar(), ingredientesService.listar()])
-      .then(([v, g, i]) => { setVentas(v); setGastos(g); setIngredientes(i); setCargando(false) })
-      .catch(e => { console.error(e); setCargando(false) })
+    // Si una lista falla, el resto del reporte se muestra igual
+    Promise.all([
+      ventasService.listar().catch(() => []),
+      gastosService.listar().catch(() => []),
+      ingredientesService.listar().catch(() => []),
+      categoriasGastoService.listar().catch(() => []),
+    ]).then(([v, g, i, cg]) => {
+      // Las ventas abiertas todavía no son ventas: no entran en los reportes
+      setVentas(v.filter(x => x.estado !== 'en_curso')); setGastos(g); setIngredientes(i); setCatGastos(cg)
+    }).finally(() => setCargando(false))
   }, [])
 
   const filtrarPorFecha = (items, campo) => items.filter(item => {
@@ -612,6 +650,47 @@ export default function Reportes() {
     : 'Todos los registros'
   const ventasFilt = filtrarPorFecha(ventas, 'cierre')
   const gastosFilt = filtrarPorFecha(gastos, 'fecha')
+
+  const exportar = () => {
+    const sufijo = (fechaDesde || fechaHasta) ? `_${fechaDesde || 'inicio'}_${fechaHasta || 'hoy'}` : ''
+    const archivo = `reporte_${seccion.toLowerCase()}${sufijo}.csv`
+    if (seccion === 'Stock') {
+      return descargarCSV(archivo, [
+        ['Ingrediente', 'Categoría', 'Unidad', 'Stock mínimo', 'Stock actual', 'Estado'],
+        ...ingredientes.map(i => [i.nombre, i.categoria, i.unidad, i.stockMinimo, i.stockActual, i.stockActual <= i.stockMinimo ? 'Stock bajo' : 'OK']),
+      ])
+    }
+    if (seccion === 'Compras' || seccion === 'Gastos') {
+      const lista = seccion === 'Compras' ? gastosFilt.filter(g => infoCategoria(g, catGastos).fin === 'Compra de mercadería') : gastosFilt
+      return descargarCSV(archivo, [
+        ['Fecha', 'Categoría', 'Categoría financiera', 'Proveedor', 'Comentario', 'Importe', 'Estado de pago'],
+        ...lista.map(g => { const c = infoCategoria(g, catGastos); return [dateKey(g.fecha), c.nombre, c.fin, g.proveedor, g.comentario, montoG(g), g.estadoPago] }),
+      ])
+    }
+    if (seccion === 'Productos') {
+      const rank = {}
+      ventasFilt.forEach(v => (v.items || []).forEach(it => {
+        const r = rank[it.nombre] ||= { cant: 0, total: 0 }
+        r.cant += it.cantidad || 0; r.total += (it.precio || 0) * (it.cantidad || 0)
+      }))
+      return descargarCSV(archivo, [
+        ['Producto', 'Unidades vendidas', 'Total vendido'],
+        ...Object.entries(rank).sort((a, b) => b[1].total - a[1].total).map(([n, r]) => [n, r.cant, Math.round(r.total)]),
+      ])
+    }
+    if (seccion === 'Balance') {
+      return descargarCSV(archivo, [
+        ['Tipo', 'Fecha', 'Detalle', 'Importe'],
+        ...ventasFilt.map(v => ['Ingreso', dateKey(v.cierre || v.inicio), `Venta #${v.numero ?? ''} ${v.mesa ? '· Mesa ' + v.mesa : ''}`.trim(), Math.round(sumaV(v))]),
+        ...gastosFilt.map(g => ['Egreso', dateKey(g.fecha), infoCategoria(g, catGastos).nombre, -montoG(g)]),
+      ])
+    }
+    // Ventas y Mesas
+    descargarCSV(archivo, [
+      ['Número', 'Inicio', 'Cierre', 'Origen', 'Mesa', 'Personas', 'Medio de pago', 'Total'],
+      ...ventasFilt.map(v => [v.numero ?? '', v.inicio, v.cierre, v.tipo, v.mesa, v.personas, v.metodoPago, Math.round(sumaV(v))]),
+    ])
+  }
 
   if (cargando) return <div className="rep-loading">Cargando...</div>
 
@@ -643,14 +722,14 @@ export default function Reportes() {
               <button className="co-fecha-clear" onClick={() => { setFechaDesde(''); setFechaHasta('') }}>Limpiar</button>
             )}
           </div>
-          <button className="rep-export-btn">↗ Exportar</button>
+          <button className="rep-export-btn" onClick={exportar} title="Descarga los datos de esta pestaña para abrir en Excel">↗ Exportar</button>
         </div>
 
         {seccion === 'Ventas'    && <TabVentas    ventasFilt={ventasFilt} lbl={lbl} />}
         {seccion === 'Productos' && <TabProductos ventasFilt={ventasFilt} lbl={lbl} />}
         {seccion === 'Stock'     && <TabStock     ingredientes={ingredientes} lbl={lbl} />}
-        {seccion === 'Compras'   && <TabCompras   gastosFilt={gastosFilt}  lbl={lbl} />}
-        {seccion === 'Gastos'    && <TabGastos    gastosFilt={gastosFilt}  lbl={lbl} />}
+        {seccion === 'Compras'   && <TabCompras   gastosFilt={gastosFilt}  catGastos={catGastos} lbl={lbl} />}
+        {seccion === 'Gastos'    && <TabGastos    gastosFilt={gastosFilt}  catGastos={catGastos} lbl={lbl} />}
         {seccion === 'Balance'   && <TabBalance   ventasFilt={ventasFilt}  gastosFilt={gastosFilt} lbl={lbl} />}
         {seccion === 'Mesas'     && <TabMesas     ventasFilt={ventasFilt}  lbl={lbl} />}
       </div>
