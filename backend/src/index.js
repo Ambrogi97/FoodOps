@@ -36,6 +36,7 @@ const rolesRoutes                          = require('./routes/roles')
 const pagosRoutes                          = require('./routes/pagos')
 const { router: pushRoutes }               = require('./routes/push')
 const resenasRoutes                        = require('./routes/resenas')
+const inicioRoutes                         = require('./routes/inicio')
 
 const mongoSanitize = require('express-mongo-sanitize')
 const User = require('./models/User')
@@ -134,6 +135,7 @@ app.use('/api/roles',                           rolesRoutes)
 app.use('/api/pagos',                           pagosRoutes)
 app.use('/api/push',                            pushRoutes)
 app.use('/api/resenas',                         resenasRoutes)
+app.use('/api/inicio',                          inicioRoutes)
 
 app.get('/', (req, res) => {
   res.json({ message: 'FoodOps API running' })

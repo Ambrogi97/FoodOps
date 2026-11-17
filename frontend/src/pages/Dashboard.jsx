@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { getSession, clearSession, saveSession, categoriasService, productosService, pedidosOnlineService, rolesService, pagosService, perfilService } from '../services/api'
 import {
   UtensilsCrossed, Package, Truck, Users, DollarSign, TrendingUp, BarChart2, Calculator,
-  Smartphone, LogOut, ShieldCheck, Settings, Monitor, Lock, Crown, Clock,
+  Smartphone, LogOut, ShieldCheck, Settings, Monitor, Lock, Crown, Clock, Home,
 } from 'lucide-react'
 import Logo from '../components/Logo'
+import Inicio from './dashboard/Inicio'
 import Mesas from './dashboard/Mesas'
 import Restaurante from './dashboard/Restaurante'
 import MonitorCocina from './dashboard/MonitorCocina'
@@ -21,9 +22,10 @@ import Admin from './dashboard/Admin'
 import Configuracion from './dashboard/Configuracion'
 import './Dashboard.css'
 
-const BASIC_IDS = new Set(['restaurante', 'monitor-cocina', 'productos', 'carta'])
+const BASIC_IDS = new Set(['inicio', 'restaurante', 'monitor-cocina', 'productos', 'carta'])
 
 const NAV_ITEMS = [
+  { id: 'inicio',         label: 'Inicio',            Icon: Home },
   { id: 'restaurante',    label: 'Restaurante',       Icon: UtensilsCrossed },
   { id: 'monitor-cocina', label: 'Monitor de Cocina', Icon: Monitor },
   { id: 'productos',      label: 'Productos',         Icon: Package },
@@ -40,7 +42,7 @@ const NAV_ITEMS = [
 export default function Dashboard() {
   const navigate = useNavigate()
   const { user } = getSession()
-  const [active, setActive]                   = useState('restaurante')
+  const [active, setActive]                   = useState('inicio')
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const isAdmin = user?.superadmin === true
   const [menuOpen, setMenuOpen]               = useState(false)
@@ -75,16 +77,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     rolesService.misPermisos()
-      .then(data => {
-        setPermisosData(data)
-        // Si la sección activa no está permitida, ir a la primera disponible
-        if (!data.esOwner) {
-          const visible = NAV_ITEMS.filter(i => data.permisos.includes(`Ver ${i.label}`))
-          if (visible.length > 0 && !visible.find(i => i.id === 'restaurante')) {
-            setActive(visible[0].id)
-          }
-        }
-      })
+      // Inicio lo ve todo el mundo (cada tarjeta se muestra según los permisos del rol)
+      .then(data => setPermisosData(data))
       .catch(() => setPermisosData({ esOwner: false, permisos: [] }))
   }, [])
 
@@ -167,8 +161,12 @@ export default function Dashboard() {
 
   const puedeVer = (label) => {
     if (!permisosData) return false
-    if (permisosData.esOwner) return true
+    if (permisosData.esOwner || label === 'Inicio') return true
     return permisosData.permisos.includes(`Ver ${label}`)
+  }
+  const puedeIrA = (id) => {
+    const item = NAV_ITEMS.find(i => i.id === id)
+    return !!item && puedeVer(item.label) && !bloqueadoPorPlan(id)
   }
 
   const navVisible = permisosData
@@ -347,6 +345,10 @@ export default function Dashboard() {
             </div>
           ) : (
             <>
+              {active === 'inicio'         && (
+                <Inicio usuario={user} onNavegar={setActive} puedeIr={puedeIrA}
+                  puedeEditarMeta={!!permisosData?.esOwner || ['Ver Configuración', 'Ver Carta Online'].some(p => permisosData?.permisos?.includes(p))} />
+              )}
               {active === 'restaurante'    && <Restaurante productos={productos} categorias={categorias} onIrAConfiguracion={irAConfiguracion} />}
               {active === 'monitor-cocina' && <MonitorCocina />}
               {active === 'productos'      && <Productos />}

@@ -193,6 +193,25 @@ router.put('/tienda/formas-pago', auth, async (req, res) => {
   }
 })
 
+// ── Meta de ventas mensual (pantalla de Inicio) ──────────────────────────────
+
+router.put('/meta-ventas', auth, async (req, res) => {
+  try {
+    const meta = Math.round(Number(req.body?.metaVentasMensual))
+    if (!Number.isFinite(meta) || meta < 0 || meta > 100_000_000_000) {
+      return res.status(400).json({ message: 'Ingresá un monto válido' })
+    }
+    const config = await ConfigTienda.findOneAndUpdate(
+      { usuario: req.propietarioId },
+      { $set: { metaVentasMensual: meta } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    )
+    res.json({ metaVentasMensual: config.metaVentasMensual })
+  } catch (e) {
+    return responderError(req, res, e)
+  }
+})
+
 // ── Impresión (comandas y tickets) ───────────────────────────────────────────
 
 const CAMPOS_IMPRESION = ['anchoPapel', 'encabezado', 'datosLocal', 'pie', 'leyenda', 'comandaPorArea', 'comandaAlGuardar', 'copiasComanda', 'copiasTicket']

@@ -451,7 +451,14 @@ const uploadFile = async (path, fieldName, file) => {
   return json
 }
 
+// ── Inicio (resumen del local) ───────────────────────────────────────────────
+export const inicioService = {
+  // fecha = día local del navegador (AAAA-MM-DD), periodo = hoy | semana | mes
+  obtener: async (fecha, periodo) => request(`/api/inicio?fecha=${encodeURIComponent(fecha)}&periodo=${encodeURIComponent(periodo)}`),
+}
+
 export const configService = {
+  saveMetaVentas:    async (metaVentasMensual) => request('/api/config/meta-ventas', { method: 'PUT', body: JSON.stringify({ metaVentasMensual }) }),
   getTienda:         async ()            => request('/api/config/tienda'),
   saveTienda:        async (data)        => request('/api/config/tienda', { method: 'PUT', body: JSON.stringify(data) }),
   getImpresion:      async ()            => request('/api/config/impresion'),

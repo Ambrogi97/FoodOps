@@ -60,6 +60,8 @@ const configTiendaSchema = new mongoose.Schema(
       radioKm: { type: Number, default: null },
     },
     pushSuscripciones: { type: [mongoose.Schema.Types.Mixed], default: [] },
+    // Meta de ventas del mes para la pantalla de Inicio (0 = sin meta)
+    metaVentasMensual: { type: Number, default: 0, min: 0, max: 100_000_000_000 },
     // Impresión de comandas (cocina/barra) y tickets (cliente/cadete)
     impresion: {
       anchoPapel:       { type: Number,  enum: [58, 80], default: 80 },
