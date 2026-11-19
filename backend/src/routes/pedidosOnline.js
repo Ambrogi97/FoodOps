@@ -1,7 +1,6 @@
 const express       = require('express')
 const router        = express.Router()
 const { responderError } = require('../utils/security')
-const crypto        = require('crypto')
 const auth          = require('../middleware/auth')
 const PedidoOnline  = require('../models/PedidoOnline')
 const { enviarEmail } = require('../utils/email')
@@ -10,12 +9,7 @@ const { enviarPushNuevoPedido } = require('./push')
 
 const fmt = (n) => `$${Number(n).toLocaleString('es-AR')}`
 
-function tokenResena(pedidoId) {
-  return crypto.createHmac('sha256', process.env.JWT_SECRET)
-    .update(String(pedidoId))
-    .digest('hex')
-    .slice(0, 16)
-}
+const { tokenResena } = require('../utils/enlaces')
 
 function emailResena({ numero, clienteNombre, resenaUrl }) {
   return /* html */`<!DOCTYPE html>
@@ -67,7 +61,8 @@ router.put('/:id/estado', auth, async (req, res) => {
     }
     const pedido = await PedidoOnline.findOneAndUpdate(
       { _id: req.params.id, usuario: req.propietarioId },
-      { estado },
+      // La hora de entrega marca desde cuándo vencen el seguimiento y la reseña
+      { estado, entregadoAt: estado === 'entregado' ? new Date() : null },
       { returnDocument: 'after' }
     )
     if (!pedido) return res.status(404).json({ message: 'Pedido no encontrado' })

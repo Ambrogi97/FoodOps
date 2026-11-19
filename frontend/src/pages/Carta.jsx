@@ -249,7 +249,9 @@ export default function Carta() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Error al enviar')
       setNumeroPedido(data.numero || '')
-      setTrackingUrl(data.id ? `${window.location.origin}/tracking/${data.id}` : '')
+      setTrackingUrl(data.id && data.trackingToken
+        ? `${window.location.origin}/tracking/${data.id}?t=${encodeURIComponent(data.trackingToken)}`
+        : '')
       if (form.tipo !== 'mesa') {
         try {
           localStorage.setItem(DATOS_CLIENTE_KEY, JSON.stringify({

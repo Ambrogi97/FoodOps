@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { CheckCircle, Clock, ChefHat, PackageCheck, Bike, Frown } from 'lucide-react'
 import { cargarConReintentos } from '../services/reintentos'
 import './Tracking.css'
@@ -22,32 +22,38 @@ function pasoActual(estado) {
 
 export default function Tracking() {
   const { pedidoId } = useParams()
+  const [params]            = useSearchParams()
+  const token               = params.get('t') || ''
   const [datos, setDatos]   = useState(null)
   const [error, setError]   = useState('')
   const ivRef               = useRef(null)
 
   useEffect(() => {
     let cancelado = false
-    const url = `${API}/api/carta/tracking/${pedidoId}`
+    if (!token) { setError('El enlace de seguimiento está incompleto. Abrilo desde el email o el mensaje que te llegó.'); return }
+    const url = `${API}/api/carta/tracking/${pedidoId}?t=${encodeURIComponent(token)}`
+    const mensajeError = status =>
+      status === 410 ? 'Este enlace de seguimiento ya venció.'
+      : status === 404 ? 'No se encontró el pedido.'
+      : 'No pudimos cargar el estado del pedido. Revisá tu conexión e intentá de nuevo.'
 
     // Primera carga: reintenta si el servidor está despertando
     cargarConReintentos(url, () => cancelado)
       .then(d => { if (!cancelado) setDatos(d) })
-      .catch(e => {
-        if (cancelado) return
-        setError(e.status === 404 ? 'No se encontró el pedido.' : 'No pudimos cargar el estado del pedido. Revisá tu conexión e intentá de nuevo.')
-      })
+      .catch(e => { if (!cancelado) setError(mensajeError(e.status)) })
 
-    // Actualización cada 15 s: si una falla, se mantiene lo que ya se ve
+    // Actualización cada 15 s: si una falla, se mantiene lo que ya se ve; si el link venció, se corta
     ivRef.current = setInterval(async () => {
       try {
         const r = await fetch(url, { cache: 'no-store' })
-        if (r.ok && !cancelado) setDatos(await r.json())
+        if (cancelado) return
+        if (r.ok) setDatos(await r.json())
+        else if (r.status === 410 || r.status === 404) { clearInterval(ivRef.current); setError(mensajeError(r.status)) }
       } catch { /* se reintenta en el próximo ciclo */ }
     }, 15_000)
 
     return () => { cancelado = true; clearInterval(ivRef.current) }
-  }, [pedidoId])
+  }, [pedidoId, token])
 
   useEffect(() => {
     if (datos?.estado === 'entregado') clearInterval(ivRef.current)
@@ -67,7 +73,7 @@ export default function Tracking() {
   const paso      = pasoActual(datos.estado)
   const entregado = datos.estado === 'entregado'
   const tipoLabel = datos.tipo === 'delivery'
-    ? `Delivery — ${datos.direccion}`
+    ? (datos.direccion ? `Delivery — ${datos.direccion}` : 'Delivery')
     : datos.tipo === 'mesa'
       ? `Mesa ${datos.mesaNumero}`
       : 'Retiro en el local'
