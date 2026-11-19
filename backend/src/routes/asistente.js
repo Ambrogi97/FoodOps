@@ -10,6 +10,8 @@ const Ingrediente = require('../models/Ingrediente')
 const { responderError } = require('../utils/security')
 const P = require('../utils/prediccion')
 const { calcularListaCompras } = require('../utils/listaCompras')
+const { analizarMenu } = require('../utils/menu')
+const Categoria = require('../models/Categoria')
 
 const DIAS_SEMANA = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 const HORIZONTE   = 7
@@ -164,6 +166,34 @@ router.get('/lista-compras', auth, async (req, res) => {
       Ingrediente.find({ usuario: req.propietarioId }).select('nombre unidad stockActual merma costo categoria').lean(),
     ])
     res.json({ suficiente: true, ...calcularListaCompras(pred, productos, ingredientes, { dias, margen }) })
+  } catch (e) {
+    return responderError(req, res, e)
+  }
+})
+
+// GET /api/asistente/menu?fecha=AAAA-MM-DD&dias=30|60|90
+router.get('/menu', auth, async (req, res) => {
+  try {
+    const f = String(req.query.fecha || '').match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    const ahora = new Date()
+    const hoy = f ? P.diaAbs(+f[1], +f[2], +f[3]) : P.diaAbs(ahora.getFullYear(), ahora.getMonth() + 1, ahora.getDate())
+    if (!Number.isFinite(hoy)) return res.status(400).json({ message: 'Fecha inválida' })
+    const dias = [30, 60, 90].includes(Number(req.query.dias)) ? Number(req.query.dias) : 30
+    const uid = req.propietarioId
+
+    const [ventasRaw, productos, categorias, ingredientes] = await Promise.all([
+      Venta.find({ usuario: uid, estado: { $ne: 'en_curso' }, createdAt: { $gte: new Date((hoy - dias - 2) * P.DIA_MS) } }).select('inicio cierre items').lean(),
+      Producto.find({ usuario: uid }).select('nombre precio costo categoria receta activo').lean(),
+      Categoria.find({ usuario: uid }).select('nombre').lean(),
+      Ingrediente.find({ usuario: uid }).select('nombre unidad costo merma').lean(),
+    ])
+    // Período: los últimos "dias" días completos (sin hoy)
+    const ventas = ventasRaw.filter(v => { const d = P.diaDeTexto(v.inicio || v.cierre); return d != null && d >= hoy - dias && d < hoy })
+    res.json({
+      desde: P.isoDe(hoy - dias), hasta: P.isoDe(hoy - 1), dias,
+      ventasAnalizadas: ventas.length,
+      categorias: analizarMenu(ventas, productos, categorias, ingredientes, P.nombreBase),
+    })
   } catch (e) {
     return responderError(req, res, e)
   }
