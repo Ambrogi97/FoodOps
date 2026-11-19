@@ -8,15 +8,16 @@
 //   GEMINI_BASE_URL  (opcional)     solo para pruebas
 
 const BASE = () => (process.env.GEMINI_BASE_URL || 'https://generativelanguage.googleapis.com').replace(/\/$/, '')
-const TIMEOUT_MS = 45_000
+const TIMEOUT_MS   = 25_000   // por llamada
+const PRESUPUESTO_MS = 50_000 // por pregunta, sumando herramientas y reintentos con otros modelos
 
 class ErrorGemini extends Error {
   constructor(message, status, code) { super(message); this.status = status; this.code = code }
 }
 
-async function llamar(path, { method = 'GET', body } = {}) {
+async function llamar(path, { method = 'GET', body, timeoutMs = TIMEOUT_MS } = {}) {
   const ctrl = new AbortController()
-  const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS)
+  const t = setTimeout(() => ctrl.abort(), Math.max(1000, timeoutMs))
   try {
     const r = await fetch(BASE() + path, {
       method, signal: ctrl.signal,
@@ -32,9 +33,9 @@ async function llamar(path, { method = 'GET', body } = {}) {
     }
     return json
   } catch (e) {
-    if (e.name === 'AbortError') throw new ErrorGemini('Gemini tardó demasiado en responder', 504, 'TIMEOUT')
+    if (e.name === 'AbortError') throw new ErrorGemini(`Gemini no respondió en ${Math.round(timeoutMs / 1000)} s`, 504, 'TIMEOUT')
     if (e instanceof ErrorGemini) throw e
-    throw new ErrorGemini('No se pudo conectar con Gemini', 502, 'RED')
+    throw new ErrorGemini(`No se pudo conectar con Gemini (${e.cause?.code || e.message})`, 502, 'RED')
   } finally {
     clearTimeout(t)
   }
@@ -50,7 +51,7 @@ const version = n => { const m = n.match(/gemini-(\d+(?:\.\d+)?)/); return m ? N
 async function modelosCandidatos() {
   if (process.env.GEMINI_MODEL) return [process.env.GEMINI_MODEL.replace(/^models\//, '')]
   if (candidatos && Date.now() < candidatosHasta) return candidatos
-  const res = await llamar('/v1beta/models?pageSize=200')
+  const res = await llamar('/v1beta/models?pageSize=200', { timeoutMs: 10_000 })
   const lista = (res?.models || [])
     .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
     .map(m => m.name.replace(/^models\//, ''))
@@ -77,16 +78,21 @@ async function conversar({ sistema, historial, herramientas, ejecutar, maxPasos 
   }
   const contents = historial.map(m => ({ role: m.rol === 'asistente' ? 'model' : 'user', parts: [{ text: m.texto }] }))
   const usadas = []
+  const inicio = Date.now()
+  const restante = () => PRESUPUESTO_MS - (Date.now() - inicio)
   const modelos = await modelosCandidatos()
   let ultimoError = null
   const intentos = []
 
   for (const modelo of modelos) {
+    if (restante() < 5000) { intentos.push(`(sin tiempo para probar ${modelo})`); break }
+    const t0 = Date.now()
     try {
       const conv = [...contents]
       for (let paso = 0; paso < maxPasos; paso++) {
         const res = await llamar(`/v1beta/models/${encodeURIComponent(modelo)}:generateContent`, {
           method: 'POST',
+          timeoutMs: Math.min(TIMEOUT_MS, restante()),
           body: {
             systemInstruction: { parts: [{ text: sistema }] },
             contents: conv,
@@ -123,7 +129,7 @@ async function conversar({ sistema, historial, herramientas, ejecutar, maxPasos 
       return { texto: 'La consulta necesitó demasiados pasos. Probá preguntarlo de forma más concreta.', herramientasUsadas: usadas, modelo }
     } catch (e) {
       if (!(e instanceof ErrorGemini)) throw e
-      intentos.push(`${modelo} → ${e.status} ${e.message}`.slice(0, 300))
+      intentos.push(`${modelo} → ${e.status} ${e.message} (${((Date.now() - t0) / 1000).toFixed(1)} s)`.slice(0, 300))
       ultimoError = e
       // Clave inválida o sin permiso: no tiene sentido probar otro modelo
       if (e.status === 401 || e.status === 403) break

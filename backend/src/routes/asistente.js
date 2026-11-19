@@ -256,6 +256,10 @@ router.post('/chat', auth, chatLimiter, async (req, res) => {
       return res.status(400).json({ message: 'Falta la pregunta' })
     }
     while (mensajes[0]?.rol === 'asistente') mensajes.shift()   // el historial empieza por el usuario
+    // Dos mensajes seguidos del mismo lado (p. ej. una pregunta que quedó sin respuesta) se unen
+    for (let i = mensajes.length - 1; i > 0; i--) {
+      if (mensajes[i].rol === mensajes[i - 1].rol) { mensajes[i - 1].texto += '\n' + mensajes[i].texto; mensajes.splice(i, 1) }
+    }
 
     const uid = req.propietarioId
     claveUso = `${uid}|${hoy}`

@@ -21,7 +21,14 @@ const fechaLocal = () => {
   const d = new Date(), p = n => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
 }
-const leer = () => { try { return JSON.parse(sessionStorage.getItem(CLAVE)) || [] } catch { return [] } }
+// Al volver a abrir, una pregunta que quedó sin respuesta (se recargó la página mientras pensaba) no se muestra
+const leer = () => {
+  try {
+    const m = JSON.parse(sessionStorage.getItem(CLAVE)) || []
+    while (m.length && m[m.length - 1].rol === 'usuario') m.pop()
+    return m
+  } catch { return [] }
+}
 const guardar = m => { try { sessionStorage.setItem(CLAVE, JSON.stringify(m.slice(-30))) } catch { /* sin almacenamiento */ } }
 
 // Formato mínimo y seguro (sin HTML): **negrita**, listas con "- " o "1. ", párrafos
@@ -80,6 +87,9 @@ export default function ChatAsistente() {
       const r = await asistenteService.chat(fechaLocal(), nuevos.map(({ rol, texto }) => ({ rol, texto })))
       setMensajes(m => [...m, { rol: 'asistente', texto: r.texto, fuentes: r.fuentes || [] }])
     } catch (e) {
+      // La pregunta vuelve al campo de texto para reintentarla, sin quedar colgada en la conversación
+      setMensajes(m => (m[m.length - 1]?.rol === 'usuario' && m[m.length - 1].texto === q ? m.slice(0, -1) : m))
+      setTexto(t => t || q)
       setError({ texto: e.message || 'No se pudo responder. Probá de nuevo.', detalle: e.detalle })
     } finally {
       setPensando(false)
