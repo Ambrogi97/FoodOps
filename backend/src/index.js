@@ -53,6 +53,10 @@ app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff')
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
   res.setHeader('X-Frame-Options', 'DENY')
+  // La API solo devuelve JSON: no necesita cargar nada ni ser embebida
+  res.setHeader('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'")
+  // HSTS: el navegador usa siempre HTTPS con este dominio (se ignora en http://localhost)
+  if (req.secure) res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
   next()
 })
 
@@ -119,7 +123,6 @@ app.use('/api/gastos',       gastosRoutes)
 app.use('/api/stock',        stockRoutes)
 app.use('/api/proveedores',    proveedoresRoutes)
 app.use('/api/uploads',       uploadsRoutes)
-app.use('/uploads',           express.static(require('path').join(__dirname, '../uploads')))
 app.use('/api/carta',          cartaRoutes)
 app.use('/api/pedidos-online', pedidosOnlineRoutes)
 app.use('/api/admin',          adminRoutes)

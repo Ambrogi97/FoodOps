@@ -274,8 +274,10 @@ export default function CartaOnline() {
   const qrPrintUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(cartaUrl)}`
 
   const imprimirQR = () => {
-    const nombre = user.restaurante || 'Carta Online'
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+    const nombre = esc(user.restaurante || 'Carta Online')
     const ventana = window.open('', '_blank', 'width=520,height=700')
+    if (!ventana) return
     ventana.document.write(`<!DOCTYPE html>
 <html>
 <head>
@@ -297,13 +299,19 @@ export default function CartaOnline() {
   <div class="card">
     <h1>${nombre}</h1>
     <p class="sub">Menú digital</p>
-    <img src="${qrPrintUrl}" alt="QR" onload="window.print()" onerror="window.print()" />
+    <img src="${esc(qrPrintUrl)}" alt="QR" />
     <p class="cta">Escaneá para ver el menú</p>
-    <p class="url">${cartaUrl}</p>
+    <p class="url">${esc(cartaUrl)}</p>
   </div>
 </body>
 </html>`)
     ventana.document.close()
+    // Se imprime cuando carga el QR (sin onload="..." en el HTML: la política CSP no permite scripts en línea)
+    const img = ventana.document.querySelector('img')
+    let impreso = false
+    const imprimir = () => { if (!impreso) { impreso = true; ventana.focus(); ventana.print() } }
+    if (img?.complete) imprimir()
+    else { img?.addEventListener('load', imprimir); img?.addEventListener('error', imprimir); setTimeout(imprimir, 4000) }
   }
 
   const hoyAR = new Date().toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })
