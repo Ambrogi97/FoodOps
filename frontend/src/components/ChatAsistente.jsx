@@ -56,7 +56,11 @@ export default function ChatAsistente() {
   const campo = useRef(null)
 
   useEffect(() => { guardar(mensajes) }, [mensajes])
-  useEffect(() => { lista.current?.scrollTo({ top: lista.current.scrollHeight, behavior: 'smooth' }) }, [mensajes, pensando, abierto])
+  // Baja al último mensaje; sin conversación queda arriba para que se vea el saludo
+  useEffect(() => {
+    if (!lista.current) return
+    lista.current.scrollTo({ top: mensajes.length || pensando ? lista.current.scrollHeight : 0, behavior: 'smooth' })
+  }, [mensajes, pensando, abierto])
   useEffect(() => { if (abierto) setTimeout(() => campo.current?.focus(), 50) }, [abierto])
   useEffect(() => {
     if (!abierto) return
@@ -104,9 +108,19 @@ export default function ChatAsistente() {
 
           <div className="chat-mensajes" ref={lista} aria-live="polite">
             {mensajes.length === 0 && (
-              <div className="chat-msg chat-msg--asistente">
-                <p>¡Hola! Preguntame lo que quieras sobre tus ventas, el stock, las compras o tu carta. Uso los datos reales de tu restaurante.</p>
-              </div>
+              <>
+                <div className="chat-msg chat-msg--asistente">
+                  <p>¡Hola! Preguntame lo que quieras sobre tus ventas, el stock, las compras o tu carta. Uso los datos reales de tu restaurante.</p>
+                </div>
+                {!pensando && (
+                  <div className="chat-sugerencias">
+                    <span>Probá preguntar:</span>
+                    <div>
+                      {SUGERENCIAS.map(s => <button key={s} className="chat-chip" onClick={() => preguntar(s)}>{s}</button>)}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
             {mensajes.map((m, i) => (
               <div key={i} className={`chat-msg chat-msg--${m.rol}`}>
@@ -123,15 +137,6 @@ export default function ChatAsistente() {
             )}
             {error && <p className="chat-error" role="alert">{error}</p>}
           </div>
-
-          {mensajes.length === 0 && !pensando && (
-            <div className="chat-sugerencias">
-              <span>Probá preguntar:</span>
-              <div>
-                {SUGERENCIAS.map(s => <button key={s} className="chat-chip" onClick={() => preguntar(s)}>{s}</button>)}
-              </div>
-            </div>
-          )}
 
           <form className="chat-form" onSubmit={enviar}>
             <label htmlFor="chat-texto" className="chat-oculto">Escribí tu pregunta</label>
