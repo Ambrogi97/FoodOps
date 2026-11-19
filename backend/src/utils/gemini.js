@@ -8,7 +8,7 @@
 //   GEMINI_BASE_URL  (opcional)     solo para pruebas
 
 const BASE = () => (process.env.GEMINI_BASE_URL || 'https://generativelanguage.googleapis.com').replace(/\/$/, '')
-const TIMEOUT_MS = 30_000
+const TIMEOUT_MS = 45_000
 
 class ErrorGemini extends Error {
   constructor(message, status, code) { super(message); this.status = status; this.code = code }
@@ -72,10 +72,14 @@ async function modelosCandidatos() {
  */
 async function conversar({ sistema, historial, herramientas, ejecutar, maxPasos = 5 }) {
   if (!process.env.GEMINI_API_KEY) throw new ErrorGemini('El chat no está configurado (falta GEMINI_API_KEY)', 503, 'SIN_CLAVE')
+  if (/\s/.test(process.env.GEMINI_API_KEY.trim()) || process.env.GEMINI_API_KEY !== process.env.GEMINI_API_KEY.trim()) {
+    process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY.trim()   // espacios o saltos de línea al pegarla en Render
+  }
   const contents = historial.map(m => ({ role: m.rol === 'asistente' ? 'model' : 'user', parts: [{ text: m.texto }] }))
   const usadas = []
   const modelos = await modelosCandidatos()
   let ultimoError = null
+  const intentos = []
 
   for (const modelo of modelos) {
     try {
@@ -87,7 +91,9 @@ async function conversar({ sistema, historial, herramientas, ejecutar, maxPasos 
             systemInstruction: { parts: [{ text: sistema }] },
             contents: conv,
             tools: [{ functionDeclarations: herramientas }],
-            generationConfig: { maxOutputTokens: 1200, temperature: 0.3 },
+            // Los modelos nuevos "piensan" antes de responder y ese pensamiento cuenta en este
+            // límite: con poco margen la respuesta llega vacía (finishReason MAX_TOKENS).
+            generationConfig: { maxOutputTokens: 8192 },
           },
         })
         const cand = res?.candidates?.[0]
@@ -97,7 +103,7 @@ async function conversar({ sistema, historial, herramientas, ejecutar, maxPasos 
           const texto = partes.map(p => p.text || '').join('').trim()
           if (!texto) {
             if (cand?.finishReason === 'SAFETY' || res?.promptFeedback?.blockReason) return { texto: 'No puedo responder eso. Probá preguntarme sobre las ventas, el stock o la carta de tu local.', herramientasUsadas: usadas, modelo }
-            throw new ErrorGemini('Gemini no devolvió respuesta', 502, 'VACIA')
+            throw new ErrorGemini(`Gemini no devolvió texto (finishReason: ${cand?.finishReason || 'sin candidatos'})`, 502, 'VACIA')
           }
           return { texto, herramientasUsadas: usadas, modelo }
         }
@@ -116,13 +122,19 @@ async function conversar({ sistema, historial, herramientas, ejecutar, maxPasos 
       }
       return { texto: 'La consulta necesitó demasiados pasos. Probá preguntarlo de forma más concreta.', herramientasUsadas: usadas, modelo }
     } catch (e) {
+      if (!(e instanceof ErrorGemini)) throw e
+      intentos.push(`${modelo} → ${e.status} ${e.message}`.slice(0, 300))
       ultimoError = e
-      // Modelo inexistente o no habilitado para esta clave: se prueba el siguiente
-      if (e instanceof ErrorGemini && (e.status === 404 || (e.status === 400 && /model/i.test(e.message)))) { candidatos = null; continue }
-      throw e
+      // Clave inválida o sin permiso: no tiene sentido probar otro modelo
+      if (e.status === 401 || e.status === 403) break
+      // Modelo inexistente, parámetro no soportado, sin cupo, saturado, vacío o lento: se prueba el siguiente
+      if (e.status === 404) candidatos = null
+      continue
     }
   }
-  throw ultimoError || new ErrorGemini('No hay modelos de Gemini disponibles para esta clave', 502, 'SIN_MODELO')
+  const err = ultimoError || new ErrorGemini('No hay modelos de Gemini disponibles para esta clave', 502, 'SIN_MODELO')
+  err.intentos = intentos
+  throw err
 }
 
 module.exports = { conversar, ErrorGemini }

@@ -290,8 +290,13 @@ router.post('/chat', auth, chatLimiter, async (req, res) => {
         : e.code === 'SIN_CLAVE' ? 'El chat todavía no está configurado.'
         : e.status === 400 || e.status === 403 ? 'Gemini rechazó la consulta (revisá que la clave de la API sea válida).'
         : 'No se pudo hablar con Gemini. Probá de nuevo en unos segundos.'
-      console.error('[chat] Gemini:', e.status, e.code, e.message)
-      return res.status(status).json({ code: e.code || 'GEMINI', message })
+      console.error('[chat] Gemini:', e.status, e.code, e.message, e.intentos || '')
+      // Al dueño se le muestra el detalle técnico para poder diagnosticar (nunca la clave)
+      const clave = process.env.GEMINI_API_KEY || ''
+      const limpiar = s => (clave ? String(s).split(clave).join('***') : String(s))
+      const detalle = req.usuario?.cuentaPadreId ? undefined
+        : limpiar(e.intentos?.length ? e.intentos.join(' | ') : `${e.status} ${e.message}`).slice(0, 600)
+      return res.status(status).json({ code: e.code || 'GEMINI', message, detalle })
     }
     return responderError(req, res, e)
   }

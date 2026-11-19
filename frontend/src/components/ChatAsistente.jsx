@@ -80,7 +80,7 @@ export default function ChatAsistente() {
       const r = await asistenteService.chat(fechaLocal(), nuevos.map(({ rol, texto }) => ({ rol, texto })))
       setMensajes(m => [...m, { rol: 'asistente', texto: r.texto, fuentes: r.fuentes || [] }])
     } catch (e) {
-      setError(e.message || 'No se pudo responder. Probá de nuevo.')
+      setError({ texto: e.message || 'No se pudo responder. Probá de nuevo.', detalle: e.detalle })
     } finally {
       setPensando(false)
     }
@@ -135,7 +135,12 @@ export default function ChatAsistente() {
                 <span /><span /><span />
               </div>
             )}
-            {error && <p className="chat-error" role="alert">{error}</p>}
+            {error && (
+              <div className="chat-error" role="alert">
+                <p>{error.texto}</p>
+                {error.detalle && <code className="chat-error-detalle">Detalle técnico: {error.detalle}</code>}
+              </div>
+            )}
           </div>
 
           <form className="chat-form" onSubmit={enviar}>

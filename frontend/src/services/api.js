@@ -54,7 +54,7 @@ const request = async (path, options = {}) => {
     throw new Error('Tu plan venció. Elegí un plan para seguir usando FoodOps.')
   }
   const json = await res.json()
-  if (!res.ok) throw new Error(json.message || 'Error en la solicitud')
+  if (!res.ok) throw Object.assign(new Error(json.message || 'Error en la solicitud'), { status: res.status, code: json.code, detalle: json.detalle })
   return json
 }
 
