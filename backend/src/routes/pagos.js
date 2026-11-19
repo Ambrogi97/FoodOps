@@ -2,7 +2,9 @@ const express = require('express')
 const router  = express.Router()
 const crypto  = require('crypto')
 const auth    = require('../middleware/auth')
+const mongoose = require('mongoose')
 const User    = require('../models/User')
+const PagoMP  = require('../models/PagoMP')
 
 function verificarFirmaMP(req) {
   const secret = process.env.MP_WEBHOOK_SECRET
@@ -45,6 +47,8 @@ const mpFetch = (path, options = {}) =>
     },
   })
 
+const MONEDA = 'ARS'
+
 const PLANES_MP = {
   basico:  { monto: 20000, label: 'FoodOps — Plan Básico' },
   premium: { monto: 35000, label: 'FoodOps — Plan Premium' },
@@ -69,7 +73,7 @@ router.post('/suscribir', auth, async (req, res) => {
           title:      label,
           quantity:   1,
           unit_price: monto,
-          currency_id: 'ARS',
+          currency_id: MONEDA,
         }],
         back_urls: {
           success: `${frontendUrl}/dashboard?pago=ok&plan=${plan}`,
@@ -106,31 +110,64 @@ router.post('/webhook', async (req, res) => {
     const { type, data } = req.body
 
     if (type === 'payment' && data?.id) {
-      const mpRes  = await mpFetch(`/v1/payments/${data.id}`)
-      const pago   = await mpRes.json()
+      const paymentId = String(data.id)
+
+      // Aviso repetido de un pago ya acreditado: no se suman otros 30 días
+      if (await PagoMP.exists({ paymentId })) return res.sendStatus(200)
+
+      const mpRes = await mpFetch(`/v1/payments/${encodeURIComponent(paymentId)}`)
+      // Si Mercado Pago no responde, devolvemos error para que reintente el aviso más tarde
+      if (!mpRes.ok) {
+        console.error('Webhook MP: no se pudo consultar el pago', paymentId, mpRes.status)
+        return res.sendStatus(502)
+      }
+      const pago = await mpRes.json()
 
       if (pago.status !== 'approved') return res.sendStatus(200)
 
       const [userId, plan] = (pago.external_reference || '').split('|')
-      if (!userId || !plan || !PLANES_MP[plan]) return res.sendStatus(200)
+      if (!mongoose.isValidObjectId(userId) || !PLANES_MP[plan]) return res.sendStatus(200)
+
+      // El monto y la moneda tienen que ser exactamente los del plan
+      const { monto } = PLANES_MP[plan]
+      if (Number(pago.transaction_amount) !== monto || pago.currency_id !== MONEDA) {
+        console.warn(`Webhook MP: pago ${paymentId} rechazado — pagó ${pago.transaction_amount} ${pago.currency_id}, el plan ${plan} es ${monto} ${MONEDA}`)
+        return res.sendStatus(200)
+      }
 
       // Acceso por 30 días desde el pago
       const vence = new Date()
       vence.setDate(vence.getDate() + 30)
 
-      await User.findByIdAndUpdate(userId, {
-        plan,
-        trialEndsAt:        vence,
-        mpSubscriptionId:   String(data.id),
-        subscriptionStatus: 'active',
-      })
+      // Primero se registra el pago: si dos avisos llegan a la vez, el índice único deja pasar uno solo
+      try {
+        await PagoMP.create({ paymentId, usuario: userId, plan, monto, moneda: MONEDA, venceEl: vence })
+      } catch (e) {
+        if (e?.code === 11000) return res.sendStatus(200)
+        throw e
+      }
+
+      try {
+        const user = await User.findByIdAndUpdate(userId, {
+          plan,
+          trialEndsAt:        vence,
+          mpSubscriptionId:   paymentId,
+          subscriptionStatus: 'active',
+        })
+        if (!user) console.warn(`Webhook MP: pago ${paymentId} de un usuario que ya no existe (${userId})`)
+      } catch (e) {
+        // No se pudo activar el plan: se borra el registro para que el reintento de Mercado Pago lo acredite
+        await PagoMP.deleteOne({ paymentId }).catch(() => {})
+        throw e
+      }
       console.log(`Plan ${plan} activado para usuario ${userId} hasta ${vence.toISOString()}`)
     }
 
     res.sendStatus(200)
   } catch (e) {
     console.error('Webhook error:', e)
-    res.sendStatus(200)
+    // 500 para que Mercado Pago reintente el aviso (antes respondía 200 y el pago quedaba sin acreditar)
+    res.sendStatus(500)
   }
 })
 
