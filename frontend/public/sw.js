@@ -1,4 +1,5 @@
-const CACHE = 'foodops-v2'
+// Cambiar el nombre borra la cache vieja en los navegadores que ya la tienen
+const CACHE = 'foodops-v3'
 
 // Al instalar: pre-cachear la shell mínima
 self.addEventListener('install', (e) => {
@@ -18,32 +19,40 @@ self.addEventListener('activate', (e) => {
   )
 })
 
-// Fetch: network-first para API, cache-first para assets estáticos
+// Fetch: las páginas (HTML) van primero a la red, así cada versión nueva se ve
+// en la primera visita. La copia guardada se usa solo sin conexión o si la red
+// tarda demasiado. (Antes era cache-first: después de cada actualización se veía
+// la versión anterior hasta recargar.)
+const ESPERA_RED_MS = 4000
+
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url)
 
-  // Siempre red para API y tracking calls
+  // API y otros dominios: siempre directo a la red, sin pasar por acá
   if (url.pathname.startsWith('/api/') || url.hostname !== location.hostname) return
 
-  // Cache-first para la carta (solo rutas con userId, no /carta/ solo)
-  const esCarta = url.pathname.match(/^\/carta\/.+/) || url.pathname === '/'
-  if (esCarta) {
-    e.respondWith(
-      caches.match(e.request).then(cached => {
-        const networkFetch = fetch(e.request)
-          .then(res => {
-            if (res.ok) {
-              const clone = res.clone()
-              e.waitUntil(caches.open(CACHE).then(c => c.put(e.request, clone)))
-            }
-            return res
-          })
-          .catch(() => cached || new Response('Sin conexión', { status: 503, statusText: 'Offline' }))
-        return cached ? cached : networkFetch
-      })
-    )
-    return
-  }
+  if (e.request.method !== 'GET' || e.request.mode !== 'navigate') return
+
+  e.respondWith((async () => {
+    const cache = await caches.open(CACHE)
+    const red = fetch(e.request).then(res => {
+      if (res.ok && (url.pathname === '/' || url.pathname.startsWith('/carta/'))) {
+        e.waitUntil(cache.put(e.request, res.clone()))
+      }
+      return res
+    })
+    red.catch(() => {})   // si gana la copia guardada, el error de red no queda suelto
+    const plazo = new Promise(resolve => setTimeout(resolve, ESPERA_RED_MS, null))
+    try {
+      const res = await Promise.race([red, plazo])
+      if (res) return res
+      // La red tarda: si hay copia guardada se muestra, si no se sigue esperando
+      return (await cache.match(e.request)) || (await red)
+    } catch {
+      return (await cache.match(e.request)) || (await cache.match('/')) ||
+        new Response('Sin conexión', { status: 503, statusText: 'Offline' })
+    }
+  })())
 })
 
 // Push notifications
