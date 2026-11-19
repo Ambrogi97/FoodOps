@@ -23,6 +23,9 @@ const pedidoOnlineSchema = new mongoose.Schema({
   totalFinal:       { type: Number, default: 0 },
   numero:           { type: String, default: '' },
   estado:           { type: String, enum: ['pendiente', 'preparando', 'listo', 'entregado'], default: 'pendiente' },
+  entregadoAt:      { type: Date, default: null },
+  // Hash del token del link de seguimiento (el token en sí solo lo tiene el cliente)
+  trackingTokenHash: { type: String, default: null, select: false },
 }, { timestamps: true })
 
 module.exports = mongoose.model('PedidoOnline', pedidoOnlineSchema)

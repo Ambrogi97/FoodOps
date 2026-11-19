@@ -11,6 +11,7 @@ const ConfigTienda   = require('../models/ConfigTienda')
 const { enviarEmail } = require('../utils/email')
 const { escapeHtml, safeFrontendUrl, str } = require('../utils/security')
 const { enviarPushNuevoPedido } = require('./push')
+const { nuevoTokenTracking, hashToken, iguales, trackingVencido } = require('../utils/enlaces')
 
 const DIAS_KEY_AR = ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab']
 function estaAbiertaAhora(seccion) {
@@ -322,7 +323,11 @@ router.post('/:userId/pedido', pedidoLimiter, async (req, res) => {
     )
     const numero = String(configCounter.pedidoCounter).padStart(4, '0')
 
+    // Token del link de seguimiento: sin él, el id del pedido (que es adivinable) no alcanza
+    const trackingToken = nuevoTokenTracking()
+
     const pedido = await PedidoOnline.create({
+      trackingTokenHash: hashToken(trackingToken),
       usuario:         req.params.userId,
       items,
       tipo,
@@ -342,7 +347,7 @@ router.post('/:userId/pedido', pedidoLimiter, async (req, res) => {
 
     // Solo se aceptan orígenes propios para el link del email (evita links de phishing)
     const frontendUrl = safeFrontendUrl(req.body.frontendOrigin)
-    const trackingUrl = `${frontendUrl}/tracking/${pedido._id}`
+    const trackingUrl = `${frontendUrl}/tracking/${pedido._id}?t=${trackingToken}`
 
     const user = await User.findById(req.params.userId).select('restaurante email')
 
@@ -375,7 +380,7 @@ router.post('/:userId/pedido', pedidoLimiter, async (req, res) => {
       }).catch(e => console.error('Error enviando email pedido:', e))
     }
 
-    res.status(201).json({ id: pedido._id, numero, trackingUrl })
+    res.status(201).json({ id: pedido._id, numero, trackingUrl, trackingToken })
   } catch (e) {
     console.error('Error creando pedido online:', e)
     res.status(500).json({ message: 'No se pudo enviar el pedido. Intentá de nuevo.' })
@@ -388,11 +393,16 @@ router.post('/:userId/pedido', pedidoLimiter, async (req, res) => {
 // Tracking público del pedido (sin auth)
 router.get('/tracking/:pedidoId', async (req, res) => {
   try {
-    if (!mongoose.isValidObjectId(req.params.pedidoId))
-      return res.status(404).json({ message: 'Pedido no encontrado' })
+    // Id inexistente, token faltante o token equivocado dan la misma respuesta
+    const noEncontrado = () => res.status(404).json({ message: 'Pedido no encontrado' })
+    const token = typeof req.query.t === 'string' ? req.query.t : ''
+    if (!mongoose.isValidObjectId(req.params.pedidoId) || !token) return noEncontrado()
 
-    const pedido = await PedidoOnline.findById(req.params.pedidoId)
-    if (!pedido) return res.status(404).json({ message: 'Pedido no encontrado' })
+    const pedido = await PedidoOnline.findById(req.params.pedidoId).select('+trackingTokenHash')
+    if (!pedido || !iguales(hashToken(token), pedido.trackingTokenHash)) return noEncontrado()
+
+    if (trackingVencido(pedido))
+      return res.status(410).json({ message: 'Este enlace de seguimiento ya venció.' })
 
     const [user, config] = await Promise.all([
       User.findById(pedido.usuario).select('restaurante'),
@@ -404,7 +414,8 @@ router.get('/tracking/:pedidoId', async (req, res) => {
       estado:             pedido.estado,
       tipo:               pedido.tipo,
       mesaNumero:         pedido.mesaNumero,
-      direccion:          pedido.direccion,
+      // Entregado el pedido, la dirección ya no hace falta mostrarla
+      direccion:          pedido.estado === 'entregado' ? '' : pedido.direccion,
       clienteNombre:      pedido.clienteNombre,
       formaPago:          pedido.formaPago,
       items:              pedido.items,
