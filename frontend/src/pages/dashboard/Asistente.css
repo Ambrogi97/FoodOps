@@ -64,9 +64,17 @@
 .asi-barra--real { background: #1A1A2E; }
 .asi-barra--hoy  { background: var(--primary); }
 .asi-barra--pred { background: #FFF3EC; border: 2px dashed var(--asi-naranja-oscuro); }
-.asi-rango { position: absolute; left: calc(50% + 20px); width: 3px; border-radius: 2px; background: rgba(194, 65, 12, 0.45); }
+/* Rango probable: zona sombreada detrás de la barra, del mínimo al máximo */
+.asi-rango {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  width: calc(64% + 12px); max-width: 44px; border-radius: 8px;
+  background: rgba(194, 65, 12, 0.13);
+}
+.asi-barra { position: relative; z-index: 1; }
 .asi-col-label { font-size: 0.72rem; color: var(--asi-texto2); white-space: nowrap; }
 .asi-col-label--hoy { color: var(--asi-naranja-oscuro); font-weight: 800; }
+.asi-feriado-slot { height: 18px; display: flex; align-items: center; }
+.asi-dot--rango { background: rgba(194, 65, 12, 0.13); border: 1px solid rgba(194, 65, 12, 0.25); }
 .asi-feriado { font-size: 0.62rem; font-weight: 700; color: #9A3412; background: #FFF3EC; padding: 1px 6px; border-radius: 6px; }
 
 /* Tabla por plato */

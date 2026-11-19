@@ -46,7 +46,8 @@ function Grafico({ historico, dias }) {
               )}
             </div>
             <span className={`asi-col-label${c.hoy ? ' asi-col-label--hoy' : ''}`}>{c.label}</span>
-            {c.feriado && <span className="asi-feriado">feriado</span>}
+            {/* Espacio fijo para la etiqueta: así todas las barras arrancan desde la misma línea */}
+            <span className="asi-feriado-slot">{c.feriado && <span className="asi-feriado">feriado</span>}</span>
           </div>
         ))}
       </div>
@@ -212,11 +213,12 @@ export default function Asistente() {
             <div className="asi-card-head">
               <div>
                 <h3 className="asi-h3">Ventas: lo que pasó y lo que viene</h3>
-                <p className="asi-sub">La barra punteada es la predicción; la línea finita, el rango probable (80%).</p>
+                <p className="asi-sub">La barra punteada es lo esperado; la zona sombreada, entre cuánto y cuánto puede terminar (80% de las veces).</p>
               </div>
               <div className="asi-leyenda">
                 <span><i className="asi-dot asi-dot--real" />Real</span>
                 <span><i className="asi-dot asi-dot--pred" />Predicción</span>
+                <span><i className="asi-dot asi-dot--rango" />Rango probable</span>
               </div>
             </div>
             <Grafico historico={datos.historico} dias={datos.dias} />
