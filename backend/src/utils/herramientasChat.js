@@ -156,7 +156,7 @@ function crearEjecutor(ctx) {
         }
         const buscar = String(args.buscar || '').toLowerCase().trim()
         const lista = [...m].filter(([n]) => !buscar || n.toLowerCase().includes(buscar))
-          .sort((a, b) => b[1].unidades - a[1].unidades).slice(0, 40)
+          .sort((a, b) => b[1].unidades - a[1].unidades).slice(0, 25)
           .map(([producto, x]) => ({ producto, unidades: x.unidades, facturacion: r0(x.facturacion) }))
         return { periodo: { desde: P.isoDe(desde), hasta: P.isoDe(hasta) }, productos: lista, total_productos_distintos: m.size }
       }
@@ -169,14 +169,13 @@ function crearEjecutor(ctx) {
             fecha: d.fecha, dia: d.label, feriado: d.feriado, cerrado: d.cerrado,
             facturacion_esperada: d.ventas.esperado, minimo: d.ventas.min, maximo: d.ventas.max, ventas_esperadas: d.tickets,
             platos_mas_pedidos: pred.platos.map(p => ({ plato: p.nombre, unidades: p.porDia[i].cantidad })).filter(p => p.unidades > 0)
-              .sort((a, b) => b.unidades - a.unidades).slice(0, 6),
+              .sort((a, b) => b.unidades - a.unidades).slice(0, 4),
           })),
           precision: pred.precision && {
             error_por_plato_semana_pct: pred.precision.errorPorPlatoSemana,
             error_metodo_simple_pct: pred.precision.errorPorPlatoSemanaSimple,
             dias_evaluados: pred.precision.diasEvaluados,
           },
-          factores: pred.factores,
         }
       }
       case 'lista_compras': {
@@ -197,12 +196,18 @@ function crearEjecutor(ctx) {
         const cats = await ctx.menu(dias)
         const buscar = String(args.categoria || '').toLowerCase().trim()
         const elegidas = cats.filter(c => !buscar || c.nombre.toLowerCase().includes(buscar))
+        // Menos texto = respuesta más rápida: el consejo completo va solo si se pidió una categoría
+        const conConsejo = !!buscar && elegidas.length > 0
         return {
           periodo_dias: dias,
           categorias: (elegidas.length ? elegidas : cats).map(c => ({
             categoria: c.nombre, margen_promedio: c.margenPromedio, minimo_para_ser_popular: Math.ceil(c.umbralPopularidad),
-            platos: c.productos.map(p => ({ plato: p.nombre, grupo: p.claseNombre, vendidos: p.cantidad, precio: p.precio, costo: p.costo, margen: p.margen, margen_pct: p.margenPct, consejo: p.consejo })),
+            platos: c.productos.map(p => ({
+              plato: p.nombre, grupo: p.claseNombre, vendidos: p.cantidad, precio: p.precio, margen: p.margen,
+              ...(conConsejo ? { costo: p.costo, margen_pct: p.margenPct, consejo: p.consejo } : {}),
+            })),
           })),
+          ...(conConsejo ? {} : { nota: 'Para ver el consejo de cada plato, pedí la categoría puntual.' }),
         }
       }
       case 'stock_ingredientes': {

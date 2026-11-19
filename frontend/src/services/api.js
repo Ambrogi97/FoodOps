@@ -461,6 +461,49 @@ export const inicioService = {
 export const asistenteService = {
   prediccion: async (fecha) => request(`/api/asistente/prediccion?fecha=${encodeURIComponent(fecha)}`),
   chat: async (fecha, mensajes) => request('/api/asistente/chat', { method: 'POST', body: JSON.stringify({ fecha, mensajes }) }),
+  // Igual que chat, pero el servidor va avisando el progreso (una línea JSON por evento)
+  chatEnVivo: async (fecha, mensajes, onEvento) => {
+    const token = localStorage.getItem('token')
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 90_000)
+    try {
+      const res = await fetch(`${API_URL}/api/asistente/chat`, {
+        method: 'POST', signal: ctrl.signal,
+        headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ fecha, mensajes }),
+      })
+      if (res.status === 401) { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/login'; return }
+      if (!res.ok || !res.body || !/ndjson/.test(res.headers.get('content-type') || '')) {
+        const json = await res.json().catch(() => ({}))
+        throw Object.assign(new Error(json.message || 'Error en la solicitud'), { status: res.status, code: json.code, detalle: json.detalle })
+      }
+      const lector = res.body.getReader()
+      const dec = new TextDecoder()
+      let buffer = '', final = null
+      for (;;) {
+        const { value, done } = await lector.read()
+        if (done) break
+        buffer += dec.decode(value, { stream: true })
+        let i
+        while ((i = buffer.indexOf('\n')) >= 0) {
+          const linea = buffer.slice(0, i).trim(); buffer = buffer.slice(i + 1)
+          if (!linea) continue
+          let ev
+          try { ev = JSON.parse(linea) } catch { continue }
+          if (ev.tipo === 'fin') final = ev
+          else if (ev.tipo === 'error') throw Object.assign(new Error(ev.message || 'No se pudo responder'), { status: ev.status, code: ev.code, detalle: ev.detalle })
+          else onEvento?.(ev)
+        }
+      }
+      if (!final) throw new Error('La respuesta se cortó. Probá de nuevo.')
+      return final
+    } catch (err) {
+      if (err.name === 'AbortError') throw new Error('Gemini tardó demasiado en responder. Probá de nuevo.', { cause: err })
+      throw err
+    } finally {
+      clearTimeout(timer)
+    }
+  },
   menu: async (fecha, dias) => request(`/api/asistente/menu?fecha=${encodeURIComponent(fecha)}&dias=${dias}`),
   listaCompras: async (fecha, dias, margen) => request(`/api/asistente/lista-compras?fecha=${encodeURIComponent(fecha)}&dias=${dias}&margen=${margen}`),
 }

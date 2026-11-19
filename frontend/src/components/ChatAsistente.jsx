@@ -11,6 +11,11 @@ const SUGERENCIAS = [
   '¿Qué plato me conviene subir de precio?',
   '¿Cuál fue mi mejor día del mes?',
 ]
+const PROGRESO = {
+  resumen_ventas: 'tus ventas', ventas_por_producto: 'las ventas por producto', prediccion_demanda: 'la predicción',
+  lista_compras: 'la lista de compras', analisis_menu: 'el análisis de tu carta', stock_ingredientes: 'el stock',
+  resumen_gastos: 'tus gastos', estado_salon: 'el salón',
+}
 const FUENTES = {
   resumen_ventas: 'ventas', ventas_por_producto: 'ventas por producto', prediccion_demanda: 'predicción',
   lista_compras: 'lista de compras', analisis_menu: 'análisis de menú', stock_ingredientes: 'stock',
@@ -58,6 +63,7 @@ export default function ChatAsistente() {
   const [mensajes, setMensajes] = useState(leer)
   const [texto, setTexto]       = useState('')
   const [pensando, setPensando] = useState(false)
+  const [estado, setEstado]     = useState('')
   const [error, setError]       = useState('')
   const lista = useRef(null)
   const campo = useRef(null)
@@ -83,8 +89,13 @@ export default function ChatAsistente() {
     const nuevos = [...mensajes, { rol: 'usuario', texto: q }]
     setMensajes(nuevos)
     setPensando(true)
+    setEstado('Pensando…')
     try {
-      const r = await asistenteService.chat(fechaLocal(), nuevos.map(({ rol, texto }) => ({ rol, texto })))
+      const r = await asistenteService.chatEnVivo(fechaLocal(), nuevos.map(({ rol, texto }) => ({ rol, texto })), ev => {
+        if (ev.tipo === 'herramienta') setEstado(`Consultando ${PROGRESO[ev.nombre] || 'tus datos'}…`)
+        else if (ev.tipo === 'redactando') setEstado('Armando la respuesta…')
+      })
+      if (r?.tiempos) console.info(`[chat] ${r.modelo}: ${r.totalMs} ms (llamadas a Gemini: ${r.tiempos.join(' + ')} ms)`)
       setMensajes(m => [...m, { rol: 'asistente', texto: r.texto, fuentes: r.fuentes || [] }])
     } catch (e) {
       // La pregunta vuelve al campo de texto para reintentarla, sin quedar colgada en la conversación
@@ -141,8 +152,9 @@ export default function ChatAsistente() {
               </div>
             ))}
             {pensando && (
-              <div className="chat-msg chat-msg--asistente chat-pensando" aria-label="El asistente está pensando">
-                <span /><span /><span />
+              <div className="chat-msg chat-msg--asistente chat-pensando" role="status">
+                <span className="chat-puntos" aria-hidden="true"><i /><i /><i /></span>
+                <span className="chat-estado">{estado}</span>
               </div>
             )}
             {error && (

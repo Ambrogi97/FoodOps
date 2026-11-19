@@ -244,6 +244,8 @@ function instrucciones(restaurante, hoy) {
 
 router.post('/chat', auth, chatLimiter, async (req, res) => {
   let claveUso = null
+  const enVivo = /application\/x-ndjson/.test(req.headers.accept || '')
+  const enviar = o => { try { res.write(JSON.stringify(o) + '\n') } catch { /* cliente desconectado */ } }
   try {
     const hoy = hoyDe(req.body?.fecha)
     if (!Number.isFinite(hoy)) return res.status(400).json({ message: 'Fecha inválida' })
@@ -277,21 +279,40 @@ router.post('/chat', auth, chatLimiter, async (req, res) => {
       listaCompras: (dias, margen) => obtenerListaCompras(uid, hoy, dias, margen),
       menu:         async dias => (await obtenerMenu(uid, hoy, dias)).categorias,
     })
+    // Con "Accept: application/x-ndjson" se va avisando el progreso (una línea JSON por evento)
+    // para que la espera se vea: "Consultando tus ventas…", "Armando la respuesta…".
+    if (enVivo) {
+      res.status(200).set({ 'Content-Type': 'application/x-ndjson; charset=utf-8', 'Cache-Control': 'no-cache, no-transform', 'X-Accel-Buffering': 'no' })
+      res.flushHeaders()
+      enviar({ tipo: 'pensando' })
+    }
+    const t0 = Date.now()
     const r = await conversar({
       sistema: instrucciones(dueno?.restaurante || 'el restaurante', hoy),
       historial: mensajes,
       herramientas: DEFINICIONES,
       ejecutar,
+      onEvento: enVivo ? enviar : undefined,
     })
-    res.json({ texto: r.texto, fuentes: [...new Set(r.herramientasUsadas)], restantesHoy: PREGUNTAS_POR_DIA - usadas - 1 })
+    console.log(`[chat] ${r.modelo} ${Date.now() - t0} ms · llamadas: ${r.tiempos.map(x => x.ms).join(' + ')} ms · herramientas: ${r.herramientasUsadas.join(', ') || 'ninguna'}`)
+    const final = {
+      texto: r.texto, fuentes: [...new Set(r.herramientasUsadas)], restantesHoy: PREGUNTAS_POR_DIA - usadas - 1,
+      // Solo el dueño: cuánto tardó cada llamada a Gemini (para medir)
+      ...(req.usuario?.cuentaPadreId ? {} : { modelo: r.modelo, tiempos: r.tiempos.map(x => x.ms), totalMs: Date.now() - t0 }),
+    }
+    if (enVivo) { enviar({ tipo: 'fin', ...final }); return res.end() }
+    res.json(final)
   } catch (e) {
     // Una pregunta que falló no cuenta para el límite diario
     if (claveUso && usoDiario.get(claveUso) > 0) usoDiario.set(claveUso, usoDiario.get(claveUso) - 1)
+    let status = 500, cuerpo
     if (e instanceof ErrorGemini) {
-      const status = e.status === 429 ? 429 : e.status === 503 && e.code === 'SIN_CLAVE' ? 503 : 502
+      const saturado = (e.intentos || []).length > 0 && e.intentos.every(i => /\b503\b|high demand|overloaded|no respondió|sin tiempo/i.test(i))
+      status = e.status === 429 ? 429 : e.status === 503 && e.code === 'SIN_CLAVE' ? 503 : 502
       const message = e.status === 429
         ? 'Se alcanzó el límite gratuito de Gemini por ahora. Probá de nuevo en un rato.'
         : e.code === 'SIN_CLAVE' ? 'El chat todavía no está configurado.'
+        : saturado ? 'Gemini está con mucha demanda en este momento. Probá de nuevo en un minuto.'
         : e.status === 400 || e.status === 403 ? 'Gemini rechazó la consulta (revisá que la clave de la API sea válida).'
         : 'No se pudo hablar con Gemini. Probá de nuevo en unos segundos.'
       console.error('[chat] Gemini:', e.status, e.code, e.message, e.intentos || '')
@@ -300,9 +321,13 @@ router.post('/chat', auth, chatLimiter, async (req, res) => {
       const limpiar = s => (clave ? String(s).split(clave).join('***') : String(s))
       const detalle = req.usuario?.cuentaPadreId ? undefined
         : limpiar(e.intentos?.length ? e.intentos.join(' | ') : `${e.status} ${e.message}`).slice(0, 600)
-      return res.status(status).json({ code: e.code || 'GEMINI', message, detalle })
+      cuerpo = { code: e.code || 'GEMINI', message, detalle }
+    } else {
+      console.error('[chat]', e)
+      cuerpo = { message: 'Ocurrió un error al responder. Probá de nuevo.' }
     }
-    return responderError(req, res, e)
+    if (res.headersSent) { enviar({ tipo: 'error', status, ...cuerpo }); return res.end() }
+    return res.status(status).json(cuerpo)
   }
 })
 

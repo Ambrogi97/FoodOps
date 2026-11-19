@@ -10,7 +10,12 @@
 const BASE = () => (process.env.GEMINI_BASE_URL || 'https://generativelanguage.googleapis.com').replace(/\/$/, '')
 const TIMEOUT_MS   = 20_000   // por llamada
 const PRESUPUESTO_MS = 55_000 // por pregunta, sumando herramientas y reintentos con otros modelos
-const sinPensamientoBajo = new Set()   // modelos que rechazaron thinkingLevel
+// Nivel de pensamiento por modelo: los Lite aceptan "minimal"; si un modelo rechaza un nivel
+// se prueba el siguiente (minimal → low → sin ajuste) y se recuerda.
+const NIVELES = ['minimal', 'low', null]
+const nivelPorModelo = new Map()
+const nivelPensamiento = modelo => (nivelPorModelo.has(modelo) ? nivelPorModelo.get(modelo) : (/lite/i.test(modelo) ? 'minimal' : 'low'))
+const bajarNivel = modelo => { const i = NIVELES.indexOf(nivelPensamiento(modelo)); nivelPorModelo.set(modelo, NIVELES[Math.min(i + 1, NIVELES.length - 1)]) }
 
 class ErrorGemini extends Error {
   constructor(message, status, code) { super(message); this.status = status; this.code = code }
@@ -77,7 +82,7 @@ async function modelosCandidatos() {
  * @param {Function} p.ejecutar      async (nombre, args) => objeto con el resultado
  * @returns {{ texto: string, herramientasUsadas: string[], modelo: string }}
  */
-async function conversar({ sistema, historial, herramientas, ejecutar, maxPasos = 5 }) {
+async function conversar({ sistema, historial, herramientas, ejecutar, maxPasos = 5, onEvento = () => {} }) {
   if (!process.env.GEMINI_API_KEY) throw new ErrorGemini('El chat no está configurado (falta GEMINI_API_KEY)', 503, 'SIN_CLAVE')
   if (/\s/.test(process.env.GEMINI_API_KEY.trim()) || process.env.GEMINI_API_KEY !== process.env.GEMINI_API_KEY.trim()) {
     process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY.trim()   // espacios o saltos de línea al pegarla en Render
@@ -89,6 +94,7 @@ async function conversar({ sistema, historial, herramientas, ejecutar, maxPasos 
   const modelos = await modelosCandidatos()
   let ultimoError = null
   const intentos = []
+  const tiempos = []      // [{ modelo, ms }] por cada llamada a Gemini (para medir dónde se va el tiempo)
 
   for (const modelo of modelos) {
     if (restante() < 5000) { intentos.push(`(sin tiempo para probar ${modelo})`); break }
@@ -99,9 +105,12 @@ async function conversar({ sistema, historial, herramientas, ejecutar, maxPasos 
         // Los modelos nuevos "piensan" antes de responder: para consultar datos alcanza con poco
         // (más rápido y menos expuesto a la saturación). El pensamiento cuenta en maxOutputTokens,
         // por eso el margen es amplio (con poco, la respuesta llegaba vacía).
+        // Los Lite aceptan "minimal" (casi sin pensar); los Flash grandes, "low" como mínimo.
         const generationConfig = { maxOutputTokens: 8192 }
-        if (!sinPensamientoBajo.has(modelo)) generationConfig.thinkingConfig = { thinkingLevel: 'low' }
+        const nivel = nivelPensamiento(modelo)
+        if (nivel) generationConfig.thinkingConfig = { thinkingLevel: nivel }
         let res
+        const tLlamada = Date.now()
         try {
           res = await llamar(`/v1beta/models/${encodeURIComponent(modelo)}:generateContent`, {
             method: 'POST',
@@ -114,22 +123,23 @@ async function conversar({ sistema, historial, herramientas, ejecutar, maxPasos 
             },
           })
         } catch (e) {
-          // Modelo que no acepta thinkingLevel: se repite el mismo paso sin ese ajuste
-          if (e instanceof ErrorGemini && e.status === 400 && /thinking/i.test(e.message) && !sinPensamientoBajo.has(modelo)) {
-            sinPensamientoBajo.add(modelo); paso--; continue
+          // Modelo que no acepta ese nivel de pensamiento: se repite el paso con el siguiente nivel
+          if (e instanceof ErrorGemini && e.status === 400 && /thinking/i.test(e.message) && nivel) {
+            bajarNivel(modelo); paso--; continue
           }
           throw e
         }
+        tiempos.push({ modelo, ms: Date.now() - tLlamada })
         const cand = res?.candidates?.[0]
         const partes = cand?.content?.parts || []
         const llamadas = partes.filter(p => p.functionCall)
         if (!llamadas.length) {
           const texto = partes.map(p => p.text || '').join('').trim()
           if (!texto) {
-            if (cand?.finishReason === 'SAFETY' || res?.promptFeedback?.blockReason) return { texto: 'No puedo responder eso. Probá preguntarme sobre las ventas, el stock o la carta de tu local.', herramientasUsadas: usadas, modelo }
+            if (cand?.finishReason === 'SAFETY' || res?.promptFeedback?.blockReason) return { texto: 'No puedo responder eso. Probá preguntarme sobre las ventas, el stock o la carta de tu local.', herramientasUsadas: usadas, modelo, tiempos }
             throw new ErrorGemini(`Gemini no devolvió texto (finishReason: ${cand?.finishReason || 'sin candidatos'})`, 502, 'VACIA')
           }
-          return { texto, herramientasUsadas: usadas, modelo }
+          return { texto, herramientasUsadas: usadas, modelo, tiempos }
         }
         // Se devuelve el turno del modelo tal cual (incluye firmas de pensamiento si las hay)
         conv.push({ role: 'model', parts: partes })
@@ -137,12 +147,14 @@ async function conversar({ sistema, historial, herramientas, ejecutar, maxPasos 
         for (const p of llamadas) {
           const { name, args, id } = p.functionCall
           usadas.push(name)
+          onEvento({ tipo: 'herramienta', nombre: name })
           let resultado
           try { resultado = await ejecutar(name, args || {}) }
           catch (e) { resultado = { error: e.message || 'No se pudo obtener el dato' } }
           respuestas.push({ functionResponse: { ...(id ? { id } : {}), name, response: { resultado } } })
         }
         conv.push({ role: 'user', parts: respuestas })
+        onEvento({ tipo: 'redactando' })
       }
       return { texto: 'La consulta necesitó demasiados pasos. Probá preguntarlo de forma más concreta.', herramientasUsadas: usadas, modelo }
     } catch (e) {
@@ -158,6 +170,7 @@ async function conversar({ sistema, historial, herramientas, ejecutar, maxPasos 
   }
   const err = ultimoError || new ErrorGemini('No hay modelos de Gemini disponibles para esta clave', 502, 'SIN_MODELO')
   err.intentos = intentos
+  err.tiempos = tiempos
   throw err
 }
 
