@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { TrendingUp, CalendarDays, Target, ChevronDown, ChevronUp, RefreshCw, ShoppingCart, LayoutGrid, Info } from 'lucide-react'
 import { asistenteService } from '../../services/api'
 import AsistenteCompras from './AsistenteCompras'
+import AsistenteMenu from './AsistenteMenu'
 import './Asistente.css'
 
 const fmt  = n => '$' + Math.round(Number(n || 0)).toLocaleString('es-AR')
@@ -16,7 +17,7 @@ const fechaLocal = () => {
 const TABS = [
   { id: 'prediccion', label: 'Predicción', Icon: TrendingUp },
   { id: 'compras',    label: 'Lista de compras', Icon: ShoppingCart },
-  { id: 'menu',       label: 'Menú', Icon: LayoutGrid, pronto: true },
+  { id: 'menu',       label: 'Menú', Icon: LayoutGrid },
 ]
 
 function Grafico({ historico, dias }) {
@@ -175,7 +176,7 @@ export default function Asistente() {
       )}
       {!datos && !error && <div className="asi-card asi-cargando" aria-busy="true">Calculando la predicción con tu historial de ventas…</div>}
 
-      {datos && !datos.suficiente && (
+      {datos && !datos.suficiente && tab !== 'menu' && (
         <div className="asi-card asi-vacio">
           <CalendarDays size={28} aria-hidden="true" />
           <h3>Todavía no hay suficientes ventas</h3>
@@ -242,6 +243,7 @@ export default function Asistente() {
       )}
 
       {datos?.suficiente && tab === 'compras' && <AsistenteCompras />}
+      {datos && tab === 'menu' && <AsistenteMenu />}
     </div>
   )
 }
