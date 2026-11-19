@@ -8,8 +8,9 @@
 //   GEMINI_BASE_URL  (opcional)     solo para pruebas
 
 const BASE = () => (process.env.GEMINI_BASE_URL || 'https://generativelanguage.googleapis.com').replace(/\/$/, '')
-const TIMEOUT_MS   = 25_000   // por llamada
-const PRESUPUESTO_MS = 50_000 // por pregunta, sumando herramientas y reintentos con otros modelos
+const TIMEOUT_MS   = 20_000   // por llamada
+const PRESUPUESTO_MS = 55_000 // por pregunta, sumando herramientas y reintentos con otros modelos
+const sinPensamientoBajo = new Set()   // modelos que rechazaron thinkingLevel
 
 class ErrorGemini extends Error {
   constructor(message, status, code) { super(message); this.status = status; this.code = code }
@@ -56,8 +57,13 @@ async function modelosCandidatos() {
     .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
     .map(m => m.name.replace(/^models\//, ''))
     .filter(n => /flash/i.test(n) && !EXCLUIR.test(n))
-  lista.sort((a, b) => (/lite/i.test(a) - /lite/i.test(b)) || (version(b) - version(a)) || a.length - b.length)
-  candidatos = lista.length ? lista.slice(0, 4) : ['gemini-2.5-flash']
+  // Orden: el Lite más nuevo primero (rápido y con poca demanda en el plan gratis), después los
+  // Flash más nuevos y al final otro Lite. Los Flash grandes suelen estar saturados o tardar.
+  const porVersion = (a, b) => (version(b) - version(a)) || a.length - b.length
+  const lites   = lista.filter(n => /lite/i.test(n)).sort(porVersion)
+  const flashes = lista.filter(n => !/lite/i.test(n)).sort(porVersion)
+  const orden = [lites[0], flashes[0], flashes[1], lites[1], flashes[2]].filter(Boolean)
+  candidatos = orden.length ? [...new Set(orden)] : ['gemini-2.5-flash-lite', 'gemini-2.5-flash']
   candidatosHasta = Date.now() + 6 * 3600_000
   return candidatos
 }
@@ -90,18 +96,30 @@ async function conversar({ sistema, historial, herramientas, ejecutar, maxPasos 
     try {
       const conv = [...contents]
       for (let paso = 0; paso < maxPasos; paso++) {
-        const res = await llamar(`/v1beta/models/${encodeURIComponent(modelo)}:generateContent`, {
-          method: 'POST',
-          timeoutMs: Math.min(TIMEOUT_MS, restante()),
-          body: {
-            systemInstruction: { parts: [{ text: sistema }] },
-            contents: conv,
-            tools: [{ functionDeclarations: herramientas }],
-            // Los modelos nuevos "piensan" antes de responder y ese pensamiento cuenta en este
-            // límite: con poco margen la respuesta llega vacía (finishReason MAX_TOKENS).
-            generationConfig: { maxOutputTokens: 8192 },
-          },
-        })
+        // Los modelos nuevos "piensan" antes de responder: para consultar datos alcanza con poco
+        // (más rápido y menos expuesto a la saturación). El pensamiento cuenta en maxOutputTokens,
+        // por eso el margen es amplio (con poco, la respuesta llegaba vacía).
+        const generationConfig = { maxOutputTokens: 8192 }
+        if (!sinPensamientoBajo.has(modelo)) generationConfig.thinkingConfig = { thinkingLevel: 'low' }
+        let res
+        try {
+          res = await llamar(`/v1beta/models/${encodeURIComponent(modelo)}:generateContent`, {
+            method: 'POST',
+            timeoutMs: Math.min(TIMEOUT_MS, restante()),
+            body: {
+              systemInstruction: { parts: [{ text: sistema }] },
+              contents: conv,
+              tools: [{ functionDeclarations: herramientas }],
+              generationConfig,
+            },
+          })
+        } catch (e) {
+          // Modelo que no acepta thinkingLevel: se repite el mismo paso sin ese ajuste
+          if (e instanceof ErrorGemini && e.status === 400 && /thinking/i.test(e.message) && !sinPensamientoBajo.has(modelo)) {
+            sinPensamientoBajo.add(modelo); paso--; continue
+          }
+          throw e
+        }
         const cand = res?.candidates?.[0]
         const partes = cand?.content?.parts || []
         const llamadas = partes.filter(p => p.functionCall)
