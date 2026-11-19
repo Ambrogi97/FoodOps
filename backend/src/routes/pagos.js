@@ -89,7 +89,8 @@ router.post('/suscribir', auth, async (req, res) => {
     const data = await mpRes.json()
     if (!mpRes.ok) {
       console.error('MP error suscribir:', JSON.stringify(data))
-      return res.status(500).json({ message: `Error MP: ${data.message || JSON.stringify(data)}` })
+      // El detalle queda en el log del servidor; al usuario no se le muestra la respuesta cruda de Mercado Pago
+      return res.status(502).json({ message: 'No se pudo iniciar el pago con Mercado Pago. Probá de nuevo en unos minutos.' })
     }
 
     res.json({ init_point: data.init_point })

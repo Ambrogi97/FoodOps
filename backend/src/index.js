@@ -6,6 +6,10 @@ require('./config/validacion')
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 16) {
   console.warn('[startup] ⚠️ JWT_SECRET falta o es demasiado corto (mínimo 16 caracteres): cambialo en Render')
 }
+// Sin el secreto, el webhook de Mercado Pago no puede verificar la firma de los avisos
+if (process.env.MP_ACCESS_TOKEN && !process.env.MP_WEBHOOK_SECRET) {
+  console.warn('[startup] ⚠️ Falta MP_WEBHOOK_SECRET: el webhook de Mercado Pago acepta avisos sin firma. Cargalo en Render')
+}
 const express = require('express')
 const cors = require('cors')
 const connectDB = require('./config/database')
