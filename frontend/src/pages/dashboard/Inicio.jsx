@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import {
-  DollarSign, ShoppingBag, ClipboardList, Wallet, Plus, Pencil, Check, X, RefreshCw,
+  DollarSign, ShoppingBag, ClipboardList, Wallet, Plus, Pencil, Check, X, RefreshCw, Sparkles, ArrowRight,
 } from 'lucide-react'
-import { inicioService, configService } from '../../services/api'
+import { inicioService, configService, asistenteService } from '../../services/api'
 import './Inicio.css'
 
 const ACTUALIZAR_CADA = 30_000
@@ -269,6 +269,40 @@ function Online({ online, onIr }) {
   )
 }
 
+// Tarjeta del asistente: qué se espera vender el próximo día abierto
+function PrediccionProxima({ onIr }) {
+  const [pred, setPred] = useState(null)
+  useEffect(() => {
+    let vivo = true
+    asistenteService.prediccion(fechaLocal()).then(d => { if (vivo) setPred(d) }).catch(() => {})
+    return () => { vivo = false }
+  }, [])
+  if (!pred?.suficiente) return null
+  const dia = pred.dias.find(d => !d.cerrado)
+  if (!dia) return null
+  const mananaCierra = pred.dias[0]?.cerrado
+  const top = pred.platos
+    .map(p => ({ nombre: p.nombre, cantidad: p.porDia[pred.dias.indexOf(dia)].cantidad }))
+    .filter(p => p.cantidad > 0).sort((a, b) => b.cantidad - a.cantidad).slice(0, 3)
+  const nombreDia = dia.label === 'Mañana' ? 'mañana' : `el ${dia.label.toLowerCase()}`
+  return (
+    <article className="ini-card ini-pred">
+      <div className="ini-pred-info">
+        <span className="ini-pred-titulo"><Sparkles size={16} aria-hidden="true" /> Predicción para {nombreDia}{dia.feriado ? ' (feriado)' : ''}</span>
+        <span className="ini-pred-valor">~ {fmt(dia.ventas.esperado)}</span>
+        <span className="ini-pred-rango">Entre {fmt(dia.ventas.min)} y {fmt(dia.ventas.max)} · unas {dia.tickets} ventas</span>
+        {mananaCierra && <span className="ini-pred-rango">Mañana el local cierra.</span>}
+      </div>
+      <div className="ini-pred-lado">
+        {top.length > 0 && (
+          <p className="ini-pred-top">Más pedidos: {top.map((p, i) => <span key={p.nombre}>{i > 0 && ' · '}<strong>{p.nombre} {p.cantidad}</strong></span>)}</p>
+        )}
+        {onIr && <button className="ini-btn-claro" onClick={onIr}>Ver predicción de la semana <ArrowRight size={16} /></button>}
+      </div>
+    </article>
+  )
+}
+
 export default function Inicio({ usuario, onNavegar, puedeIr, puedeEditarMeta }) {
   const [periodo, setPeriodo] = useState('hoy')
   const [datos, setDatos]     = useState(null)
@@ -352,6 +386,8 @@ export default function Inicio({ usuario, onNavegar, puedeIr, puedeEditarMeta })
 
       {datos && (
         <>
+          {puedeIr('asistente') && <PrediccionProxima onIr={() => onNavegar('asistente')} />}
+
           {k && (
             <section className="ini-kpis" aria-label="Indicadores">
               {k.ventas && <Kpi principal titulo="Ventas" Icon={DollarSign} valor={fmt(k.ventas.actual)} dato={k.ventas} periodo={periodo} />}

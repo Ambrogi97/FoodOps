@@ -457,6 +457,11 @@ export const inicioService = {
   obtener: async (fecha, periodo) => request(`/api/inicio?fecha=${encodeURIComponent(fecha)}&periodo=${encodeURIComponent(periodo)}`),
 }
 
+// ── Asistente inteligente ────────────────────────────────────────────────────
+export const asistenteService = {
+  prediccion: async (fecha) => request(`/api/asistente/prediccion?fecha=${encodeURIComponent(fecha)}`),
+}
+
 export const configService = {
   saveMetaVentas:    async (metaVentasMensual) => request('/api/config/meta-ventas', { method: 'PUT', body: JSON.stringify({ metaVentasMensual }) }),
   getTienda:         async ()            => request('/api/config/tienda'),

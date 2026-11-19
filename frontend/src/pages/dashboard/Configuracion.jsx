@@ -41,6 +41,7 @@ const PERMISOS_GRUPOS = [
       'Ver Reportes',
       'Ver Gastos',
       'Ver Carta Online',
+      'Ver Asistente',
       'Ver Configuración',
     ],
   },

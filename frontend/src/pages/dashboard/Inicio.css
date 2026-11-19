@@ -155,6 +155,18 @@
 .ini-meta-error { margin: 0; font-size: 0.8rem; color: #FCA5A5; }
 .ini-meta-ayuda { margin: 0; font-size: 0.75rem; color: #A8A29E; }
 
+/* Predicción (asistente) */
+.ini-pred {
+  background: var(--ini-oscuro); color: #fff;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; align-items: center;
+}
+.ini-pred-info { display: flex; flex-direction: column; gap: 6px; }
+.ini-pred-titulo { display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; color: #FFB38F; }
+.ini-pred-valor  { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; }
+.ini-pred-rango  { font-size: 0.85rem; color: #D6D3D1; }
+.ini-pred-lado   { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.ini-pred-top    { margin: 0; font-size: 0.88rem; line-height: 1.6; color: #E7E5E4; }
+
 /* Chips */
 .ini-chip { font-size: 0.78rem; font-weight: 700; padding: 4px 10px; border-radius: 10px; white-space: nowrap; }
 .ini-chip--suave  { background: var(--ini-naranja-claro); color: #9A3412; }

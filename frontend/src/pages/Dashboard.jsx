@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { getSession, clearSession, saveSession, categoriasService, productosService, pedidosOnlineService, rolesService, pagosService, perfilService } from '../services/api'
 import {
   UtensilsCrossed, Package, Truck, Users, DollarSign, TrendingUp, BarChart2, Calculator,
-  Smartphone, LogOut, ShieldCheck, Settings, Monitor, Lock, Crown, Clock, Home,
+  Smartphone, LogOut, ShieldCheck, Settings, Monitor, Lock, Crown, Clock, Home, Sparkles,
 } from 'lucide-react'
 import Logo from '../components/Logo'
 import Inicio from './dashboard/Inicio'
+import Asistente from './dashboard/Asistente'
 import Mesas from './dashboard/Mesas'
 import Restaurante from './dashboard/Restaurante'
 import MonitorCocina from './dashboard/MonitorCocina'
@@ -26,6 +27,7 @@ const BASIC_IDS = new Set(['inicio', 'restaurante', 'monitor-cocina', 'productos
 
 const NAV_ITEMS = [
   { id: 'inicio',         label: 'Inicio',            Icon: Home },
+  { id: 'asistente',      label: 'Asistente',         Icon: Sparkles, nuevo: true },
   { id: 'restaurante',    label: 'Restaurante',       Icon: UtensilsCrossed },
   { id: 'monitor-cocina', label: 'Monitor de Cocina', Icon: Monitor },
   { id: 'productos',      label: 'Productos',         Icon: Package },
@@ -216,7 +218,9 @@ export default function Dashboard() {
                 <span className="dash-nav-label">{item.label}</span>
                 {locked
                   ? <Lock size={12} className="dash-nav-lock" />
-                  : totalActivos > 0 && <span className="dash-nav-badge">{totalActivos}</span>
+                  : totalActivos > 0
+                    ? <span className="dash-nav-badge">{totalActivos}</span>
+                    : item.nuevo && <span className="dash-nav-nuevo">Nuevo</span>
                 }
               </button>
             )
@@ -349,6 +353,7 @@ export default function Dashboard() {
                 <Inicio usuario={user} onNavegar={setActive} puedeIr={puedeIrA}
                   puedeEditarMeta={!!permisosData?.esOwner || ['Ver Configuración', 'Ver Carta Online'].some(p => permisosData?.permisos?.includes(p))} />
               )}
+              {active === 'asistente'      && <Asistente />}
               {active === 'restaurante'    && <Restaurante productos={productos} categorias={categorias} onIrAConfiguracion={irAConfiguracion} />}
               {active === 'monitor-cocina' && <MonitorCocina />}
               {active === 'productos'      && <Productos />}

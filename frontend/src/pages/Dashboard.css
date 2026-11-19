@@ -79,6 +79,18 @@
 .dash-nav-lock { flex-shrink: 0; color: var(--text-muted); }
 .dash-nav-icon { font-size: 1.1rem; width: 22px; text-align: center; }
 .dash-nav-label { flex: 1; }
+.dash-nav-nuevo {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: #FF6B35;
+  color: #1A1A2E;
+  padding: 2px 7px;
+  border-radius: 8px;
+}
+
 .dash-nav-badge {
   min-width: 18px;
   height: 18px;

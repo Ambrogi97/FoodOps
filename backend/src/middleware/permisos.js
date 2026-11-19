@@ -18,6 +18,7 @@ const RE = 'Ver Reportes'
 const G  = 'Ver Gastos'
 const CO = 'Ver Carta Online'
 const CF = 'Ver Configuración'
+const AS = 'Ver Asistente'
 
 const REGLAS = {
   '/api/productos':                     { write: [P] },
@@ -41,6 +42,7 @@ const REGLAS = {
   '/api/pedidos-online':                { write: [CO, MC] },
   '/api/resenas':                       { read: [CO] },
   '/api/usuarios':                      { read: [CF] },
+  '/api/asistente':                     { read: [AS], write: [AS] },
 }
 
 // Rutas que cualquier sub-usuario necesita para que el dashboard funcione
