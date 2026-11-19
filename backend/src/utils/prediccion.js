@@ -43,15 +43,20 @@ function diaDeTexto(str) {
   return x ? diaAbs(+x[3], +x[2], +x[1]) : null
 }
 
-// "Muzzarella (Grande …)" → "Muzzarella": las variantes cuentan como el mismo plato
-const nombreBase = n => String(n || '').replace(/\s*\(.*\)\s*$/, '').trim()
+// "Muzzarella (Grande …)" → "Muzzarella": las variantes cuentan como el mismo plato.
+// Si el nombre completo es un producto real (p. ej. "Cerveza tirada (pinta)"), se respeta.
+function nombreBase(n, conocidos) {
+  const s = String(n || '').trim()
+  if (conocidos?.has(s)) return s
+  return s.replace(/\s*\(.*\)\s*$/, '').trim()
+}
 
 /**
  * Arma las series diarias a partir de las ventas.
  * @returns {{ porPlato: Map<string, Map<number, number>>, tickets: Map<number, number>,
  *            ultimoPrecio: Map<string, number>, primerDia: number|null }}
  */
-function armarSeries(ventas) {
+function armarSeries(ventas, conocidos) {
   const porPlato = new Map(), tickets = new Map(), ultimoPrecio = new Map(), fechaPrecio = new Map()
   let primerDia = null
   for (const v of ventas) {
@@ -62,7 +67,7 @@ function armarSeries(ventas) {
     if (primerDia == null || dia < primerDia) primerDia = dia
     tickets.set(dia, (tickets.get(dia) || 0) + 1)
     for (const it of v.items || []) {
-      const nombre = nombreBase(it.nombre)
+      const nombre = nombreBase(it.nombre, conocidos)
       if (!nombre || !(it.cantidad > 0)) continue
       if (!porPlato.has(nombre)) porPlato.set(nombre, new Map())
       const serie = porPlato.get(nombre)
