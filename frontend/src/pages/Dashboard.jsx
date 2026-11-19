@@ -8,6 +8,7 @@ import {
 import Logo from '../components/Logo'
 import Inicio from './dashboard/Inicio'
 import Asistente from './dashboard/Asistente'
+import ChatAsistente from '../components/ChatAsistente'
 import Mesas from './dashboard/Mesas'
 import Restaurante from './dashboard/Restaurante'
 import MonitorCocina from './dashboard/MonitorCocina'
@@ -372,6 +373,9 @@ export default function Dashboard() {
       </div>
 
       {/* Modal cerrar sesión */}
+      {/* Chat del asistente: en todas las secciones menos la pantalla de cocina */}
+      {permisosData && !trialExpirado && puedeIrA('asistente') && active !== 'monitor-cocina' && <ChatAsistente />}
+
       {showLogoutModal && (
         <div className="dash-modal-overlay" onClick={() => setShowLogoutModal(false)}>
           <div className="dash-modal" onClick={e => e.stopPropagation()}>
