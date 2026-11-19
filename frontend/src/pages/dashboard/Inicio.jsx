@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import {
-  DollarSign, ShoppingBag, ClipboardList, Wallet, Plus, Pencil, Check, X, RefreshCw, Sparkles, ArrowRight,
+  DollarSign, ShoppingBag, ClipboardList, Wallet, Plus, Pencil, Check, X, RefreshCw, Sparkles, ArrowRight, AlertTriangle,
 } from 'lucide-react'
 import { inicioService, configService, asistenteService } from '../../services/api'
 import './Inicio.css'
@@ -272,9 +272,14 @@ function Online({ online, onIr }) {
 // Tarjeta del asistente: qué se espera vender el próximo día abierto
 function PrediccionProxima({ onIr }) {
   const [pred, setPred] = useState(null)
+  const [faltantes, setFaltantes] = useState([])
   useEffect(() => {
     let vivo = true
     asistenteService.prediccion(fechaLocal()).then(d => { if (vivo) setPred(d) }).catch(() => {})
+    // Ingredientes que se terminan en los próximos 2 días
+    asistenteService.listaCompras(fechaLocal(), 2, 10)
+      .then(l => { if (vivo && l?.items) setFaltantes(l.items.filter(i => i.agota && i.comprar > 0)) })
+      .catch(() => {})
     return () => { vivo = false }
   }, [])
   if (!pred?.suficiente) return null
@@ -297,7 +302,20 @@ function PrediccionProxima({ onIr }) {
         {top.length > 0 && (
           <p className="ini-pred-top">Más pedidos: {top.map((p, i) => <span key={p.nombre}>{i > 0 && ' · '}<strong>{p.nombre} {p.cantidad}</strong></span>)}</p>
         )}
-        {onIr && <button className="ini-btn-claro" onClick={onIr}>Ver predicción de la semana <ArrowRight size={16} /></button>}
+        {faltantes.length > 0 && (
+          <p className="ini-pred-alerta">
+            <AlertTriangle size={16} aria-hidden="true" />
+            <span>Te falta <strong>{faltantes[0].nombre.toLowerCase()}</strong>: tenés {faltantes[0].stock} {faltantes[0].unidad} y se termina {faltantes[0].agota.enDias === 1 ? 'mañana' : `el ${faltantes[0].agota.label.toLowerCase()}`}
+              {faltantes.length > 1 && <> (y {faltantes.length - 1} ingrediente{faltantes.length > 2 ? 's' : ''} más)</>}.</span>
+          </p>
+        )}
+        {onIr && (
+          <div className="ini-pred-botones">
+            <button className="ini-btn-claro" onClick={() => onIr(faltantes.length ? 'compras' : 'prediccion')}>
+              {faltantes.length ? 'Ver lista de compras' : 'Ver predicción de la semana'} <ArrowRight size={16} />
+            </button>
+          </div>
+        )}
       </div>
     </article>
   )
@@ -386,7 +404,12 @@ export default function Inicio({ usuario, onNavegar, puedeIr, puedeEditarMeta })
 
       {datos && (
         <>
-          {puedeIr('asistente') && <PrediccionProxima onIr={() => onNavegar('asistente')} />}
+          {puedeIr('asistente') && (
+            <PrediccionProxima onIr={tab => {
+              try { sessionStorage.setItem('foodops:asistente-tab', tab) } catch { /* sin almacenamiento */ }
+              onNavegar('asistente')
+            }} />
+          )}
 
           {k && (
             <section className="ini-kpis" aria-label="Indicadores">

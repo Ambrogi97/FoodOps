@@ -460,6 +460,7 @@ export const inicioService = {
 // ── Asistente inteligente ────────────────────────────────────────────────────
 export const asistenteService = {
   prediccion: async (fecha) => request(`/api/asistente/prediccion?fecha=${encodeURIComponent(fecha)}`),
+  listaCompras: async (fecha, dias, margen) => request(`/api/asistente/lista-compras?fecha=${encodeURIComponent(fecha)}&dias=${dias}&margen=${margen}`),
 }
 
 export const configService = {

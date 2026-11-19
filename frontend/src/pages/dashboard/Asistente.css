@@ -83,6 +83,48 @@
 .asi-td-total { font-weight: 700; }
 .asi-link { align-self: flex-start; border: 0; background: none; padding: 6px 0; font: inherit; font-size: 0.85rem; font-weight: 600; color: var(--asi-naranja-oscuro); display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
 
+/* Lista de compras */
+.asi-compras-ctrl { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 14px 28px; }
+.asi-compras-ctrl .asi-nota { flex-basis: 100%; line-height: 1.5; }
+.asi-ctrl { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.asi-ctrl-label { font-size: 0.85rem; font-weight: 600; color: #44403C; }
+.asi-seg { display: flex; gap: 2px; padding: 3px; background: #F5F0EB; border-radius: 12px; flex-wrap: wrap; }
+.asi-seg-btn { min-height: 38px; padding: 0 12px; border: 0; border-radius: 9px; background: transparent; font: inherit; font-size: 0.85rem; font-weight: 600; color: #44403C; cursor: pointer; }
+.asi-seg-btn:hover { background: #EDE7E1; }
+.asi-seg-btn--on, .asi-seg-btn--on:hover { background: var(--asi-oscuro); color: #fff; }
+
+.asi-resumen { flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px; background: #FFF7F2; border-color: #FED7C3; }
+.asi-resumen-txt { display: flex; flex-direction: column; gap: 6px; }
+.asi-alerta { margin: 0; display: inline-flex; align-items: center; gap: 6px; font-size: 0.88rem; color: #9A3412; }
+.asi-resumen-acc { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.asi-resumen-total { font-size: 0.9rem; color: #44403C; }
+.asi-botones { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.asi-btn-sec, .asi-btn-wa {
+  min-height: 44px; padding: 0 14px; border-radius: 12px; font: inherit; font-size: 0.88rem; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+}
+.asi-btn-sec { border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+.asi-btn-sec:hover:not(:disabled) { background: var(--bg-hover); }
+.asi-btn-wa { border: 0; background: #15803D; color: #fff; font-weight: 700; }
+.asi-btn-wa:hover:not(:disabled) { background: #166534; }
+.asi-btn-sec:disabled, .asi-btn-wa:disabled { opacity: 0.5; cursor: not-allowed; }
+.asi-cargando-suave { opacity: 0.6; transition: opacity 0.2s; }
+
+.asi-tabla-compras { min-width: 720px; }
+.asi-fila-grupo td { text-align: left !important; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--asi-texto2); background: #FAF8F6; padding: 8px 10px; }
+.asi-td-check { width: 36px; text-align: center !important; }
+.asi-td-check input { width: 19px; height: 19px; accent-color: var(--asi-naranja-oscuro); cursor: pointer; }
+.asi-td-detalle { display: block; font-size: 0.74rem; font-weight: 400; color: var(--asi-texto2); margin-top: 2px; }
+.asi-td-comprar strong { color: #9A3412; }
+.asi-fila-off td { opacity: 0.45; }
+.asi-chip { font-size: 0.72rem; font-weight: 700; padding: 3px 9px; border-radius: 9px; white-space: nowrap; }
+.asi-chip--ok    { background: #ECFDF5; color: #047857; }
+.asi-chip--justo { background: #FEF3C7; color: #92400E; }
+.asi-agota { font-weight: 700; color: #B91C1C; }
+.asi-aviso { background: #FFFBEB; border-color: #FDE68A; }
+.asi-aviso .asi-h3 { display: inline-flex; align-items: center; gap: 8px; color: #92400E; }
+.asi-aviso p { margin: 0; font-size: 0.86rem; line-height: 1.5; color: #44403C; }
+
 /* Cómo funciona */
 .asi-como { gap: 0; padding: 0; overflow: hidden; }
 .asi-como-btn {

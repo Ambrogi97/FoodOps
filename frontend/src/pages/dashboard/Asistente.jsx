@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { TrendingUp, CalendarDays, Target, ChevronDown, ChevronUp, RefreshCw, ShoppingCart, LayoutGrid, Info } from 'lucide-react'
 import { asistenteService } from '../../services/api'
+import AsistenteCompras from './AsistenteCompras'
 import './Asistente.css'
 
 const fmt  = n => '$' + Math.round(Number(n || 0)).toLocaleString('es-AR')
@@ -14,7 +15,7 @@ const fechaLocal = () => {
 
 const TABS = [
   { id: 'prediccion', label: 'Predicción', Icon: TrendingUp },
-  { id: 'compras',    label: 'Lista de compras', Icon: ShoppingCart, pronto: true },
+  { id: 'compras',    label: 'Lista de compras', Icon: ShoppingCart },
   { id: 'menu',       label: 'Menú', Icon: LayoutGrid, pronto: true },
 ]
 
@@ -128,7 +129,14 @@ function ComoFunciona({ datos }) {
 }
 
 export default function Asistente() {
-  const [tab, setTab]         = useState('prediccion')
+  // Inicio puede pedir abrir una pestaña puntual (p. ej. la lista de compras)
+  const [tab, setTab]         = useState(() => {
+    try {
+      const t = sessionStorage.getItem('foodops:asistente-tab')
+      sessionStorage.removeItem('foodops:asistente-tab')
+      return TABS.some(x => x.id === t && !x.pronto) ? t : 'prediccion'
+    } catch { return 'prediccion' }
+  })
   const [datos, setDatos]     = useState(null)
   const [error, setError]     = useState('')
   const [cargando, setCargando] = useState(true)
@@ -232,6 +240,8 @@ export default function Asistente() {
           <ComoFunciona datos={datos} />
         </>
       )}
+
+      {datos?.suficiente && tab === 'compras' && <AsistenteCompras />}
     </div>
   )
 }

@@ -166,6 +166,12 @@
 .ini-pred-rango  { font-size: 0.85rem; color: #D6D3D1; }
 .ini-pred-lado   { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
 .ini-pred-top    { margin: 0; font-size: 0.88rem; line-height: 1.6; color: #E7E5E4; }
+.ini-pred-alerta {
+  margin: 0; display: flex; gap: 10px; align-items: flex-start; padding: 12px; border-radius: 14px;
+  background: #292524; font-size: 0.86rem; line-height: 1.5; color: #F5F5F4;
+}
+.ini-pred-alerta svg { color: #FBBF24; flex-shrink: 0; margin-top: 2px; }
+.ini-pred-botones { display: flex; flex-wrap: wrap; gap: 8px; }
 
 /* Chips */
 .ini-chip { font-size: 0.78rem; font-weight: 700; padding: 4px 10px; border-radius: 10px; white-space: nowrap; }
