@@ -460,6 +460,7 @@ export const inicioService = {
 // ── Asistente inteligente ────────────────────────────────────────────────────
 export const asistenteService = {
   prediccion: async (fecha) => request(`/api/asistente/prediccion?fecha=${encodeURIComponent(fecha)}`),
+  chat: async (fecha, mensajes) => request('/api/asistente/chat', { method: 'POST', body: JSON.stringify({ fecha, mensajes }) }),
   menu: async (fecha, dias) => request(`/api/asistente/menu?fecha=${encodeURIComponent(fecha)}&dias=${dias}`),
   listaCompras: async (fecha, dias, margen) => request(`/api/asistente/lista-compras?fecha=${encodeURIComponent(fecha)}&dias=${dias}&margen=${margen}`),
 }
