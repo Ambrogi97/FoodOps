@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /verificar-email
+Disallow: /tracking/
+Disallow: /resena/
+Disallow: /reset-password
