@@ -58,7 +58,7 @@ router.post('/recuperar', resetLimiter, async (req, res) => {
 
     const user = await User.findOne({ email })
     // Siempre responder OK para no revelar si el email existe
-    if (!user) return res.json({ message: 'Si el email existe, recibirás un correo.' })
+    if (!user) return res.json({ message: 'Si el email está registrado, recibirás un correo.' })
 
     const rawToken = crypto.randomBytes(32).toString('hex')
     const expiry   = new Date(Date.now() + 60 * 60 * 1000) // 1 hora
@@ -140,7 +140,7 @@ router.post('/recuperar', resetLimiter, async (req, res) => {
 </html>`,
     })
 
-    res.json({ message: 'Si el email existe, recibirás un correo.' })
+    res.json({ message: 'Si el email está registrado, recibirás un correo.' })
   } catch (e) {
     console.error('Error al enviar email de recuperación:', e)
     res.status(500).json({ message: 'Error al enviar el correo. Intentá más tarde.' })
