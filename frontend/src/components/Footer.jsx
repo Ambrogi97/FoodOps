@@ -18,7 +18,7 @@ export default function Footer() {
 
         <div className="footer__links">
           <div className="footer__col">
-            <h4>Producto</h4>
+            <h3>Producto</h3>
             <ul>
               <li><a href="#caracteristicas">Características</a></li>
               <li><a href="#como-funciona">Cómo funciona</a></li>
@@ -26,7 +26,7 @@ export default function Footer() {
             </ul>
           </div>
           <div className="footer__col">
-            <h4>Empresa</h4>
+            <h3>Empresa</h3>
             <ul>
               <li><a href="#">Nosotros</a></li>
               <li><a href="#">Blog</a></li>
@@ -34,7 +34,7 @@ export default function Footer() {
             </ul>
           </div>
           <div className="footer__col">
-            <h4>Legal</h4>
+            <h3>Legal</h3>
             <ul>
               <li><a href="#">Términos de uso</a></li>
               <li><a href="#">Privacidad</a></li>

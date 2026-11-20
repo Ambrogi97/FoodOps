@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -39,7 +38,7 @@
 html { scroll-behavior: smooth; font-size: 16px; }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background-color: var(--bg);
   color: var(--text);
   line-height: 1.6;
@@ -72,12 +71,12 @@ button { cursor: pointer; font-family: inherit; border: none; outline: none; }
   font-family: inherit;
 }
 .btn--primary {
-  background: var(--primary);
+  background: #CC4A14; /* naranja más oscuro: contraste 4,6 con el texto blanco */
   color: #fff;
   box-shadow: 0 4px 16px rgba(255,107,53,0.35);
 }
 .btn--primary:hover {
-  background: var(--primary-dark);
+  background: #B3410F;
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(255,107,53,0.45);
 }
