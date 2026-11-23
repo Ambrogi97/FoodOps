@@ -73,6 +73,13 @@ const configTiendaSchema = new mongoose.Schema(
       comandaAlGuardar: { type: Boolean, default: false },  // imprime la comanda al crear/guardar el pedido
       copiasComanda:    { type: Number,  default: 1, min: 1, max: 3 },
       copiasTicket:     { type: Number,  default: 1, min: 1, max: 3 },
+      // Formato de la comanda (por defecto: encabezado chico y productos grandes, como las comanderas de cocina)
+      comandaTamano:    { type: String,  enum: ['normal', 'grande', 'muy-grande'], default: 'grande' },
+      comandaArea:      { type: String,  enum: ['texto', 'recuadro', 'oculto'], default: 'texto' },
+      comandaNumero:    { type: Boolean, default: false },  // nº de venta
+      comandaCliente:   { type: Boolean, default: false },  // cliente, personas y detalle de entrega
+      // Formato del ticket
+      ticketTamano:     { type: String,  enum: ['normal', 'grande'], default: 'normal' },
     },
   },
   { timestamps: true }

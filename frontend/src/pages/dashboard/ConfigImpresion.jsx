@@ -65,18 +65,39 @@ export default function ConfigImpresion() {
             <option value={58}>58 mm (comandera chica)</option>
           </select>
         </div>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <button type="button" className="cfg-btn-dark" onClick={() => probar(imprimirPruebaComanda)}>
-            <Printer size={14} /> Probar comanda
-          </button>
-          <button type="button" className="cfg-btn-dark" onClick={() => probar(imprimirPruebaTicket)}>
-            <Printer size={14} /> Probar ticket
-          </button>
-        </div>
+        <p className="cfg-section-desc">
+          Si la comanda sale con letra chica o con textos pegados, la comandera está instalada en Windows con el
+          controlador <strong>"Genérico / Solo texto"</strong>: instalá el controlador del fabricante para que se respete el formato.
+        </p>
       </div>
 
       <div className="cfg-form-section" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <h3 className="cfg-section-heading">Comanda (cocina y barra)</h3>
+        <p className="cfg-section-desc">Sin precios: arriba el origen, la fecha y el área en letra chica, y abajo los productos en letra grande.</p>
+        <div className="cfg-field">
+          <label>Tamaño de letra de los productos</label>
+          <select className="cfg-input" value={cfg.comandaTamano} onChange={e => set('comandaTamano', e.target.value)}>
+            <option value="normal">Normal</option>
+            <option value="grande">Grande</option>
+            <option value="muy-grande">Muy grande</option>
+          </select>
+        </div>
+        <div className="cfg-field">
+          <label>Área (Cocina / Barra)</label>
+          <select className="cfg-input" value={cfg.comandaArea} onChange={e => set('comandaArea', e.target.value)}>
+            <option value="texto">Debajo de la fecha, en letra chica</option>
+            <option value="recuadro">En un recuadro destacado</option>
+            <option value="oculto">No mostrar</option>
+          </select>
+        </div>
+        <div className="cfg-check-row">
+          <label>Mostrar el número de venta</label>
+          <Interruptor checked={cfg.comandaNumero} onChange={v => set('comandaNumero', v)} />
+        </div>
+        <div className="cfg-check-row">
+          <label>Mostrar cliente, personas de la mesa y datos de entrega</label>
+          <Interruptor checked={cfg.comandaCliente} onChange={v => set('comandaCliente', v)} />
+        </div>
         <div className="cfg-check-row">
           <label>Separar por área: una comanda para Cocina y otra para Barra</label>
           <Interruptor checked={cfg.comandaPorArea} onChange={v => set('comandaPorArea', v)} />
@@ -94,10 +115,22 @@ export default function ConfigImpresion() {
             {[1, 2, 3].map(n => <option key={n} value={n}>{n}</option>)}
           </select>
         </div>
+        <div>
+          <button type="button" className="cfg-btn-dark" onClick={() => probar(imprimirPruebaComanda)}>
+            <Printer size={14} /> Probar comanda
+          </button>
+        </div>
       </div>
 
       <div className="cfg-form-section" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <h3 className="cfg-section-heading">Ticket (cliente y cadete)</h3>
+        <div className="cfg-field">
+          <label>Tamaño de letra</label>
+          <select className="cfg-input" value={cfg.ticketTamano} onChange={e => set('ticketTamano', e.target.value)}>
+            <option value="normal">Normal</option>
+            <option value="grande">Grande</option>
+          </select>
+        </div>
         <div className="cfg-field">
           <label>Encabezado</label>
           <input className="cfg-input" maxLength={60} placeholder="Si lo dejás vacío, se usa el nombre del restaurante"
@@ -121,6 +154,11 @@ export default function ConfigImpresion() {
           <select className="cfg-input" value={cfg.copiasTicket} onChange={e => set('copiasTicket', Number(e.target.value))}>
             {[1, 2, 3].map(n => <option key={n} value={n}>{n === 2 ? '2 (cliente y cadete)' : n}</option>)}
           </select>
+        </div>
+        <div>
+          <button type="button" className="cfg-btn-dark" onClick={() => probar(imprimirPruebaTicket)}>
+            <Printer size={14} /> Probar ticket
+          </button>
         </div>
       </div>
 
