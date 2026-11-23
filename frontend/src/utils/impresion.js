@@ -7,7 +7,13 @@ export const CONFIG_IMPRESION_DEFAULT = {
   anchoPapel: 80, encabezado: '', datosLocal: '',
   pie: '¡Gracias por su compra!', leyenda: 'Documento no válido como factura',
   comandaPorArea: true, comandaAlGuardar: false, copiasComanda: 1, copiasTicket: 1,
+  comandaTamano: 'grande', comandaArea: 'texto', comandaNumero: false, comandaCliente: false,
+  ticketTamano: 'normal',
 }
+
+// Tamaño de los productos en la comanda y del texto del ticket (multiplica la letra base)
+const ESCALA_COMANDA = { normal: 1.2, grande: 1.75, 'muy-grande': 2.3 }
+const ESCALA_TICKET  = { normal: 1, grande: 1.2 }
 
 let cache = null
 export async function obtenerConfigImpresion() {
@@ -42,9 +48,9 @@ export function areaDeItem(item, productos = [], categorias = []) {
   return cat?.areaImpresion || 'Cocina'
 }
 
-function documento(cfg, cuerpo) {
+function documento(cfg, cuerpo, { escalaTexto = 1, escalaItems = 1.45, vistaPrevia = false } = {}) {
   const ancho = cfg.anchoPapel === 58 ? 48 : 72   // ancho imprimible en mm
-  const base  = cfg.anchoPapel === 58 ? 11 : 12.5
+  const base  = (cfg.anchoPapel === 58 ? 11 : 12.5) * escalaTexto
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Impresión</title><style>
     @page { size: ${cfg.anchoPapel}mm auto; margin: 0; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -55,15 +61,20 @@ function documento(cfg, cuerpo) {
     .area { font-size: ${base * 1.25}px; font-weight: 700; border: 1.5px solid #000; text-align: center; padding: 1mm 0; margin: 2mm 0; }
     .sep { border-top: 1px dashed #000; margin: 2mm 0; }
     .meta div { margin: 0.4mm 0; }
-    .item-com { display: flex; gap: 3mm; font-size: ${base * 1.45}px; font-weight: 700; margin: 1.6mm 0; line-height: 1.15; }
-    .item-com .cant { min-width: 7mm; }
-    .nota-item { font-size: ${base}px; font-weight: 400; margin: -1mm 0 1.5mm 10mm; }
+    /* Cantidad y producto en un solo texto (los drivers "solo texto" pegaban "1Funghi");
+       si el nombre no entra en una línea, la segunda queda alineada con el nombre */
+    .item-com { font-size: ${base * escalaItems}px; font-weight: 700; margin: 1.4mm 0; line-height: 1.15; padding-left: 1.4em; text-indent: -1.4em; }
+    .nota-item { font-size: ${base}px; font-weight: 400; margin: -0.6mm 0 1.6mm 6mm; }
+    .cab-com { font-size: ${base}px; line-height: 1.35; margin-bottom: 3mm; }
+    .cab-com .origen { font-weight: 700; }
+    .fin { height: 6mm; } /* margen al final: que la última línea pase el corte del papel */
     .fila { display: flex; justify-content: space-between; gap: 2mm; margin: 0.6mm 0; }
     .item-tk { margin: 1mm 0; }
     .item-tk .precio { text-align: right; }
     .total { font-size: ${base * 1.5}px; font-weight: 700; }
     .notas { border: 1px solid #000; padding: 1.5mm; margin-top: 2mm; font-weight: 700; }
     .pie { text-align: center; font-size: ${base * 0.9}px; margin-top: 1mm; }
+    ${vistaPrevia ? 'html { background: #fff; } body { padding: 4mm 0 0; } .hoja + .hoja { margin-top: 3mm; padding-top: 4mm; border-top: 2px dashed #a1a1aa; } .fin { height: 2mm; }' : ''}
   </style></head><body>${cuerpo}</body></html>`
 }
 
@@ -84,10 +95,17 @@ function imprimirHtml(html) {
 
 // ── Comanda (cocina / barra): sin precios, letra grande ─────────────────────
 // datos: { origen: 'MOSTRADOR' | 'MESA 4' | 'DELIVERY' | 'CARTA ONLINE', numero, cliente, detalle, personas, items, notas, fecha }
-export async function imprimirComanda(datos, { productos = [], categorias = [] } = {}) {
-  const cfg = await obtenerConfigImpresion()
+export async function imprimirComanda(datos, opciones = {}) {
+  const html = armarComanda(datos, await obtenerConfigImpresion(), opciones)
+  if (!html) return false
+  imprimirHtml(html)
+  return true
+}
+
+// Arma el HTML de la comanda (lo usan la impresión y la vista previa de Configuración)
+export function armarComanda(datos, cfg, { productos = [], categorias = [], vistaPrevia = false } = {}) {
   const items = (datos.items || []).filter(i => i.cantidad > 0)
-  if (!items.length) return false
+  if (!items.length) return null
 
   const grupos = {}
   for (const it of items) {
@@ -98,29 +116,34 @@ export async function imprimirComanda(datos, { productos = [], categorias = [] }
   const hojas = []
   for (const [area, lista] of Object.entries(grupos)) {
     const hoja = `<div class="hoja">
-      <div class="titulo">${esc(datos.origen)}</div>
-      <div class="meta">
-        ${datos.numero != null ? `<div>Venta: #${esc(datos.numero)}</div>` : ''}
+      <div class="cab-com">
+        <div class="origen">${esc(datos.origen)}</div>
+        ${cfg.comandaNumero && datos.numero != null ? `<div>Venta #${esc(datos.numero)}</div>` : ''}
         <div>${esc(fechaCorta(datos.fecha))}</div>
-        ${datos.cliente ? `<div>Cliente: ${esc(datos.cliente)}</div>` : ''}
-        ${datos.personas ? `<div>Personas: ${esc(datos.personas)}</div>` : ''}
-        ${datos.detalle ? `<div>${esc(datos.detalle)}</div>` : ''}
+        ${cfg.comandaCliente && datos.cliente ? `<div>Cliente: ${esc(datos.cliente)}</div>` : ''}
+        ${cfg.comandaCliente && datos.personas ? `<div>Personas: ${esc(datos.personas)}</div>` : ''}
+        ${cfg.comandaCliente && datos.detalle ? `<div>${esc(datos.detalle)}</div>` : ''}
+        ${cfg.comandaArea === 'texto' ? `<div>${esc(area)}</div>` : ''}
       </div>
-      <div class="area">${esc(area.toUpperCase())}</div>
-      ${lista.map(i => `<div class="item-com"><span class="cant">${esc(i.cantidad)}</span><span>${esc(i.nombre)}</span></div>
+      ${cfg.comandaArea === 'recuadro' ? `<div class="area">${esc(area.toUpperCase())}</div>` : ''}
+      ${lista.map(i => `<div class="item-com">${esc(i.cantidad)} ${esc(i.nombre)}</div>
         ${i.notas ? `<div class="nota-item">→ ${esc(i.notas)}</div>` : ''}`).join('')}
       ${datos.notas ? `<div class="notas">NOTA: ${esc(datos.notas)}</div>` : ''}
+      <div class="fin"></div>
     </div>`
     for (let c = 0; c < (cfg.copiasComanda || 1); c++) hojas.push(hoja)
   }
-  imprimirHtml(documento(cfg, hojas.join('')))
-  return true
+  return documento(cfg, hojas.join(''), { escalaItems: ESCALA_COMANDA[cfg.comandaTamano] || ESCALA_COMANDA.grande, vistaPrevia })
 }
 
 // ── Ticket (cliente / cadete): con precios y total ──────────────────────────
 // datos: { numero, fecha, tipo, cliente, telefono, direccion, items, descuentoLabel, descuentoMonto, envio, total, formaPago, notas }
 export async function imprimirTicket(datos) {
-  const cfg = await obtenerConfigImpresion()
+  imprimirHtml(armarTicket(datos, await obtenerConfigImpresion()))
+  return true
+}
+
+export function armarTicket(datos, cfg, { vistaPrevia = false } = {}) {
   const items = (datos.items || []).filter(i => i.cantidad > 0)
   const subtotal = items.reduce((s, i) => s + (i.precio || 0) * i.cantidad, 0)
   const envio = Number(datos.envio || 0)
@@ -143,29 +166,37 @@ export async function imprimirTicket(datos) {
     <div class="sep"></div>
     ${items.map(i => `<div class="item-tk"><div>${esc(i.cantidad)}  ${esc(i.nombre)}</div><div class="precio">${precio((i.precio || 0) * i.cantidad)}</div></div>`).join('')}
     <div class="sep"></div>
-    <div class="fila"><span>Subtotal</span><span>${precio(subtotal)}</span></div>
-    ${desc > 0 ? `<div class="fila"><span>${esc(datos.descuentoLabel || 'Descuento')}</span><span>-${precio(desc)}</span></div>` : ''}
-    ${envio > 0 ? `<div class="fila"><span>Envío</span><span>${precio(envio)}</span></div>` : ''}
-    <div class="fila total"><span>TOTAL</span><span>${precio(total)}</span></div>
+    <div class="fila"><span>Subtotal</span> <span>${precio(subtotal)}</span></div>
+    ${desc > 0 ? `<div class="fila"><span>${esc(datos.descuentoLabel || 'Descuento')}</span> <span>-${precio(desc)}</span></div>` : ''}
+    ${envio > 0 ? `<div class="fila"><span>Envío</span> <span>${precio(envio)}</span></div>` : ''}
+    <div class="fila total"><span>TOTAL</span> <span>${precio(total)}</span></div>
     ${datos.formaPago ? `<div>Forma de pago: ${esc(datos.formaPago)}</div>` : ''}
     ${datos.notas ? `<div class="notas">Nota: ${esc(datos.notas)}</div>` : ''}
     <div class="sep"></div>
     ${cfg.leyenda ? `<div class="pie b">${esc(cfg.leyenda)}</div>` : ''}
     ${cfg.pie ? `<div class="pie">${esc(cfg.pie)}</div>` : ''}
+    <div class="fin"></div>
   </div>`
-  imprimirHtml(documento(cfg, Array(cfg.copiasTicket || 1).fill(hoja).join('')))
-  return true
+  // En la vista previa alcanza con una copia
+  const copias = vistaPrevia ? 1 : (cfg.copiasTicket || 1)
+  return documento(cfg, Array(copias).fill(hoja).join(''), { escalaTexto: ESCALA_TICKET[cfg.ticketTamano] || 1, vistaPrevia })
 }
 
-// Ejemplos para probar la impresora desde Configuración
-export const imprimirPruebaComanda = () => imprimirComanda({
+// Ejemplos para probar la impresora y para la vista previa de Configuración
+const comandaEjemplo = () => ({
   origen: 'MOSTRADOR', numero: 8734, cliente: 'Esteban', fecha: new Date(),
-  items: [{ nombre: 'Funghi', cantidad: 1 }, { nombre: 'Cipolla', cantidad: 1 }, { nombre: 'Cerveza tirada (pinta)', cantidad: 2, area: 'Barra' }],
-  notas: 'Prueba de impresión',
-}, { productos: [{ id: 'x', nombre: 'Cerveza tirada (pinta)', areaImpresion: 'Barra' }] })
-
-export const imprimirPruebaTicket = () => imprimirTicket({
+  items: [{ nombre: 'Diavola', cantidad: 1 }, { nombre: 'Peperoni', cantidad: 1 }, { nombre: 'Focaccia Mortadela', cantidad: 1 }, { nombre: 'Cerveza tirada (pinta)', cantidad: 2 }],
+})
+const OPCIONES_EJEMPLO = { productos: [{ id: 'x', nombre: 'Cerveza tirada (pinta)', areaImpresion: 'Barra' }] }
+const ticketEjemplo = () => ({
   numero: 8734, fecha: new Date(), tipo: 'Retiro en el local', cliente: 'Esteban',
   items: [{ nombre: 'Funghi', cantidad: 1, precio: 16000 }, { nombre: 'Cipolla', cantidad: 1, precio: 14500 }, { nombre: 'Bacon', cantidad: 1, precio: 17000 }],
   formaPago: 'Efectivo',
 })
+
+export const imprimirPruebaComanda = () => imprimirComanda(comandaEjemplo(), OPCIONES_EJEMPLO)
+export const imprimirPruebaTicket  = () => imprimirTicket(ticketEjemplo())
+
+// Vista previa con la configuración que está en pantalla (aunque no se haya guardado)
+export const vistaPreviaComanda = (cfg) => armarComanda(comandaEjemplo(), { ...CONFIG_IMPRESION_DEFAULT, ...cfg }, { ...OPCIONES_EJEMPLO, vistaPrevia: true })
+export const vistaPreviaTicket  = (cfg) => armarTicket(ticketEjemplo(), { ...CONFIG_IMPRESION_DEFAULT, ...cfg }, { vistaPrevia: true })

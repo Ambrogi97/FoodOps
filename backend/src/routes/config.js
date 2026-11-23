@@ -214,7 +214,9 @@ router.put('/meta-ventas', auth, async (req, res) => {
 
 // ── Impresión (comandas y tickets) ───────────────────────────────────────────
 
-const CAMPOS_IMPRESION = ['anchoPapel', 'encabezado', 'datosLocal', 'pie', 'leyenda', 'comandaPorArea', 'comandaAlGuardar', 'copiasComanda', 'copiasTicket']
+const CAMPOS_IMPRESION = ['anchoPapel', 'encabezado', 'datosLocal', 'pie', 'leyenda', 'comandaPorArea', 'comandaAlGuardar', 'copiasComanda', 'copiasTicket',
+  'comandaTamano', 'comandaArea', 'comandaNumero', 'comandaCliente', 'ticketTamano']
+const CAMPOS_SI_NO = ['comandaPorArea', 'comandaAlGuardar', 'comandaNumero', 'comandaCliente']
 
 router.get('/impresion', auth, async (req, res) => {
   try {
@@ -232,7 +234,7 @@ router.put('/impresion', auth, async (req, res) => {
     for (const campo of CAMPOS_IMPRESION) {
       const v = req.body?.[campo]
       if (v === undefined) continue
-      if (['comandaPorArea', 'comandaAlGuardar'].includes(campo)) update[`impresion.${campo}`] = v === true
+      if (CAMPOS_SI_NO.includes(campo)) update[`impresion.${campo}`] = v === true
       else if (['anchoPapel', 'copiasComanda', 'copiasTicket'].includes(campo)) update[`impresion.${campo}`] = Number(v)
       else update[`impresion.${campo}`] = typeof v === 'string' ? v.trim() : ''
     }
