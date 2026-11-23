@@ -5,6 +5,7 @@ import {
   CONFIG_IMPRESION_DEFAULT, actualizarCacheImpresion,
   imprimirPruebaComanda, imprimirPruebaTicket,
 } from '../../utils/impresion'
+import VistaPreviaImpresion from './VistaPreviaImpresion'
 
 function Interruptor({ checked, onChange }) {
   return (
@@ -20,6 +21,7 @@ export default function ConfigImpresion() {
   const [cargando, setCargando] = useState(true)
   const [guardando, setGuard]   = useState(false)
   const [msg, setMsg]           = useState({ tipo: '', texto: '' })
+  const [vista, setVista]       = useState('comanda')   // qué muestra la vista previa
 
   useEffect(() => {
     configService.getImpresion()
@@ -51,7 +53,8 @@ export default function ConfigImpresion() {
   if (cargando) return <p className="cfg-loading">Cargando...</p>
 
   return (
-    <form onSubmit={guardar} className="cfg-form" style={{ maxWidth: 620, display: 'flex', flexDirection: 'column', gap: 28 }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 28, alignItems: 'flex-start' }}>
+    <form onSubmit={guardar} className="cfg-form" style={{ flex: '1 1 480px', maxWidth: 620, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 28 }}>
       <div className="cfg-form-section" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <h3 className="cfg-section-heading">Impresora</h3>
         <p className="cfg-section-desc">
@@ -71,7 +74,7 @@ export default function ConfigImpresion() {
         </p>
       </div>
 
-      <div className="cfg-form-section" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div className="cfg-form-section" style={{ display: 'flex', flexDirection: 'column', gap: 12 }} onFocusCapture={() => setVista('comanda')}>
         <h3 className="cfg-section-heading">Comanda (cocina y barra)</h3>
         <p className="cfg-section-desc">Sin precios: arriba el origen, la fecha y el área en letra chica, y abajo los productos en letra grande.</p>
         <div className="cfg-field">
@@ -122,7 +125,7 @@ export default function ConfigImpresion() {
         </div>
       </div>
 
-      <div className="cfg-form-section" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div className="cfg-form-section" style={{ display: 'flex', flexDirection: 'column', gap: 12 }} onFocusCapture={() => setVista('ticket')}>
         <h3 className="cfg-section-heading">Ticket (cliente y cadete)</h3>
         <div className="cfg-field">
           <label>Tamaño de letra</label>
@@ -183,5 +186,7 @@ export default function ConfigImpresion() {
         </button>
       </div>
     </form>
+    <VistaPreviaImpresion cfg={cfg} tipo={vista} onTipo={setVista} />
+    </div>
   )
 }
