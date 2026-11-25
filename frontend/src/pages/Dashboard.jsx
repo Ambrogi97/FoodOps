@@ -306,7 +306,7 @@ export default function Dashboard() {
                     <>
                       <span className="dash-plan-btn-nombre">Premium ⭐</span>
                       <span className="dash-plan-btn-precio">$35.000/mes</span>
-                      <span className="dash-plan-btn-features">Todo Básico + Ventas · Finanzas · Stock</span>
+                      <span className="dash-plan-btn-features">Todo Básico + Asistente con IA · Ventas · Finanzas</span>
                     </>
                   )}
                 </button>
@@ -336,7 +336,7 @@ export default function Dashboard() {
                   <>
                     <span className="dash-plan-btn-nombre">Upgrade a Premium ⭐</span>
                     <span className="dash-plan-btn-precio">$35.000/mes</span>
-                    <span className="dash-plan-btn-features">Ventas · Finanzas · Stock · Reportes y más</span>
+                    <span className="dash-plan-btn-features">Asistente con IA · Ventas · Finanzas · Stock y más</span>
                   </>
                 )}
               </button>

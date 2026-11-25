@@ -17,6 +17,14 @@ const { rateLimit, ipKeyGenerator } = require('express-rate-limit')
 const { conversar, ErrorGemini } = require('../utils/gemini')
 const { DEFINICIONES, crearEjecutor } = require('../utils/herramientasChat')
 
+// El Asistente es del plan Premium. La prueba gratis ("gratuito") incluye todo lo de Premium
+// mientras dura; una prueba vencida ya la corta el middleware de auth (402).
+const PLANES_CON_ASISTENTE = new Set(['premium', 'gratuito'])
+function soloPremium(req, res, next) {
+  if (req.usuario?.superadmin || PLANES_CON_ASISTENTE.has(req.usuario?.plan)) return next()
+  return res.status(403).json({ code: 'PLAN_PREMIUM', message: 'El Asistente inteligente es del plan Premium. Actualizá tu plan para usarlo.' })
+}
+
 const DIAS_SEMANA = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 const HORIZONTE   = 7
 const TTL_MS      = 10 * 60_000
@@ -177,7 +185,7 @@ async function obtenerMenu(uid, hoy, dias) {
   }
 }
 
-router.get('/prediccion', auth, async (req, res) => {
+router.get('/prediccion', auth, soloPremium, async (req, res) => {
   try {
     const hoy = hoyDe(req.query.fecha)
     if (!Number.isFinite(hoy)) return res.status(400).json({ message: 'Fecha inválida' })
@@ -188,7 +196,7 @@ router.get('/prediccion', auth, async (req, res) => {
 })
 
 // GET /api/asistente/lista-compras?fecha=AAAA-MM-DD&dias=1..7&margen=0..50 (porcentaje)
-router.get('/lista-compras', auth, async (req, res) => {
+router.get('/lista-compras', auth, soloPremium, async (req, res) => {
   try {
     const hoy = hoyDe(req.query.fecha)
     if (!Number.isFinite(hoy)) return res.status(400).json({ message: 'Fecha inválida' })
@@ -201,7 +209,7 @@ router.get('/lista-compras', auth, async (req, res) => {
 })
 
 // GET /api/asistente/menu?fecha=AAAA-MM-DD&dias=30|60|90
-router.get('/menu', auth, async (req, res) => {
+router.get('/menu', auth, soloPremium, async (req, res) => {
   try {
     const hoy = hoyDe(req.query.fecha)
     if (!Number.isFinite(hoy)) return res.status(400).json({ message: 'Fecha inválida' })
@@ -242,7 +250,7 @@ function instrucciones(restaurante, hoy) {
   ].join('\n')
 }
 
-router.post('/chat', auth, chatLimiter, async (req, res) => {
+router.post('/chat', auth, soloPremium, chatLimiter, async (req, res) => {
   let claveUso = null
   const enVivo = /application\/x-ndjson/.test(req.headers.accept || '')
   const enviar = o => { try { res.write(JSON.stringify(o) + '\n') } catch { /* cliente desconectado */ } }
