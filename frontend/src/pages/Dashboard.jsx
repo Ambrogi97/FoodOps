@@ -334,7 +334,7 @@ export default function Dashboard() {
               >
                 {pagando === 'premium' ? 'Redirigiendo...' : (
                   <>
-                    <span className="dash-plan-btn-nombre">Upgrade a Premium ⭐</span>
+                    <span className="dash-plan-btn-nombre">Actualizar a Premium ⭐</span>
                     <span className="dash-plan-btn-precio">$35.000/mes</span>
                     <span className="dash-plan-btn-features">Asistente con IA · Ventas · Finanzas · Stock y más</span>
                   </>
