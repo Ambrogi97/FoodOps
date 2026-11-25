@@ -28,7 +28,7 @@ const BASIC_IDS = new Set(['inicio', 'restaurante', 'monitor-cocina', 'productos
 
 const NAV_ITEMS = [
   { id: 'inicio',         label: 'Inicio',            Icon: Home },
-  { id: 'asistente',      label: 'Asistente',         Icon: Sparkles, nuevo: true },
+  { id: 'asistente',      label: 'Asistente',         Icon: Sparkles },
   { id: 'restaurante',    label: 'Restaurante',       Icon: UtensilsCrossed },
   { id: 'monitor-cocina', label: 'Monitor de Cocina', Icon: Monitor },
   { id: 'productos',      label: 'Productos',         Icon: Package },
