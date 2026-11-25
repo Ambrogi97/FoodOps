@@ -5,6 +5,9 @@
   padding: 0;
 }
 
+/* Los campos de fecha se abren tocando cualquier parte (ver main.jsx) */
+input[type="date"], input[type="month"], input[type="week"], input[type="time"], input[type="datetime-local"] { cursor: pointer; }
+
 :root {
   --primary: #FF6B35;
   --primary-dark: #E85A20;
