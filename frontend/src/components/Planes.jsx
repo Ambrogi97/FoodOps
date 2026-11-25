@@ -122,10 +122,7 @@ export default function Planes() {
                         <span className="plan-card__check">
                           {nuevo ? <Sparkles size={13} strokeWidth={2.5} aria-hidden="true" /> : <Check size={13} strokeWidth={3} aria-hidden="true" />}
                         </span>
-                        <span>
-                          {texto}
-                          {nuevo && j === p.items.findIndex(x => typeof x === 'object' && x.nuevo) && <span className="plan-card__nuevo">Nuevo</span>}
-                        </span>
+                        <span>{texto}</span>
                       </li>
                     )
                   })}
