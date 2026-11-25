@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Search } from 'lucide-react'
 import { ventasService, gastosService, ingredientesService, categoriasGastoService } from '../../services/api'
+import { descargarExcel } from '../../utils/excel'
 import './Reportes.css'
 
 const fmt    = n => `$${Number(n || 0).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
@@ -60,20 +61,6 @@ const infoCategoria = (g, catGastos) => {
   return { nombre: c?.nombre || g.categoria || 'Sin categoría', fin: c?.categoriaFinanciera || 'Gastos administrativos' }
 }
 
-// Exportación a CSV (se abre con Excel)
-function descargarCSV(nombre, filas) {
-  const celda = v => {
-    let s = String(v ?? '')
-    if (/^[=+\-@]/.test(s)) s = "'" + s   // evita fórmulas al abrirlo en Excel
-    return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
-  }
-  const csv  = '﻿' + filas.map(f => f.map(celda).join(';')).join('\r\n')
-  const url  = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
-  const a    = document.createElement('a')
-  a.href = url; a.download = nombre
-  document.body.appendChild(a); a.click(); a.remove()
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
-}
 
 /* ── SVG Bar chart (vertical) ─────────────────────────────────────────── */
 function BarChartSVG({ data, color = 'var(--primary)', h = 150 }) {
@@ -651,21 +638,22 @@ export default function Reportes() {
   const ventasFilt = filtrarPorFecha(ventas, 'cierre')
   const gastosFilt = filtrarPorFecha(gastos, 'fecha')
 
+  // Exporta la pestaña actual a un Excel real (.xlsx): columnas con ancho, fechas y montos con formato
   const exportar = () => {
     const sufijo = (fechaDesde || fechaHasta) ? `_${fechaDesde || 'inicio'}_${fechaHasta || 'hoy'}` : ''
-    const archivo = `reporte_${seccion.toLowerCase()}${sufijo}.csv`
+    const archivo = `reporte_${seccion.toLowerCase()}${sufijo}.xlsx`
+    const T = (titulo, tipo = 'texto', ancho) => ({ titulo, tipo, ancho })
+    const ORIGEN = { salon: 'Salón', mostrador: 'Mostrador', delivery: 'Delivery' }
     if (seccion === 'Stock') {
-      return descargarCSV(archivo, [
-        ['Ingrediente', 'Categoría', 'Unidad', 'Stock mínimo', 'Stock actual', 'Estado'],
-        ...ingredientes.map(i => [i.nombre, i.categoria, i.unidad, i.stockMinimo, i.stockActual, i.stockActual <= i.stockMinimo ? 'Stock bajo' : 'OK']),
-      ])
+      return descargarExcel(archivo, 'Stock',
+        [T('Ingrediente'), T('Categoría'), T('Unidad', 'texto', 9), T('Stock mínimo', 'numero', 13), T('Stock actual', 'numero', 13), T('Estado', 'texto', 12)],
+        ingredientes.map(i => [i.nombre, i.categoria, i.unidad, i.stockMinimo, i.stockActual, i.stockActual <= i.stockMinimo ? 'Stock bajo' : 'OK']))
     }
     if (seccion === 'Compras' || seccion === 'Gastos') {
       const lista = seccion === 'Compras' ? gastosFilt.filter(g => infoCategoria(g, catGastos).fin === 'Compra de mercadería') : gastosFilt
-      return descargarCSV(archivo, [
-        ['Fecha', 'Categoría', 'Categoría financiera', 'Proveedor', 'Comentario', 'Importe', 'Estado de pago'],
-        ...lista.map(g => { const c = infoCategoria(g, catGastos); return [dateKey(g.fecha), c.nombre, c.fin, g.proveedor, g.comentario, montoG(g), g.estadoPago] }),
-      ])
+      return descargarExcel(archivo, seccion,
+        [T('Fecha', 'fecha'), T('Categoría'), T('Categoría financiera', 'texto', 24), T('Proveedor'), T('Comentario', 'texto', 30), T('Importe', 'moneda'), T('Estado de pago', 'texto', 15)],
+        lista.map(g => { const c = infoCategoria(g, catGastos); return [dateKey(g.fecha), c.nombre, c.fin, g.proveedor, g.comentario, montoG(g), g.estadoPago] }))
     }
     if (seccion === 'Productos') {
       const rank = {}
@@ -673,23 +661,22 @@ export default function Reportes() {
         const r = rank[it.nombre] ||= { cant: 0, total: 0 }
         r.cant += it.cantidad || 0; r.total += (it.precio || 0) * (it.cantidad || 0)
       }))
-      return descargarCSV(archivo, [
-        ['Producto', 'Unidades vendidas', 'Total vendido'],
-        ...Object.entries(rank).sort((a, b) => b[1].total - a[1].total).map(([n, r]) => [n, r.cant, Math.round(r.total)]),
-      ])
+      return descargarExcel(archivo, 'Productos',
+        [T('Producto', 'texto', 30), T('Unidades vendidas', 'numero', 18), T('Total vendido', 'moneda', 16)],
+        Object.entries(rank).sort((a, b) => b[1].total - a[1].total).map(([n, r]) => [n, r.cant, Math.round(r.total)]))
     }
     if (seccion === 'Balance') {
-      return descargarCSV(archivo, [
-        ['Tipo', 'Fecha', 'Detalle', 'Importe'],
-        ...ventasFilt.map(v => ['Ingreso', dateKey(v.cierre || v.inicio), `Venta #${v.numero ?? ''} ${v.mesa ? '· Mesa ' + v.mesa : ''}`.trim(), Math.round(sumaV(v))]),
-        ...gastosFilt.map(g => ['Egreso', dateKey(g.fecha), infoCategoria(g, catGastos).nombre, -montoG(g)]),
-      ])
+      return descargarExcel(archivo, 'Balance',
+        [T('Tipo', 'texto', 10), T('Fecha', 'fecha'), T('Detalle', 'texto', 28), T('Importe', 'moneda')],
+        [
+          ...ventasFilt.map(v => ['Ingreso', dateKey(v.cierre || v.inicio), `Venta #${v.numero ?? ''} ${v.mesa ? '· ' + v.mesa : ''}`.trim(), Math.round(sumaV(v))]),
+          ...gastosFilt.map(g => ['Egreso', dateKey(g.fecha), infoCategoria(g, catGastos).nombre, -montoG(g)]),
+        ])
     }
     // Ventas y Mesas
-    descargarCSV(archivo, [
-      ['Número', 'Inicio', 'Cierre', 'Origen', 'Mesa', 'Personas', 'Medio de pago', 'Total'],
-      ...ventasFilt.map(v => [v.numero ?? '', v.inicio, v.cierre, v.tipo, v.mesa, v.personas, v.metodoPago, Math.round(sumaV(v))]),
-    ])
+    descargarExcel(archivo, seccion,
+      [T('Número', 'id', 10), T('Inicio', 'fechaHora'), T('Cierre', 'fechaHora'), T('Origen', 'texto', 12), T('Mesa', 'texto', 12), T('Personas', 'numero', 10), T('Medio de pago', 'texto', 15), T('Total', 'moneda')],
+      ventasFilt.map(v => [v.numero ?? '', v.inicio, v.cierre, ORIGEN[v.tipo] || v.tipo, v.mesa, v.personas, v.metodoPago, Math.round(sumaV(v))]))
   }
 
   if (cargando) return <div className="rep-loading">Cargando...</div>
