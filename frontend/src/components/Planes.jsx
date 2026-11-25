@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Briefcase, Check } from 'lucide-react'
+import { Briefcase, Check, Sparkles } from 'lucide-react'
 import { useInView } from '../hooks/useInView'
 import './Planes.css'
 
@@ -34,10 +34,13 @@ const planes = [
     anualMes: 28000,
     totalAnual: 336000,
     ahorroAnual: 84000,
-    desc: 'Operación completa: ventas, finanzas, proveedores y más.',
+    desc: 'Operación completa con Asistente inteligente: ventas, finanzas, proveedores y más.',
     destacado: true,
     items: [
       'Todo lo del plan Básico',
+      { texto: 'Asistente con IA: predicción de ventas', nuevo: true },
+      { texto: 'Lista de compras automática según lo que vas a vender', nuevo: true },
+      { texto: 'Análisis de carta y chat con IA sobre tu negocio', nuevo: true },
       'Gestión de ventas e historial',
       'Finanzas y flujo de caja',
       'Gastos y categorías de gasto',
@@ -111,12 +114,21 @@ export default function Planes() {
                 </div>
 
                 <ul className="plan-card__items">
-                  {p.items.map((item, j) => (
-                    <li key={j}>
-                      <span className="plan-card__check"><Check size={13} strokeWidth={3} /></span>
-                      {item}
-                    </li>
-                  ))}
+                  {p.items.map((item, j) => {
+                    const texto = typeof item === 'string' ? item : item.texto
+                    const nuevo = typeof item === 'object' && item.nuevo
+                    return (
+                      <li key={j} className={nuevo ? 'plan-card__item--nuevo' : undefined}>
+                        <span className="plan-card__check">
+                          {nuevo ? <Sparkles size={13} strokeWidth={2.5} aria-hidden="true" /> : <Check size={13} strokeWidth={3} aria-hidden="true" />}
+                        </span>
+                        <span>
+                          {texto}
+                          {nuevo && j === p.items.findIndex(x => typeof x === 'object' && x.nuevo) && <span className="plan-card__nuevo">Nuevo</span>}
+                        </span>
+                      </li>
+                    )
+                  })}
                 </ul>
 
                 <Link

@@ -166,6 +166,23 @@
   margin-top: 1px;
 }
 
+/* Asistente con IA: se destaca dentro del plan Premium */
+.plan-card--destacado .plan-card__items li.plan-card__item--nuevo { color: #fff; font-weight: 600; }
+.plan-card--destacado .plan-card__item--nuevo .plan-card__check { color: #FFB38F; }
+.plan-card__nuevo {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #1A1A2E;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: 1px;
+}
+
 @media (max-width: 720px) {
   .planes__grid { grid-template-columns: 1fr; max-width: 420px; }
   .plan-card--destacado { transform: none; }
