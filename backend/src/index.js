@@ -71,6 +71,12 @@ connectDB().then(async () => {
   }
   limpiarCuentasSinVerificar()
   setInterval(limpiarCuentasSinVerificar, 60 * 60 * 1000) // cada hora
+  // Aviso por correo de prueba gratuita / plan vencido. Corre al arrancar (Render dormido se
+  // despierta con el ping diario de .github/workflows/despertar-backend.yml) y cada hora.
+  const { revisarVencimientos } = require('./utils/emailsPlan')
+  const revisar = () => revisarVencimientos().catch(e => console.error('[vencimientos]', e.message))
+  revisar()
+  setInterval(revisar, 60 * 60 * 1000)
 })
 
 // Borra cuentas que se registraron y nunca confirmaron el email (bots, emails falsos)

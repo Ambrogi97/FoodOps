@@ -27,6 +27,8 @@ const userSchema = new mongoose.Schema({
   codigoIntentos:     { type: Number, default: 0 },
   // Invalida los tokens emitidos antes de cambiar la contraseña
   passwordChangedAt:  { type: Date,   default: null },
+  // Vencimiento (trialEndsAt) que ya se avisó por correo: un solo aviso por vencimiento
+  avisoVencimientoDe: { type: Date,   default: null },
 }, { timestamps: true })
 
 userSchema.pre('save', async function () {

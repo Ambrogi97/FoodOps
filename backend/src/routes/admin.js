@@ -2,6 +2,7 @@ const express          = require('express')
 const router           = express.Router()
 const adminAuth        = require('../middleware/adminAuth')
 const User             = require('../models/User')
+const { avisarCambioPlan } = require('../utils/emailsPlan')
 const Categoria        = require('../models/Categoria')
 const Producto         = require('../models/Producto')
 const Ingrediente      = require('../models/Ingrediente')
@@ -38,12 +39,17 @@ router.put('/usuarios/:id/plan', adminAuth, async (req, res) => {
     } else {
       update.trialEndsAt = null
     }
+    const antes = await User.findById(req.params.id).select('plan cuentaPadreId').lean()
     const user = await User.findByIdAndUpdate(
       req.params.id,
       update,
       { returnDocument: 'after', select: '-password' }
     )
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
+    // Aviso por correo al dueño si el plan cambió de verdad
+    if (antes && antes.plan !== plan && !antes.cuentaPadreId) {
+      avisarCambioPlan({ user, planAnterior: antes.plan, plan, vence: user.trialEndsAt, origen: 'admin' })
+    }
     res.json(user)
   } catch {
     res.status(500).json({ message: 'Error al actualizar plan' })

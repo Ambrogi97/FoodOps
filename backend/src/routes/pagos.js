@@ -5,6 +5,7 @@ const auth    = require('../middleware/auth')
 const mongoose = require('mongoose')
 const User    = require('../models/User')
 const PagoMP  = require('../models/PagoMP')
+const { avisarCambioPlan } = require('../utils/emailsPlan')
 
 function verificarFirmaMP(req) {
   const secret = process.env.MP_WEBHOOK_SECRET
@@ -183,6 +184,8 @@ router.post('/webhook', async (req, res) => {
           subscriptionStatus: 'active',
         })
         if (!user) console.warn(`Webhook MP: pago ${paymentId} de un usuario que ya no existe (${userId})`)
+        // user es el documento de antes del cambio: trae el plan anterior
+        else avisarCambioPlan({ user, planAnterior: user.plan, plan, vence, monto, origen: 'pago' })
       } catch (e) {
         // No se pudo activar el plan: se borra el registro para que el reintento de Mercado Pago lo acredite
         await PagoMP.deleteOne({ paymentId }).catch(() => {})
