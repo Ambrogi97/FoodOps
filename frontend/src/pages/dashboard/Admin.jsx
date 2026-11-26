@@ -33,7 +33,7 @@ export default function Admin() {
   useEffect(() => {
     adminService.listarUsuarios()
       .then(setUsuarios)
-      .catch(console.error)
+      .catch(avisarError)
       .finally(() => setCargando(false))
   }, [])
 
@@ -43,7 +43,7 @@ export default function Admin() {
       const actualizado = await adminService.cambiarPlan(id, plan)
       setUsuarios(prev => prev.map(u => u._id === id ? { ...u, plan: actualizado.plan, trialEndsAt: actualizado.trialEndsAt } : u))
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     } finally {
       setCambiando(null)
     }
@@ -55,7 +55,7 @@ export default function Admin() {
       const actualizado = await adminService.cambiarSuperadmin(u._id, !u.superadmin)
       setUsuarios(prev => prev.map(x => x._id === u._id ? { ...x, superadmin: actualizado.superadmin } : x))
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     } finally {
       setCambiando(null)
     }
@@ -235,3 +235,5 @@ export default function Admin() {
     </div>
   )
 }
+
+import { avisarError } from '../../utils/avisos'

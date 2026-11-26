@@ -237,7 +237,7 @@ export default function Delivery({ productos = [], categorias = [] }) {
         if ((await obtenerConfigImpresion()).comandaAlGuardar) enviarACocina(upd)
       }
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     } finally {
       setGuardando(false)
     }
@@ -251,7 +251,7 @@ export default function Delivery({ productos = [], categorias = [] }) {
       actualizarEnLista(upd)
       setPanelPedido(upd)
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     } finally {
       setGuardando(false)
     }
@@ -268,7 +268,7 @@ export default function Delivery({ productos = [], categorias = [] }) {
       }))
       if (panelPedido?._id === id) cerrarPanel()
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     }
   }
 
@@ -490,3 +490,5 @@ export default function Delivery({ productos = [], categorias = [] }) {
     </div>
   )
 }
+
+import { avisarError } from '../../utils/avisos'

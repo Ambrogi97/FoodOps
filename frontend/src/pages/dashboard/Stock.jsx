@@ -41,7 +41,7 @@ export default function Stock() {
   useEffect(() => {
     stockService.listar()
       .then(data => { setIngredientes(data); setCargando(false) })
-      .catch(e => { console.error(e); setCargando(false) })
+      .catch(e => { avisarError(e); setCargando(false) })
   }, [])
 
   const cargarMovimientos = useCallback(async (id) => {
@@ -50,7 +50,7 @@ export default function Stock() {
       const data = await stockService.listarMovimientos(id)
       setMovimientos(data)
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     } finally {
       setCargandoMov(false)
     }
@@ -94,7 +94,7 @@ export default function Stock() {
       setIngredientes(prev => prev.map(i => i.id === selected ? { ...i, unidad: res.unidad } : i))
       setEditandoUnidad(false)
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     }
   }
 
@@ -107,7 +107,7 @@ export default function Stock() {
       ))
       setEditandoMinimo(false)
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     }
   }
 
@@ -393,3 +393,5 @@ export default function Stock() {
     </div>
   )
 }
+
+import { avisarError } from '../../utils/avisos'

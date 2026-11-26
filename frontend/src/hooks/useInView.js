@@ -12,6 +12,8 @@ export function useInView(options = {}) {
     )
     io.observe(el)
     return () => io.disconnect()
+    // Se observa una sola vez al montar; options suele ser un objeto nuevo en cada render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   return [ref, visible]
 }

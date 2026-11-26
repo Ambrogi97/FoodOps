@@ -1,5 +1,20 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
+// fetch con mensajes en castellano: sin conexión el navegador da "Failed to fetch" y una
+// respuesta que no es JSON (Render despertando) daba "Unexpected token <"
+const SIN_CONEXION = 'No se pudo conectar con el servidor. Revisá tu conexión a internet e intentá de nuevo.'
+const fetchSeguro = async (...args) => {
+  try { return await fetch(...args) } catch (e) {
+    if (e?.name === 'AbortError') throw e   // cancelado a propósito (p. ej. el chat del Asistente)
+    throw new Error(SIN_CONEXION, { cause: e })
+  }
+}
+const leerJson = async res => {
+  try { return await res.json() } catch {
+    return { message: res.status >= 500 ? 'El servidor tuvo un problema. Intentá de nuevo en unos minutos.' : 'El servidor respondió algo inesperado. Intentá de nuevo.' }
+  }
+}
+
 // Caché en memoria para evitar re-fetching al cambiar de tab
 const _cache = {}
 const TTL    = 20_000  // 20 segundos
@@ -27,8 +42,9 @@ const request = async (path, options = {}) => {
       },
     })
   } catch (err) {
-    if (err.name === 'AbortError') throw new Error('El servidor tardó demasiado en responder. Intentá de nuevo.')
-    throw err
+    if (err.name === 'AbortError') throw new Error('El servidor tardó demasiado en responder. Intentá de nuevo.', { cause: err })
+    // Sin conexión o servidor caído: el navegador da "Failed to fetch" (en inglés)
+    throw new Error(SIN_CONEXION, { cause: err })
   } finally {
     clearTimeout(timer)
   }
@@ -53,8 +69,17 @@ const request = async (path, options = {}) => {
     }
     throw new Error('Tu plan venció. Elegí un plan para seguir usando FoodOps.')
   }
-  const json = await res.json()
-  if (!res.ok) throw Object.assign(new Error(json.message || 'Error en la solicitud'), { status: res.status, code: json.code, detalle: json.detalle })
+  // Si el servidor no responde JSON (p. ej. una página de error de Render mientras despierta),
+  // res.json() fallaba con "Unexpected token <" en inglés
+  let json = null
+  try { json = await res.json() } catch { /* respuesta sin JSON */ }
+  if (!res.ok) {
+    const porDefecto = res.status >= 500
+      ? 'El servidor tuvo un problema. Intentá de nuevo en unos minutos.'
+      : 'No se pudo completar la acción.'
+    throw Object.assign(new Error(json?.message || porDefecto), { status: res.status, code: json?.code, detalle: json?.detalle })
+  }
+  if (json === null && res.status !== 204) throw new Error('El servidor respondió algo inesperado. Intentá de nuevo.')
   return json
 }
 
@@ -62,23 +87,23 @@ const request = async (path, options = {}) => {
 
 export const authService = {
   async register(data) {
-    const res = await fetch(`${API_URL}/auth/register`, {
+    const res = await fetchSeguro(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     })
-    const json = await res.json()
+    const json = await leerJson(res)
     if (!res.ok) throw new Error(json.message || 'Error al registrar')
     return json
   },
 
   async login(data) {
-    const res = await fetch(`${API_URL}/auth/login`, {
+    const res = await fetchSeguro(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     })
-    const json = await res.json()
+    const json = await leerJson(res)
     if (!res.ok) {
       // code permite distinguir, p. ej., EMAIL_NO_VERIFICADO
       throw Object.assign(new Error(json.message || 'Error al iniciar sesión'), { code: json.code, email: json.email })
@@ -87,45 +112,45 @@ export const authService = {
   },
 
   async verificarEmail(email, codigo) {
-    const res = await fetch(`${API_URL}/auth/verificar`, {
+    const res = await fetchSeguro(`${API_URL}/auth/verificar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, codigo }),
     })
-    const json = await res.json()
+    const json = await leerJson(res)
     if (!res.ok) throw Object.assign(new Error(json.message || 'Error al verificar'), { code: json.code })
     return json
   },
 
   async reenviarCodigo(email) {
-    const res = await fetch(`${API_URL}/auth/reenviar-codigo`, {
+    const res = await fetchSeguro(`${API_URL}/auth/reenviar-codigo`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     })
-    const json = await res.json()
+    const json = await leerJson(res)
     if (!res.ok) throw new Error(json.message || 'Error al reenviar el código')
     return json
   },
 
   async recuperar(email) {
-    const res = await fetch(`${API_URL}/auth/recuperar`, {
+    const res = await fetchSeguro(`${API_URL}/auth/recuperar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     })
-    const json = await res.json()
+    const json = await leerJson(res)
     if (!res.ok) throw new Error(json.message || 'Error al solicitar recuperación')
     return json
   },
 
   async resetPassword(token, password) {
-    const res = await fetch(`${API_URL}/auth/reset`, {
+    const res = await fetchSeguro(`${API_URL}/auth/reset`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token, password }),
     })
-    const json = await res.json()
+    const json = await leerJson(res)
     if (!res.ok) throw new Error(json.message || 'Error al restablecer contraseña')
     return json
   },
@@ -216,12 +241,12 @@ export const productosService = {
     const token = localStorage.getItem('token')
     const form  = new FormData()
     form.append('imagen', file)
-    const res = await fetch(`${API_URL}/api/uploads/producto`, {
+    const res = await fetchSeguro(`${API_URL}/api/uploads/producto`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
       body: form,
     })
-    const json = await res.json()
+    const json = await leerJson(res)
     if (!res.ok) throw new Error(json.message || 'Error al subir imagen')
     return json.url
   },
@@ -437,7 +462,7 @@ const uploadFile = async (path, fieldName, file) => {
   const token = localStorage.getItem('token')
   const formData = new FormData()
   formData.append(fieldName, file)
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetchSeguro(`${API_URL}${path}`, {
     method: 'POST',
     headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     body: formData,
@@ -446,7 +471,7 @@ const uploadFile = async (path, fieldName, file) => {
     localStorage.removeItem('token'); localStorage.removeItem('user')
     window.location.href = '/login'; return
   }
-  const json = await res.json()
+  const json = await leerJson(res)
   if (!res.ok) throw new Error(json.message || 'Error al subir archivo')
   return json
 }
@@ -467,14 +492,14 @@ export const asistenteService = {
     const ctrl = new AbortController()
     const timer = setTimeout(() => ctrl.abort(), 90_000)
     try {
-      const res = await fetch(`${API_URL}/api/asistente/chat`, {
+      const res = await fetchSeguro(`${API_URL}/api/asistente/chat`, {
         method: 'POST', signal: ctrl.signal,
         headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({ fecha, mensajes }),
       })
       if (res.status === 401) { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/login'; return }
       if (!res.ok || !res.body || !/ndjson/.test(res.headers.get('content-type') || '')) {
-        const json = await res.json().catch(() => ({}))
+        const json = await leerJson(res).catch(() => ({}))
         throw Object.assign(new Error(json.message || 'Error en la solicitud'), { status: res.status, code: json.code, detalle: json.detalle })
       }
       const lector = res.body.getReader()

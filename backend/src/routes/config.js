@@ -69,7 +69,7 @@ router.post('/tienda/logo', auth, upload.single('logo'), async (req, res) => {
     const updated = await ConfigTienda.findOneAndUpdate(
       { usuario: req.propietarioId },
       { $set: { logo: url } },
-      { new: true, upsert: true }
+      { returnDocument: 'after', upsert: true }
     )
     res.json({ url: updated.logo })
   } catch (e) {
@@ -99,7 +99,7 @@ router.post('/tienda/portada', auth, upload.single('portada'), async (req, res) 
     const updated = await ConfigTienda.findOneAndUpdate(
       { usuario: req.propietarioId },
       { $set: { portada: url } },
-      { new: true, upsert: true }
+      { returnDocument: 'after', upsert: true }
     )
     res.json({ url: updated.portada })
   } catch (e) {
@@ -129,7 +129,7 @@ router.post('/tienda/fondo-imagen', auth, upload.single('fondoImagen'), async (r
     const updated = await ConfigTienda.findOneAndUpdate(
       { usuario: req.propietarioId },
       { $set: { fondoImagen: url } },
-      { new: true, upsert: true }
+      { returnDocument: 'after', upsert: true }
     )
     res.json({ url: updated.fondoImagen })
   } catch (e) {
@@ -156,7 +156,7 @@ router.put('/tienda/tiempo-estimado', auth, async (req, res) => {
     const config = await ConfigTienda.findOneAndUpdate(
       { usuario: req.propietarioId },
       { $set: { tiempoEstimadoMin: Number(tiempoEstimadoMin) || 30 } },
-      { new: true, upsert: true }
+      { returnDocument: 'after', upsert: true }
     )
     res.json({ tiempoEstimadoMin: config.tiempoEstimadoMin })
   } catch (e) {
@@ -172,7 +172,7 @@ router.put('/tienda/zona-delivery', auth, async (req, res) => {
     const config = await ConfigTienda.findOneAndUpdate(
       { usuario: req.propietarioId },
       { $set: { zonaDelivery: { lat: Number(lat) || null, lng: Number(lng) || null, radioKm: Number(radioKm) || null } } },
-      { new: true, upsert: true }
+      { returnDocument: 'after', upsert: true }
     )
     res.json(config.zonaDelivery)
   } catch (e) {
@@ -189,7 +189,7 @@ router.put('/tienda/formas-pago', auth, async (req, res) => {
     const config = await ConfigTienda.findOneAndUpdate(
       { usuario: req.propietarioId },
       { $set: { formasPago } },
-      { new: true, upsert: true }
+      { returnDocument: 'after', upsert: true }
     )
     res.json(config.formasPago)
   } catch (e) {
@@ -208,7 +208,7 @@ router.put('/meta-ventas', auth, async (req, res) => {
     const config = await ConfigTienda.findOneAndUpdate(
       { usuario: req.propietarioId },
       { $set: { metaVentasMensual: meta } },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
+      { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true }
     )
     res.json({ metaVentasMensual: config.metaVentasMensual })
   } catch (e) {
@@ -245,7 +245,7 @@ router.put('/impresion', auth, async (req, res) => {
     const config = await ConfigTienda.findOneAndUpdate(
       { usuario: req.propietarioId },
       { $set: update },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
+      { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true }
     )
     res.json(config.impresion)
   } catch (e) {

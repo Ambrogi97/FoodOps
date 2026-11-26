@@ -38,7 +38,7 @@ function TabClientes({ clientes, setClientes }) {
       await clientesService.eliminar(id)
       setClientes(prev => prev.filter(c => c.id !== id))
       setPanel(null)
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
   }
 
   const abrirDetalle = c => setPanel(c)
@@ -206,7 +206,7 @@ function FormCliente({ cliente, onGuardar, onCancelar }) {
         ? await clientesService.crear(form)
         : await clientesService.actualizar(cliente.id, form)
       onGuardar(c)
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
     finally { setGuardando(false) }
   }
 
@@ -293,11 +293,6 @@ function TabCuentas({ clientes }) {
     saldoPorCliente[tx.clienteId] = tx.tipo === 'cargo' ? s + tx.monto : s - tx.monto
   }
 
-  // Clientes con cuenta corriente (saldo != 0 o tiene transacciones)
-  const clientesConCuenta = clientes.filter(c => txs.some(t => t.clienteId === c.id))
-  const clientesFiltrados = filtCliente
-    ? clientesConCuenta.filter(c => c.id === filtCliente)
-    : clientesConCuenta
 
   const txsFiltradas = filtCliente
     ? txs.filter(t => t.clienteId === filtCliente)
@@ -310,14 +305,14 @@ function TabCuentas({ clientes }) {
       const tx = await cuentasCorrientesService.crear(data)
       setTxs(prev => [tx, ...prev])
       setPanel(null)
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
   }
 
   const handleEliminarTx = async (id) => {
     try {
       await cuentasCorrientesService.eliminar(id)
       setTxs(prev => prev.filter(t => t.id !== id))
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
   }
 
   return (
@@ -433,7 +428,7 @@ function FormTransaccion({ clientes, clientePresel, onGuardar, onCancelar }) {
     if (!form.clienteId || !form.monto) return
     setGuardando(true)
     try { await onGuardar({ ...form, monto: Number(form.monto) }) }
-    catch (e) { console.error(e) }
+    catch (e) { avisarError(e) }
     finally { setGuardando(false) }
   }
 
@@ -529,3 +524,5 @@ export default function Clientes() {
     </div>
   )
 }
+
+import { avisarError } from '../../utils/avisos'

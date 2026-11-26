@@ -9,7 +9,6 @@ import Logo from '../components/Logo'
 import Inicio from './dashboard/Inicio'
 import Asistente from './dashboard/Asistente'
 import ChatAsistente from '../components/ChatAsistente'
-import Mesas from './dashboard/Mesas'
 import Restaurante from './dashboard/Restaurante'
 import MonitorCocina from './dashboard/MonitorCocina'
 import Productos from './dashboard/Productos'
@@ -57,7 +56,7 @@ export default function Dashboard() {
   const [pedidosCounts, setPedidosCounts]     = useState({ pendiente: 0, preparando: 0, listo: 0 })
   const [configTab, setConfigTab]             = useState('general')
   const [pagando, setPagando]                 = useState(false)
-  const [pagoOk, setPagoOk]                  = useState(false)
+  const [, setPagoOk]                        = useState(false)
   const [pagoError, setPagoError]             = useState('')
   const [, setPerfilVersion]                  = useState(0)
 

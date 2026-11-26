@@ -148,7 +148,7 @@ export default function Carta() {
   }
 
   const opcionesTexto = () => {
-    const partes = Object.entries(opcionesSeleccionadas).map(([g, v]) => v?.label).filter(Boolean)
+    const partes = Object.entries(opcionesSeleccionadas).map(([, v]) => v?.label).filter(Boolean)
     return partes.length ? ` (${partes.join(', ')})` : ''
   }
 
@@ -212,7 +212,7 @@ export default function Carta() {
       )
       const data = await r.json()
       if (data?.[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) }
-    } catch {}
+    } catch { /* sin conexión al geocodificador: se sigue sin coordenadas */ }
     return null
   }
 

@@ -20,7 +20,7 @@ export default function Ingredientes() {
   useEffect(() => {
     ingredientesService.listar()
       .then(data => { setIngredientes(data); setCargando(false) })
-      .catch(e => { console.error(e); setCargando(false) })
+      .catch(e => { avisarError(e); setCargando(false) })
   }, [])
 
   const filtrados   = ingredientes.filter(i => i.nombre.toLowerCase().includes(busqueda.toLowerCase()))
@@ -37,7 +37,7 @@ export default function Ingredientes() {
       setIngredientes(ingredientes.map(i => i.id === editando.id ? actualizado : i))
       setEditando(null)
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     }
   }
 
@@ -54,7 +54,7 @@ export default function Ingredientes() {
       setCreando(false)
       setNuevo({ nombre: '', unidad: 'kg', costo: '', stockActual: '' })
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     }
   }
 
@@ -65,7 +65,7 @@ export default function Ingredientes() {
       setSelected(null)
       setConfirmarEliminar(null)
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     }
   }
 
@@ -229,3 +229,5 @@ export default function Ingredientes() {
     </div>
   )
 }
+
+import { avisarError } from '../../utils/avisos'

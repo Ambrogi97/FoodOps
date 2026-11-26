@@ -117,7 +117,7 @@ export default function MonitorCocina() {
         ...i,
         listo: nuevoLocalMesa[i.nombre] === 'terminado' || i.listo,
       }))
-      try { await mesasService.actualizar(mesa.id, { items }) } catch (e) { console.error(e) }
+      try { await mesasService.actualizar(mesa.id, { items }) } catch (e) { avisarError(e) }
     }
   }
 
@@ -147,7 +147,7 @@ export default function MonitorCocina() {
       ...i,
       listo: nuevo[i.nombre] === 'terminado' || i.listo,
     }))
-    try { await mesasService.actualizar(mesa.id, { items }) } catch (e) { console.error(e) }
+    try { await mesasService.actualizar(mesa.id, { items }) } catch (e) { avisarError(e) }
   }
 
   const zonaNombre = (zonaId) => zonas.find(z => z.id === zonaId)?.label ?? 'Salón'
@@ -323,3 +323,5 @@ export default function MonitorCocina() {
     </div>
   )
 }
+
+import { avisarError } from '../../utils/avisos'

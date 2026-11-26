@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { ventasService, descuentosService } from '../../services/api'
-import { ChevronLeft, ChevronDown, ChevronUp, Search, Plus, Trash2, Edit2, X, Check } from 'lucide-react'
+import { ChevronLeft, ChevronDown, ChevronUp, Search, Plus, Trash2, Edit2, X } from 'lucide-react'
 import './Ventas.css'
 
 // ── Utils ──────────────────────────────────────────────────────────────────
@@ -15,14 +15,7 @@ const parseVentaDate = str => {
   return new Date(y, m - 1, d)
 }
 
-const fmtFechaCorta = d => {
-  if (!d) return ''
-  const pad = n => n.toString().padStart(2, '0')
-  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${String(d.getFullYear()).slice(2)}`
-}
 
-
-const METODOS = ['Efectivo', 'Tarjeta de débito', 'Tarjeta de crédito', 'Transferencia', 'MercadoPago']
 
 // ── Descuento helpers ──────────────────────────────────────────────────────
 const fmtImporte = d => {
@@ -288,7 +281,7 @@ function TabDescuentos() {
     try {
       const data = await descuentosService.listar()
       setDescuentos(data)
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
     finally { setCargando(false) }
   }
 
@@ -346,7 +339,7 @@ function TabDescuentos() {
         setDescuentos(prev => prev.map(d => d.id === upd.id ? upd : d))
         setModo(null)
       }
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
     finally { setGuardando(false) }
   }
 
@@ -355,7 +348,7 @@ function TabDescuentos() {
       await descuentosService.eliminar(selected)
       setDescuentos(prev => prev.filter(d => d.id !== selected))
       cerrarPanel()
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
   }
 
   const mostrarForm = modo === 'crear' || modo === 'editar'
@@ -596,3 +589,5 @@ export default function Ventas() {
     </div>
   )
 }
+
+import { avisarError } from '../../utils/avisos'

@@ -73,7 +73,7 @@ router.put('/:id', auth, async (req, res) => {
         tiempoPrepMin:      tiempoPrepMin      || null,
         receta:             receta             ?? [],
       },
-      { new: true }
+      { returnDocument: 'after' }
     )
     if (!producto) return res.status(404).json({ message: 'Producto no encontrado' })
     res.json(producto)
@@ -88,7 +88,7 @@ router.put('/:id/stock', auth, async (req, res) => {
     const producto = await Producto.findOneAndUpdate(
       { _id: req.params.id, usuario: req.propietarioId },
       { stockActual: Number(stockActual) || 0 },
-      { new: true }
+      { returnDocument: 'after' }
     )
     if (!producto) return res.status(404).json({ message: 'Producto no encontrado' })
     res.json(producto)

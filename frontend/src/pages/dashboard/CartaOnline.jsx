@@ -28,7 +28,7 @@ const relTime = (iso) => {
 
 export default function CartaOnline() {
   let user = {}
-  try { user = JSON.parse(localStorage.getItem('user') || '{}') } catch {}
+  try { user = JSON.parse(localStorage.getItem('user') || '{}') } catch { /* sesión dañada: queda vacía */ }
   const userId   = user.id?.toString() || user._id?.toString() || ''
   const cartaUrl = `${window.location.origin}/carta/${userId}`
 
@@ -82,7 +82,7 @@ export default function CartaOnline() {
         osc.start(ctx.currentTime + i * 0.12)
         osc.stop(ctx.currentTime + i * 0.12 + 0.3)
       })
-    } catch {}
+    } catch { /* el navegador no permite sonido */ }
   }
 
   const cargar = useCallback(async (mostrarCarga = true) => {

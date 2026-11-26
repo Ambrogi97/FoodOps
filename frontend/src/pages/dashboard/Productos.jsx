@@ -116,7 +116,7 @@ function FormProducto({ producto, categorias, ingredientes, onGuardar, onCancela
         ? await productosService.crear(payload)
         : await productosService.actualizar(producto.id, payload)
       onGuardar(prod)
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
     finally { setGuardando(false) }
   }
 
@@ -388,7 +388,7 @@ function FormIngrediente({ ingrediente, catOptions, onGuardar, onCancelar, onEli
         ? await ingredientesService.crear(payload)
         : await ingredientesService.actualizar(ingrediente.id, payload)
       onGuardar(ing)
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
     finally { setGuardando(false) }
   }
 
@@ -490,8 +490,6 @@ function TabProductos({ productos, setProductos, categorias, ingredientes }) {
     return true
   })
 
-  const catNombre = id => categorias.find(c => c.id === id)?.nombre || '—'
-
   const handleGuardar = prod => {
     setProductos(prev =>
       detalle === 'crear' ? [...prev, prod] : prev.map(p => p.id === prod.id ? prod : p)
@@ -504,7 +502,7 @@ function TabProductos({ productos, setProductos, categorias, ingredientes }) {
       await productosService.eliminar(detalle.id)
       setProductos(prev => prev.filter(p => p.id !== detalle.id))
       setDetalle(null)
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
   }
 
   if (detalle) {
@@ -617,7 +615,7 @@ function TabIngredientes({ ingredientes, setIngredientes }) {
       await ingredientesService.eliminar(detalle.id)
       setIngredientes(prev => prev.filter(i => i.id !== detalle.id))
       setDetalle(null)
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
   }
 
   if (detalle) {
@@ -714,7 +712,7 @@ function TabCategorias({ categorias, setCategorias, productos }) {
         const upd = await categoriasService.actualizar(selected, payload)
         setCategorias(prev => prev.map(c => c.id === upd.id ? upd : c)); setModo(null)
       }
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
     finally { setGuardando(false) }
   }
 
@@ -722,7 +720,7 @@ function TabCategorias({ categorias, setCategorias, productos }) {
     try {
       await categoriasService.eliminar(selected)
       setCategorias(prev => prev.filter(c => c.id !== selected)); cerrar()
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
   }
 
   const mostrarForm = modo === 'crear' || modo === 'editar'
@@ -898,7 +896,7 @@ function TabStock({ productos, setProductos, ingredientes, setIngredientes }) {
         setProductos(prev => prev.map(p => p.id === upd.id ? upd : p))
         setStockForm(f => ({ ...f, stockActual: upd.stockActual }))
       }
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
     finally { setGuardando(false) }
   }
 
@@ -919,7 +917,7 @@ function TabStock({ productos, setProductos, ingredientes, setIngredientes }) {
         setStockForm(f => ({ ...f, stockActual: upd.stockActual }))
       }
       setDesperdicio(false); setCantDesp('')
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
     finally { setGuardando(false) }
   }
 
@@ -1120,3 +1118,5 @@ export default function Productos() {
     </div>
   )
 }
+
+import { avisarError } from '../../utils/avisos'

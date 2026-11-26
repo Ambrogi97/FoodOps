@@ -46,7 +46,7 @@ router.put('/:id', auth, async (req, res) => {
         controlStock: controlStock != null ? controlStock         : undefined,
         categoria:    categoria    != null ? categoria            : undefined,
       },
-      { new: true }
+      { returnDocument: 'after' }
     )
     if (!ingrediente) return res.status(404).json({ message: 'Ingrediente no encontrado' })
     res.json(ingrediente)

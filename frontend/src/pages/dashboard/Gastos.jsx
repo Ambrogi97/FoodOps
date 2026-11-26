@@ -101,13 +101,13 @@ function TabGastos({ categorias }) {
         const upd = await gastosService.actualizar(selected, p)
         setGastos(prev => prev.map(g => g.id === upd.id ? upd : g)); setModo(null)
       }
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
     finally { setGuardando(false) }
   }
 
   const eliminar = async () => {
     try { await gastosService.eliminar(selected); setGastos(prev => prev.filter(g => g.id !== selected)); cerrar() }
-    catch (e) { console.error(e) }
+    catch (e) { avisarError(e) }
   }
 
   const mostrarForm = modo === 'crear' || modo === 'editar'
@@ -374,13 +374,13 @@ function TabCategorias({ categorias, setCategorias }) {
         const upd = await categoriasGastoService.actualizar(selected, p)
         setCategorias(prev => prev.map(c => c.id === upd.id ? upd : c)); setModo(null)
       }
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
     finally { setGuardando(false) }
   }
 
   const eliminar = async () => {
     try { await categoriasGastoService.eliminar(selected); setCategorias(prev => prev.filter(c => c.id !== selected)); cerrar() }
-    catch (e) { console.error(e) }
+    catch (e) { avisarError(e) }
   }
 
   const toggleExpand = (id, e) => {
@@ -550,3 +550,5 @@ export default function Gastos() {
     </div>
   )
 }
+
+import { avisarError } from '../../utils/avisos'

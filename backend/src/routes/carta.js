@@ -213,6 +213,7 @@ const pedidoLimiter = rateLimit({
 const EMAIL_RE    = /^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+$/
 const TELEFONO_RE = /^\+?[0-9\s()-]{6,20}$/
 const TIPOS       = ['mesa', 'takeaway', 'delivery']
+const MAX_UNIDADES_PEDIDO = 100
 
 // Arma los ítems del pedido con precios de la base de datos (nunca los del cliente)
 async function construirItems(itemsBody, usuarioId) {
@@ -285,6 +286,10 @@ router.post('/:userId/pedido', pedidoLimiter, async (req, res) => {
 
     const items = await construirItems(req.body.items, req.params.userId)
     if (!items) return res.status(400).json({ message: 'El pedido tiene productos inválidos o no disponibles. Actualizá la carta e intentá de nuevo.' })
+    // Tope por pedido (antes cada línea admitía 99 y hasta 100 líneas: 9.900 unidades)
+    if (items.reduce((n, i) => n + i.cantidad, 0) > MAX_UNIDADES_PEDIDO) {
+      return res.status(400).json({ message: `Un pedido online puede tener hasta ${MAX_UNIDADES_PEDIDO} unidades. Para pedidos más grandes, comunicate con el local.` })
+    }
 
     // El descuento sale de la forma de pago configurada por el restaurante, no del cliente
     const formasHabilitadas = (configActual.formasPago || []).filter(f => f.habilitado)
@@ -319,7 +324,7 @@ router.post('/:userId/pedido', pedidoLimiter, async (req, res) => {
     const configCounter = await ConfigTienda.findOneAndUpdate(
       { usuario: req.params.userId },
       { $inc: { pedidoCounter: 1 } },
-      { new: true, projection: { pedidoCounter: 1 } }
+      { returnDocument: 'after', projection: { pedidoCounter: 1 } }
     )
     const numero = String(configCounter.pedidoCounter).padStart(4, '0')
 
@@ -355,13 +360,19 @@ router.post('/:userId/pedido', pedidoLimiter, async (req, res) => {
     enviarPushNuevoPedido(req.params.userId, { numero, tipo }).catch(() => {})
 
     // WhatsApp al cliente (requiere TWILIO_ACCOUNT_SID + TWILIO_AUTH_TOKEN + TWILIO_WHATSAPP_FROM)
+    // El paquete 'twilio' no está instalado: si alguien cargaba las variables, el require fallaba
+    // con el pedido ya guardado y el cliente recibía un error. Ahora, si no está, se saltea.
     if (process.env.TWILIO_ACCOUNT_SID && pedido.clienteTelefono) {
-      const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
-      twilio.messages.create({
-        from: `whatsapp:${process.env.TWILIO_WHATSAPP_FROM}`,
-        to:   `whatsapp:${pedido.clienteTelefono}`,
-        body: `✅ ¡Pedido confirmado! #${numero}\n\nYa lo recibimos y pronto empezamos a prepararlo.\n\nSeguí tu pedido: ${trackingUrl}`,
-      }).catch(() => {})
+      try {
+        const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+        twilio.messages.create({
+          from: `whatsapp:${process.env.TWILIO_WHATSAPP_FROM}`,
+          to:   `whatsapp:${pedido.clienteTelefono}`,
+          body: `✅ ¡Pedido confirmado! #${numero}\n\nYa lo recibimos y pronto empezamos a prepararlo.\n\nSeguí tu pedido: ${trackingUrl}`,
+        }).catch(() => {})
+      } catch (e) {
+        console.warn('WhatsApp no enviado (falta el paquete twilio):', e.message.split(/\r?\n/)[0])
+      }
     }
 
     // Email de confirmación al cliente (no bloqueante)

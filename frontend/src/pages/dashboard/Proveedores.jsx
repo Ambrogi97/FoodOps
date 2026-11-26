@@ -38,7 +38,7 @@ function TabProveedores({ proveedores, setProveedores, saldoPorProveedor }) {
       await proveedoresService.eliminar(id)
       setProveedores(prev => prev.filter(p => p.id !== id))
       setPanel(null)
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
   }
 
   return (
@@ -202,7 +202,7 @@ function FormProveedor({ proveedor, onGuardar, onCancelar }) {
         ? await proveedoresService.crear(form)
         : await proveedoresService.actualizar(proveedor.id, form)
       onGuardar(p)
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
     finally { setGuardando(false) }
   }
 
@@ -311,14 +311,14 @@ function TabCuentas({ proveedores }) {
       const tx = await cuentasCorrientesProveedoresService.crear(data)
       setTxs(prev => [tx, ...prev])
       setPanel(null)
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
   }
 
   const handleEliminarTx = async (id) => {
     try {
       await cuentasCorrientesProveedoresService.eliminar(id)
       setTxs(prev => prev.filter(t => t.id !== id))
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
   }
 
   return (
@@ -457,7 +457,7 @@ function FormTransaccion({ proveedores, proveedorPresel, onGuardar, onCancelar }
     if (!form.proveedorId || !form.monto) return
     setGuardando(true)
     try { await onGuardar({ ...form, monto: Number(form.monto) }) }
-    catch (e) { console.error(e) }
+    catch (e) { avisarError(e) }
     finally { setGuardando(false) }
   }
 
@@ -560,3 +560,5 @@ export default function Proveedores() {
     </div>
   )
 }
+
+import { avisarError } from '../../utils/avisos'

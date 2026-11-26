@@ -26,12 +26,6 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
   const [selected, setSelected]     = useState(null)
   const [showModal, setShowModal]   = useState(false)
   const [nombreZona, setNombreZona] = useState('')
-  const [draggingId, setDraggingId]               = useState(null)
-  const pointerDragRef = useRef(null)
-  const dragCellRef    = useRef(null)
-  const ghostRef       = useRef(null)
-  const wasDraggedRef  = useRef(false)
-  const [confirmarEliminar, setConfirmarEliminar] = useState(null)
   const [showAgregarMesas, setShowAgregarMesas]   = useState(false)
   const [cantidadMesas, setCantidadMesas]         = useState(1)
   const [searchProducto, setSearchProducto]       = useState('')
@@ -113,92 +107,6 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
     })))
   }
 
-  /* ── Drag unificado (Pointer Events — mouse + touch) ── */
-  const handlePointerDown = (e, mesaId) => {
-    if (e.button !== undefined && e.button !== 0) return
-    const rect = e.currentTarget.getBoundingClientRect()
-    e.currentTarget.setPointerCapture(e.pointerId)
-    pointerDragRef.current = {
-      mesaId,
-      startX: e.clientX, startY: e.clientY,
-      active: false,
-      cardEl: e.currentTarget,
-      offsetX: e.clientX - rect.left,
-      offsetY: e.clientY - rect.top,
-      cardW: rect.width, cardH: rect.height,
-    }
-    dragCellRef.current = null
-  }
-
-  const handlePointerMove = (e) => {
-    const pd = pointerDragRef.current
-    if (!pd) return
-    const dx = e.clientX - pd.startX
-    const dy = e.clientY - pd.startY
-    if (!pd.active && Math.sqrt(dx * dx + dy * dy) < 8) return
-    if (!pd.active) {
-      pointerDragRef.current = { ...pd, active: true }
-      pd.cardEl.style.pointerEvents = 'none'
-      setDraggingId(pd.mesaId)
-      setSelected(null)
-      const ghost = pd.cardEl.cloneNode(true)
-      Object.assign(ghost.style, {
-        position: 'fixed',
-        width: `${pd.cardW}px`,
-        height: `${pd.cardH}px`,
-        left: `${e.clientX - pd.offsetX}px`,
-        top: `${e.clientY - pd.offsetY}px`,
-        pointerEvents: 'none',
-        opacity: '0.85',
-        zIndex: '9999',
-        transform: 'scale(1.08)',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-        transition: 'none',
-      })
-      document.body.appendChild(ghost)
-      ghostRef.current = ghost
-    }
-    if (ghostRef.current) {
-      ghostRef.current.style.left = `${e.clientX - pd.offsetX}px`
-      ghostRef.current.style.top  = `${e.clientY - pd.offsetY}px`
-    }
-    const el = document.elementFromPoint(e.clientX, e.clientY)
-    const cellEl = el?.closest('[data-col][data-row]')
-    if (cellEl) {
-      dragCellRef.current = { col: parseInt(cellEl.dataset.col), row: parseInt(cellEl.dataset.row) }
-    }
-  }
-
-  const handlePointerUp = () => {
-    const pd = pointerDragRef.current
-    if (!pd) return
-    if (pd.cardEl) pd.cardEl.style.pointerEvents = ''
-    pointerDragRef.current = null
-    ghostRef.current?.remove()
-    ghostRef.current = null
-    if (!pd.active) { setDraggingId(null); return }
-    wasDraggedRef.current = true
-    setDraggingId(null)
-    const cell = dragCellRef.current
-    dragCellRef.current = null
-    if (!cell) return
-    const { col, row } = cell
-    const { mesaId } = pd
-    if (zona.mesas.some(m => m.col === col && m.row === row && m.id !== mesaId)) return
-    actualizarMesaEnState(mesaId, { col, row })
-    mesasService.actualizar(mesaId, { col, row }).catch(console.error)
-  }
-
-  const handlePointerCancel = () => {
-    const pd = pointerDragRef.current
-    if (pd?.cardEl) pd.cardEl.style.pointerEvents = ''
-    pointerDragRef.current = null
-    dragCellRef.current = null
-    ghostRef.current?.remove()
-    ghostRef.current = null
-    setDraggingId(null)
-  }
-
   /* ── Acciones de mesa ── */
   const imprimirTicket = (mesa) => imprimirTicketPapel({
     tipo: `Mesa ${mesa.numero}${mesa.personas ? ` · ${mesa.personas} personas` : ""}`,
@@ -219,7 +127,7 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
     try {
       await mesasService.actualizar(mesa.id, { items })
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     }
   }
 
@@ -230,7 +138,7 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
     try {
       await mesasService.actualizar(mesaId, { estado: 'cuenta' })
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     }
   }
 
@@ -257,7 +165,7 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
     try {
       await mesasService.actualizar(mesaId, { estado: 'libre', hora: null, items: [], personas: null })
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     }
   }
 
@@ -271,7 +179,7 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
     try {
       await mesasService.actualizar(mesaId, cambios)
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     }
   }
 
@@ -285,7 +193,7 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
     try {
       await mesasService.actualizar(mesaId, { items })
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     }
   }
 
@@ -301,7 +209,7 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
     try {
       await mesasService.actualizar(mesaId, { items: nuevosItems })
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     }
   }
 
@@ -327,23 +235,10 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
         z.id === zonaActiva ? { ...z, mesas: [...z.mesas, ...creadas] } : z
       ))
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     }
     setShowAgregarMesas(false)
     setCantidadMesas(1)
-  }
-
-  const eliminarMesa = async (mesaId) => {
-    try {
-      await mesasService.eliminar(mesaId)
-      setZonas(prev => prev.map(z =>
-        z.id === zonaActiva ? { ...z, mesas: z.mesas.filter(m => m.id !== mesaId) } : z
-      ))
-    } catch (e) {
-      console.error(e)
-    }
-    setConfirmarEliminar(null)
-    setSelected(null)
   }
 
   const agregarZona = async () => {
@@ -355,24 +250,10 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
       setZonaActiva(nueva.id)
       setSelected(null)
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     }
     setNombreZona('')
     setShowModal(false)
-  }
-
-  const eliminarZona = async (id) => {
-    try {
-      await zonasService.eliminar(id)
-      const restantes = zonas.filter(z => z.id !== id)
-      setZonas(restantes)
-      if (zonaActiva === id) {
-        setZonaActiva(restantes[0]?.id || null)
-        setSelected(null)
-      }
-    } catch (e) {
-      console.error(e)
-    }
   }
 
   /* ── Render celdas ── */
@@ -471,14 +352,14 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
         </div>
 
         {/* Grilla */}
-        <div className="mesas-grid-wrap" style={{ cursor: draggingId ? 'grabbing' : undefined }}>
-          <div className={`mesas-grid${draggingId ? ' mesas-grid--dragging' : ''}`} style={{ gridTemplateColumns: isMobile ? `repeat(${displayCols}, 58px)` : `repeat(${displayCols}, 1fr)` }}>
+        <div className="mesas-grid-wrap">
+          <div className="mesas-grid" style={{ gridTemplateColumns: isMobile ? `repeat(${displayCols}, 58px)` : `repeat(${displayCols}, 1fr)` }}>
             {celdas.map(({ col, row, mesa: m }) => (
               <div
                 key={`${col}-${row}`}
                 data-col={col}
                 data-row={row}
-                className={`celda ${m ? '' : 'celda--vacia'} ${draggingId && !m ? 'celda--drop-target' : ''}`}
+                className={`celda ${m ? '' : 'celda--vacia'}`}
               >
                 {m && (
                   <div
@@ -797,3 +678,5 @@ export default function Mesas({ productos = [], categorias = [], onIrAConfigurac
     </div>
   )
 }
+
+import { avisarError } from '../../utils/avisos'
