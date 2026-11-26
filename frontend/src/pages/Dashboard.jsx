@@ -161,7 +161,10 @@ export default function Dashboard() {
 
   // La prueba gratis da acceso a todo lo de Premium (cuando vence, se bloquea todo igual)
   const esPlanBasico = !['premium', 'gratuito'].includes(user.plan)
-  const bloqueadoPorPlan = (id) => esPlanBasico && !BASIC_IDS.has(id)
+  // El panel Admin (solo superadmin) no depende del plan de la cuenta
+  const bloqueadoPorPlan = (id) => id !== 'admin' && esPlanBasico && !BASIC_IDS.has(id)
+  // Con el plan vencido se muestra la pantalla de pago, salvo en Admin (el servidor ya lo permite)
+  const mostrarPago = trialExpirado && !(isAdmin && active === 'admin')
 
   const puedeVer = (label) => {
     if (!permisosData) return false
@@ -275,7 +278,7 @@ export default function Dashboard() {
 
         {/* Content */}
         <main className="dash-content">
-          {trialExpirado ? (
+          {mostrarPago ? (
             <div className="dash-upgrade">
               <div className="dash-upgrade-icon" style={{ background: 'linear-gradient(135deg, #ef4444, #b91c1c)' }}>
                 <Lock size={36} />
