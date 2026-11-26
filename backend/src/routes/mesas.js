@@ -58,7 +58,7 @@ router.put('/:id', auth, async (req, res) => {
     const mesa = await Mesa.findOneAndUpdate(
       { _id: req.params.id, usuario: req.propietarioId },
       update,
-      { new: true }
+      { returnDocument: 'after' }
     )
     if (!mesa) return res.status(404).json({ message: 'Mesa no encontrada' })
     res.json(mesa)

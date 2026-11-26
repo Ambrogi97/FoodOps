@@ -38,7 +38,7 @@ router.put('/:id', auth, async (req, res) => {
     const pedido = await PedidoDelivery.findOneAndUpdate(
       { _id: req.params.id, usuario: req.propietarioId },
       { $set: pick(req.body) },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     )
     if (!pedido) return res.status(404).json({ message: 'No encontrado' })
     res.json(pedido)
@@ -49,7 +49,8 @@ router.put('/:id', auth, async (req, res) => {
 
 router.delete('/:id', auth, async (req, res) => {
   try {
-    await PedidoDelivery.findOneAndDelete({ _id: req.params.id, usuario: req.propietarioId })
+    const borrado = await PedidoDelivery.findOneAndDelete({ _id: req.params.id, usuario: req.propietarioId })
+    if (!borrado) return res.status(404).json({ message: 'No encontrado' })
     res.json({ ok: true })
   } catch (e) {
     return responderError(req, res, e)

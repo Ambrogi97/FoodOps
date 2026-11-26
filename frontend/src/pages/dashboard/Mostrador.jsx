@@ -158,7 +158,7 @@ export default function Mostrador({ productos = [], categorias = [] }) {
         if ((await obtenerConfigImpresion()).comandaAlGuardar) enviarACocina(upd)
       }
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     } finally {
       setGuardando(false)
     }
@@ -175,7 +175,7 @@ export default function Mostrador({ productos = [], categorias = [] }) {
       setCerradas(prev => [upd, ...prev].slice(0, 5))
       cerrarPanel()
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     } finally {
       setGuardando(false)
     }
@@ -187,7 +187,7 @@ export default function Mostrador({ productos = [], categorias = [] }) {
       setEnCurso(prev => prev.filter(p => p._id !== id))
       if (panelPedido?._id === id) cerrarPanel()
     } catch (e) {
-      console.error(e)
+      avisarError(e)
     }
   }
 
@@ -520,3 +520,5 @@ export default function Mostrador({ productos = [], categorias = [] }) {
     </div>
   )
 }
+
+import { avisarError } from '../../utils/avisos'

@@ -142,7 +142,7 @@ export default function ConfigSalasYMesas() {
       ...z, mesas: (z.mesas || []).map(m => m.id === mesaId ? { ...m, col, row } : m),
     })))
     try { await mesasService.actualizar(mesaId, { col, row }) }
-    catch (e) { console.error(e); await recargar() }
+    catch (e) { avisarError(e); await recargar() }
   }
 
   const handlePointerCancel = () => {
@@ -164,7 +164,7 @@ export default function ConfigSalasYMesas() {
       setZonaActiva(nueva.id)
       setNombreZona('')
       setShowModalZona(false)
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
   }
 
   // Eliminar TODAS las mesas (limpieza de emergencia)
@@ -185,7 +185,7 @@ export default function ConfigSalasYMesas() {
     try {
       await zonasService.eliminar(id)
       await recargar()
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
   }
 
   // Guardar nombre zona
@@ -195,7 +195,7 @@ export default function ConfigSalasYMesas() {
       // Usamos actualizar de la zona si existe, si no solo actualizamos localmente
       setZonas(prev => prev.map(z => z.id === zonaActiva ? { ...z, label: nombreZonaEdit.trim() } : z))
       setEditandoZona(false)
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
   }
 
   // Abrir edición mesa
@@ -212,7 +212,7 @@ export default function ConfigSalasYMesas() {
       await mesasService.actualizar(mesasSel.id, { numero: Number(editMesaNumero) })
       await recargar()
       setMesasSel(null)
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
     finally { setGuardandoMesa(false) }
   }
 
@@ -252,7 +252,7 @@ export default function ConfigSalasYMesas() {
       await recargar()
       setShowModalMesas(false)
       setCantidadMesas(1)
-    } catch (e) { console.error(e) }
+    } catch (e) { avisarError(e) }
   }
 
   if (cargando) return <div className="csm-loading">Cargando...</div>
@@ -442,3 +442,5 @@ export default function ConfigSalasYMesas() {
     </div>
   )
 }
+
+import { avisarError } from '../../utils/avisos'

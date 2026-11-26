@@ -42,7 +42,7 @@ router.put('/:id', auth, async (req, res) => {
     const cat = await CategoriaGasto.findOneAndUpdate(
       { _id: req.params.id, usuario: req.propietarioId },
       { nombre: nombre?.trim(), categoriaFinanciera, activo, parent: parent || null },
-      { new: true }
+      { returnDocument: 'after' }
     )
     if (!cat) return res.status(404).json({ message: 'No encontrado' })
     res.json(cat)
@@ -53,7 +53,8 @@ router.put('/:id', auth, async (req, res) => {
 
 router.delete('/:id', auth, async (req, res) => {
   try {
-    await CategoriaGasto.findOneAndDelete({ _id: req.params.id, usuario: req.propietarioId })
+    const borrado = await CategoriaGasto.findOneAndDelete({ _id: req.params.id, usuario: req.propietarioId })
+    if (!borrado) return res.status(404).json({ message: 'No encontrado' })
     res.json({ ok: true })
   } catch (e) {
     return responderError(req, res, e)

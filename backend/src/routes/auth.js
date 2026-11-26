@@ -6,6 +6,8 @@ const { register, login, verificarEmail, reenviarCodigo, generateToken } = requi
 const auth         = require('../middleware/auth')
 const User         = require('../models/User')
 const { escapeHtml, responderError, validarPassword } = require('../utils/security')
+// Un solo lugar para mandar emails (antes esta ruta tenía su propia copia del envío por Brevo)
+const { enviarEmail } = require('../utils/email')
 
 const router = express.Router()
 
@@ -37,26 +39,6 @@ const loginCuentaLimiter = rateLimit({
   message: { message: 'Demasiados intentos fallidos para esta cuenta. Esperá 15 minutos o recuperá tu contraseña.' },
 })
 
-async function enviarEmail({ to, subject, html }) {
-  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-    method: 'POST',
-    headers: {
-      'accept':       'application/json',
-      'api-key':      process.env.BREVO_API_KEY,
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      sender:      { name: 'FoodOps', email: process.env.SMTP_USER },
-      to:          [{ email: to }],
-      subject,
-      htmlContent: html,
-    }),
-  })
-  if (!res.ok) {
-    const err = await res.text()
-    throw new Error(`Brevo error: ${err}`)
-  }
-}
 
 function hashToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex')
@@ -81,6 +63,8 @@ router.post('/recuperar', resetLimiter, async (req, res) => {
 
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${rawToken}`
 
+    // Si el envío falla se responde igual que siempre: un 500 solo para emails registrados
+    // revelaba qué cuentas existen. El error queda en el log del servidor.
     await enviarEmail({
       to:      user.email,
       subject: 'Recuperar contraseña — FoodOps',
@@ -150,11 +134,14 @@ router.post('/recuperar', resetLimiter, async (req, res) => {
   </table>
 </body>
 </html>`,
+    }).catch(async e => {
+      console.error('Error al enviar email de recuperación:', e.message)
+      await User.updateOne({ _id: user._id }, { $set: { resetToken: null, resetTokenExpiry: null } }).catch(() => {})
     })
 
     res.json({ message: 'Si el email está registrado, recibirás un correo.' })
   } catch (e) {
-    console.error('Error al enviar email de recuperación:', e)
+    console.error('Error en recuperación de contraseña:', e)
     res.status(500).json({ message: 'Error al enviar el correo. Intentá más tarde.' })
   }
 })

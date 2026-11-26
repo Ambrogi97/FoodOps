@@ -118,8 +118,10 @@ export default function Finanzas() {
     return { cmv, op, adm, cmvCat, opCat, admCat }
   }
 
-  const { cmv, op, adm, cmvCat, opCat, admCat } = useMemo(() => agrupGastos(gastosPeriodo, mesKeys), [gastosPeriodo, mesKeys])
-  const { cmv: cmvA, op: opA, adm: admA } = useMemo(() => agrupGastos(gastosAnt, mesKeysAnt), [gastosAnt, mesKeysAnt])
+  // Sin useMemo: depende también de las categorías (catFin/catNom), y con el memo no se
+  // recalculaba si llegaban después que los gastos. La cuenta es liviana.
+  const { cmv, op, adm, cmvCat, opCat, admCat } = agrupGastos(gastosPeriodo, mesKeys)
+  const { cmv: cmvA, op: opA, adm: admA } = agrupGastos(gastosAnt, mesKeysAnt)
 
   const totalCmv = Object.values(cmv).reduce((a, b) => a + b, 0)
   const totalOp  = Object.values(op).reduce((a, b) => a + b, 0)

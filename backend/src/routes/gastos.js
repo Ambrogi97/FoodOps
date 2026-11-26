@@ -53,7 +53,7 @@ router.put('/:id', auth, async (req, res) => {
         medioPago: medioPago || '', fecha,
         fechaVencimiento: fechaVencimiento || null,
       },
-      { new: true }
+      { returnDocument: 'after' }
     )
     if (!gasto) return res.status(404).json({ message: 'No encontrado' })
     res.json(gasto)
@@ -64,7 +64,8 @@ router.put('/:id', auth, async (req, res) => {
 
 router.delete('/:id', auth, async (req, res) => {
   try {
-    await Gasto.findOneAndDelete({ _id: req.params.id, usuario: req.propietarioId })
+    const borrado = await Gasto.findOneAndDelete({ _id: req.params.id, usuario: req.propietarioId })
+    if (!borrado) return res.status(404).json({ message: 'No encontrado' })
     res.json({ ok: true })
   } catch (e) {
     return responderError(req, res, e)

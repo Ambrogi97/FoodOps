@@ -38,7 +38,7 @@ router.put('/:id', auth, async (req, res) => {
     const descuento = await Descuento.findOneAndUpdate(
       { _id: req.params.id, usuario: req.propietarioId },
       { nombre, tipo, valor: valor ?? null, estado },
-      { new: true }
+      { returnDocument: 'after' }
     )
     if (!descuento) return res.status(404).json({ message: 'No encontrado' })
     res.json(descuento)
@@ -49,7 +49,8 @@ router.put('/:id', auth, async (req, res) => {
 
 router.delete('/:id', auth, async (req, res) => {
   try {
-    await Descuento.findOneAndDelete({ _id: req.params.id, usuario: req.propietarioId })
+    const borrado = await Descuento.findOneAndDelete({ _id: req.params.id, usuario: req.propietarioId })
+    if (!borrado) return res.status(404).json({ message: 'No encontrado' })
     res.json({ ok: true })
   } catch (e) {
     return responderError(req, res, e)

@@ -41,7 +41,7 @@ router.put('/usuarios/:id/plan', adminAuth, async (req, res) => {
     const user = await User.findByIdAndUpdate(
       req.params.id,
       update,
-      { new: true, select: '-password' }
+      { returnDocument: 'after', select: '-password' }
     )
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
     res.json(user)
@@ -60,7 +60,7 @@ router.put('/usuarios/:id/superadmin', adminAuth, async (req, res) => {
     const user = await User.findByIdAndUpdate(
       req.params.id,
       { superadmin },
-      { new: true, select: '-password -resetToken -resetTokenExpiry -codigoVerificacion -codigoExpira -codigoEnviadoAt -codigoIntentos' }
+      { returnDocument: 'after', select: '-password -resetToken -resetTokenExpiry -codigoVerificacion -codigoExpira -codigoEnviadoAt -codigoIntentos' }
     )
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
     res.json(user)
@@ -83,7 +83,7 @@ router.put('/usuarios/:id/role', adminAuth, async (req, res) => {
     const user = await User.findByIdAndUpdate(
       req.params.id,
       { role },
-      { new: true, select: '-password' }
+      { returnDocument: 'after', select: '-password' }
     )
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
     res.json(user)

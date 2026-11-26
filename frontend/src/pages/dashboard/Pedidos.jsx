@@ -40,7 +40,7 @@ export default function Pedidos() {
     try {
       await mesasService.actualizar(mesaId, { items })
     } catch (e) {
-      console.error(e)
+      avisarError(e)
       cargar(false)
     }
   }
@@ -52,7 +52,7 @@ export default function Pedidos() {
     try {
       await mesasService.actualizar(mesaId, { items })
     } catch (e) {
-      console.error(e)
+      avisarError(e)
       cargar(false)
     }
   }
@@ -177,3 +177,5 @@ export default function Pedidos() {
     </div>
   )
 }
+
+import { avisarError } from '../../utils/avisos'

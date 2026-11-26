@@ -82,7 +82,7 @@ router.put('/:id/minimo', auth, async (req, res) => {
     const ingrediente = await Ingrediente.findOneAndUpdate(
       { _id: req.params.id, usuario: req.propietarioId },
       { stockMinimo: Number(stockMinimo) || 0 },
-      { new: true }
+      { returnDocument: 'after' }
     )
     if (!ingrediente) return res.status(404).json({ message: 'Ingrediente no encontrado' })
     res.json(ingrediente)
@@ -99,7 +99,7 @@ router.put('/:id/unidad', auth, async (req, res) => {
     const ingrediente = await Ingrediente.findOneAndUpdate(
       { _id: req.params.id, usuario: req.propietarioId },
       { unidad: unidad.trim() },
-      { new: true }
+      { returnDocument: 'after' }
     )
     if (!ingrediente) return res.status(404).json({ message: 'Ingrediente no encontrado' })
     res.json(ingrediente)

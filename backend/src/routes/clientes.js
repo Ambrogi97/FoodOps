@@ -49,7 +49,7 @@ router.put('/:id', auth, async (req, res) => {
         grupo:            grupo            ?? '',
         activo:           activo           !== false,
       },
-      { new: true }
+      { returnDocument: 'after' }
     )
     if (!cliente) return res.status(404).json({ message: 'Cliente no encontrado' })
     res.json(cliente)

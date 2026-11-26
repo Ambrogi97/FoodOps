@@ -44,14 +44,32 @@ function validarPassword(password) {
   return faltan.length ? `La contraseña debe tener ${faltan.join(', ')}` : null
 }
 
+// Los mensajes propios de los modelos (en castellano) se muestran tal cual. Los que arma
+// Mongoose ("Path `precio` is required.", "Cast to Number failed…", "… is not a valid enum
+// value…") están en inglés y nombran detalles internos: se traducen según el tipo de error.
+function mensajeValidacion(err) {
+  if (!err) return 'Datos inválidos'
+  const campo = String(err.path || '').split('.').filter(p => !/^\d+$/.test(p)).pop() || 'dato'
+  const msg = String(err.message || '')
+  const deMongoose = /`|^Path |Cast to |is not a valid enum|is (?:less|more|shorter|longer) than|Validator failed/i.test(msg)
+  if (msg && !deMongoose) return msg.replace(/"(?:\w+\.)+(\w+)"/g, '"$1"')
+  const porTipo = {
+    required:  `Falta completar "${campo}"`,
+    enum:      `El valor de "${campo}" no es válido`,
+    min:       `"${campo}" es menor que el mínimo permitido`,
+    max:       `"${campo}" es mayor que el máximo permitido`,
+    minlength: `"${campo}" es demasiado corto`,
+    maxlength: `"${campo}" es demasiado largo`,
+  }
+  return porTipo[err.kind] || `El valor de "${campo}" no es válido`
+}
+
 // Respuesta de error uniforme para las rutas:
 // datos inválidos → 400 con el motivo; cualquier otra cosa → 500 genérico
 function responderError(req, res, e) {
   if (e?.name === 'ValidationError') {
     const primero = Object.values(e.errors || {})[0]
-    // "items.0.precio" → "precio" (solo dentro de las comillas del nombre del campo)
-    const message = (primero?.message || 'Datos inválidos').replace(/"(?:\w+\.)+(\w+)"/g, '"$1"')
-    return res.status(400).json({ message })
+    return res.status(400).json({ message: mensajeValidacion(primero) })
   }
   if (e?.name === 'CastError') {
     return res.status(400).json({ message: 'Datos inválidos: revisá los valores ingresados' })
