@@ -5,6 +5,7 @@
 // Alcanza con tener uno de los permisos listados.
 //   read  → GET
 //   write → POST / PUT / PATCH / DELETE
+//   post / put / delete → pisan a write para ese método puntual
 // Si un método no aparece, queda permitido para cualquier sub-usuario.
 
 const R  = 'Ver Restaurante'
@@ -26,7 +27,10 @@ const REGLAS = {
   '/api/ingredientes':                  { write: [P] },
   '/api/stock':                         { read: [P], write: [P] },
   '/api/uploads':                       { write: [P] },
-  '/api/mesas':                         { write: [R, MC, CF] },
+  // Atender una mesa (PUT: estado, ítems, personas) es del uso diario. Crear y borrar mesas
+  // (sueltas, en bloque o todas) es armar el plano del salón: solo Configuración.
+  // Antes un camarero con "Ver Restaurante" podía borrar todas las mesas.
+  '/api/mesas':                         { write: [R, MC, CF], post: [CF], delete: [CF] },
   '/api/zonas':                         { write: [R, CF] },
   '/api/mostrador':                     { read: [R], write: [R] },
   '/api/delivery':                      { read: [R], write: [R] },
@@ -49,9 +53,12 @@ const REGLAS = {
 const EXCEPCIONES = new Set(['/api/roles/mis-permisos'])
 
 function permisosRequeridos(req) {
-  if (EXCEPCIONES.has(req.baseUrl + req.path)) return null
+  if (EXCEPCIONES.has((req.baseUrl + req.path).replace(/\/$/, ''))) return null
   const regla = REGLAS[req.baseUrl]
   if (!regla) return null
+  // Regla por método (post / put / delete) si la hay; si no, read/write
+  const porMetodo = regla[req.method.toLowerCase()]
+  if (porMetodo) return porMetodo
   return req.method === 'GET' ? regla.read || null : regla.write || null
 }
 

@@ -31,6 +31,7 @@ export default function Stock() {
   const [cargandoMov, setCargandoMov]         = useState(false)
   const [showMovModal, setShowMovModal]       = useState(false)
   const [nuevoMov, setNuevoMov]               = useState(NUEVO_MOV)
+  const [errorMov, setErrorMov]               = useState('')
   const [editandoMinimo, setEditandoMinimo]   = useState(false)
   const [valorMinimo, setValorMinimo]         = useState('')
   const [editandoUnidad, setEditandoUnidad]   = useState(false)
@@ -65,6 +66,7 @@ export default function Stock() {
 
   const registrarMovimiento = async () => {
     if (!nuevoMov.cantidad || Number(nuevoMov.cantidad) <= 0) return
+    setErrorMov('')
     try {
       const res = await stockService.registrarMovimiento(selected, {
         tipo:        nuevoMov.tipo,
@@ -80,7 +82,8 @@ export default function Stock() {
       setShowMovModal(false)
       setNuevoMov(NUEVO_MOV)
     } catch (e) {
-      console.error(e)
+      // Por ejemplo, una salida mayor al stock disponible: se muestra en el formulario
+      setErrorMov(e.message || 'No se pudo registrar el movimiento')
     }
   }
 
@@ -285,11 +288,11 @@ export default function Stock() {
             <div className="stock-panel-actions">
               <button
                 className="stock-btn-entrada"
-                onClick={() => { setNuevoMov({ ...NUEVO_MOV, tipo: 'entrada' }); setShowMovModal(true) }}
+                onClick={() => { setNuevoMov({ ...NUEVO_MOV, tipo: 'entrada' }); setErrorMov(''); setShowMovModal(true) }}
               >+ Entrada</button>
               <button
                 className="stock-btn-salida"
-                onClick={() => { setNuevoMov({ ...NUEVO_MOV, tipo: 'salida' }); setShowMovModal(true) }}
+                onClick={() => { setNuevoMov({ ...NUEVO_MOV, tipo: 'salida' }); setErrorMov(''); setShowMovModal(true) }}
               >− Salida</button>
             </div>
 
@@ -374,8 +377,10 @@ export default function Stock() {
               </div>
             </div>
 
+            {errorMov && <p className="stock-mov-error" role="alert">{errorMov}</p>}
+
             <div className="stock-modal-actions">
-              <button className="stock-btn-secondary" onClick={() => { setShowMovModal(false); setNuevoMov(NUEVO_MOV) }}>Cancelar</button>
+              <button className="stock-btn-secondary" onClick={() => { setShowMovModal(false); setNuevoMov(NUEVO_MOV); setErrorMov('') }}>Cancelar</button>
               <button
                 className={nuevoMov.tipo === 'entrada' ? 'stock-btn-entrada' : 'stock-btn-salida'}
                 onClick={registrarMovimiento}

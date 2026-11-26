@@ -19,4 +19,8 @@ const ventaSchema = new mongoose.Schema({
   usuario:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 }, { timestamps: true })
 
+// Listados y numeración por restaurante. No se hace único todavía: la base puede tener
+// números repetidos de antes del contador atómico y el índice único no se podría crear.
+ventaSchema.index({ usuario: 1, numero: -1 })
+
 module.exports = mongoose.model('Venta', ventaSchema)

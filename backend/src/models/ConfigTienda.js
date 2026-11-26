@@ -53,6 +53,9 @@ const configTiendaSchema = new mongoose.Schema(
       { nombre: 'Transferencia', descuento: 0, habilitado: true },
     ]},
     pedidoCounter:    { type: Number, default: 0 },
+    // Último número de venta usado. Sin valor por defecto a propósito: si falta, se inicializa
+    // una sola vez desde la última venta existente (ver routes/ventas.js).
+    ventaCounter:     { type: Number },
     tiempoEstimadoMin:{ type: Number, default: 30 },
     zonaDelivery: {
       lat:     { type: Number, default: null },
