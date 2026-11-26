@@ -7,6 +7,8 @@ const NOMBRE_PLAN = { gratuito: 'Prueba gratuita', basico: 'Básico', profesiona
 const PRECIOS = { basico: 20000, premium: 35000 }
 
 const frontend = () => process.env.FRONTEND_URL || 'http://localhost:5173'
+// Nombre de plan que ningún traductor automático debe tocar ("Premium" → "de primera calidad")
+const marca = s => `<span translate="no" class="notranslate">${s}</span>`
 const pesos = n => '$' + Number(n).toLocaleString('es-AR')
 const fecha = d => new Date(d).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' })
 
@@ -62,8 +64,8 @@ const tarjetaPlan = (nombre, precio, detalle, destacado) => `
 
 const tablaPlanes = () => `
   <table width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 4px;"><tr>
-    ${tarjetaPlan('Básico', pesos(PRECIOS.basico), 'Restaurante y mesas, productos, carta online y monitor de cocina', false)}
-    ${tarjetaPlan('Premium ⭐', pesos(PRECIOS.premium), 'Todo lo del Básico + Asistente con IA, ventas, finanzas, stock y reportes', true)}
+    ${tarjetaPlan(marca('Básico'), pesos(PRECIOS.basico), 'Restaurante y mesas, productos, carta online y monitor de cocina', false)}
+    ${tarjetaPlan(marca('Premium') + ' ⭐', pesos(PRECIOS.premium), 'Todo lo del Básico + Asistente con IA, ventas, finanzas, stock y reportes', true)}
   </tr></table>`
 
 // ── Fin de la prueba gratuita / plan vencido ────────────────────────────────
@@ -89,9 +91,9 @@ function correoVencimiento(user) {
   return {
     subject: `Tu plan ${plan} de FoodOps venció`,
     html: plantilla({
-      titulo: `Tu plan ${escapeHtml(plan)} venció`,
+      titulo: `Tu plan ${marca(escapeHtml(plan))} venció`,
       cuerpo:
-        parrafo(`Hola <strong>${nombre}</strong>, el plan <strong>${escapeHtml(plan)}</strong> de <strong>${resto}</strong> venció el ${fecha(user.trialEndsAt)}.`) +
+        parrafo(`Hola <strong>${nombre}</strong>, el plan <strong>${marca(escapeHtml(plan))}</strong> de <strong>${resto}</strong> venció el ${fecha(user.trialEndsAt)}.`) +
         parrafo('<strong>Tus datos siguen guardados.</strong> Renová el plan para que vos y tu equipo puedan seguir usando el panel.') +
         tablaPlanes(),
       boton: 'Renovar mi plan', urlBoton: url,
@@ -137,15 +139,15 @@ async function revisarVencimientos(ahora = new Date()) {
 // origen: 'pago' (Mercado Pago) o 'admin' (cambio manual desde el panel)
 function correoCambioPlan({ user, planAnterior, plan, vence, monto, origen }) {
   const nombre = escapeHtml(user.nombre), resto = escapeHtml(user.restaurante)
-  const nuevo = escapeHtml(NOMBRE_PLAN[plan] || plan)
+  const nuevo = marca(escapeHtml(NOMBRE_PLAN[plan] || plan))
   const renovacion = origen === 'pago' && planAnterior === plan
   const titulo = renovacion ? `Renovaste tu plan ${nuevo}` : `Tu plan ahora es ${nuevo}`
   const filas = [
     ['Restaurante', resto],
-    ...(planAnterior && planAnterior !== plan ? [['Plan anterior', escapeHtml(NOMBRE_PLAN[planAnterior] || planAnterior)]] : []),
-    ['Plan actual', `<strong>${nuevo}</strong>`],
+    ...(planAnterior && planAnterior !== plan ? [['Tu plan anterior', marca(escapeHtml(NOMBRE_PLAN[planAnterior] || planAnterior))]] : []),
+    ['Tu plan', `<strong>${nuevo}</strong>`],
     ...(monto ? [['Pagaste', pesos(monto)]] : []),
-    ['Vigente hasta', vence ? fecha(vence) : 'sin vencimiento'],
+    ['Vencimiento', vence ? fecha(vence) : 'sin vencimiento'],
   ]
   const tabla = `<table width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 20px;background:#f8f8f8;border-radius:8px;">
     ${filas.map(([k, v]) => `<tr><td style="padding:10px 16px;font-size:14px;color:#888;">${k}</td><td style="padding:10px 16px;font-size:14px;color:#222;text-align:right;">${v}</td></tr>`).join('')}
