@@ -54,11 +54,30 @@ const PLANES_MP = {
   premium: { monto: 35000, label: 'FoodOps — Plan Premium' },
 }
 
+const DIA_MS = 24 * 60 * 60 * 1000
+
+// Nuevo vencimiento: 30 días desde hoy más lo que le quedaba sin usar (antes se pisaba con
+// hoy + 30 y quien renovaba antes de tiempo perdía esos días).
+//  - Mismo plan: los días restantes se suman tal cual.
+//  - Cambio de plan pago: se convierten por precio (10 días de Básico = 10 × 20.000/35.000 de Premium).
+//  - Prueba gratuita: los días de prueba que queden se suman tal cual.
+function venceConRenovacion(cuenta, planNuevo, ahora = Date.now()) {
+  const restante = Math.max(0, (cuenta.trialEndsAt ? new Date(cuenta.trialEndsAt).getTime() : 0) - ahora)
+  const actual = Object.hasOwn(PLANES_MP, cuenta.plan) ? PLANES_MP[cuenta.plan] : null
+  const credito = actual ? restante * actual.monto / PLANES_MP[planNuevo].monto : restante
+  return new Date(ahora + 30 * DIA_MS + Math.round(credito))
+}
+
 // POST /api/pagos/suscribir — crea preferencia de pago y devuelve el link de MP
 router.post('/suscribir', auth, async (req, res) => {
   try {
+    // El plan lo paga el dueño de la cuenta (antes un empleado podía iniciar un pago que se
+    // acreditaba a su propio usuario y no al restaurante)
+    if (req.usuario.cuentaPadreId) {
+      return res.status(403).json({ message: 'Solo el dueño de la cuenta puede pagar el plan' })
+    }
     const { plan } = req.body
-    if (!PLANES_MP[plan]) return res.status(400).json({ message: 'Plan inválido' })
+    if (typeof plan !== 'string' || !Object.hasOwn(PLANES_MP, plan)) return res.status(400).json({ message: 'Plan inválido' })
 
     const user = await User.findById(req.usuario.id)
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
@@ -126,8 +145,8 @@ router.post('/webhook', async (req, res) => {
 
       if (pago.status !== 'approved') return res.sendStatus(200)
 
-      const [userId, plan] = (pago.external_reference || '').split('|')
-      if (!mongoose.isValidObjectId(userId) || !PLANES_MP[plan]) return res.sendStatus(200)
+      const [refId, plan] = (pago.external_reference || '').split('|')
+      if (!mongoose.isValidObjectId(refId) || !Object.hasOwn(PLANES_MP, plan)) return res.sendStatus(200)
 
       // El monto y la moneda tienen que ser exactamente los del plan
       const { monto } = PLANES_MP[plan]
@@ -136,9 +155,17 @@ router.post('/webhook', async (req, res) => {
         return res.sendStatus(200)
       }
 
-      // Acceso por 30 días desde el pago
-      const vence = new Date()
-      vence.setDate(vence.getDate() + 30)
+      // El plan es de la cuenta: si el pago quedó a nombre de un empleado (pagos viejos), va al dueño
+      const pagador = await User.findById(refId, 'cuentaPadreId').lean()
+      if (!pagador) {
+        console.warn(`Webhook MP: pago ${paymentId} de un usuario que ya no existe (${refId})`)
+        return res.sendStatus(200)
+      }
+      const userId = String(pagador.cuentaPadreId || pagador._id)
+      const cuenta = await User.findById(userId, 'plan trialEndsAt').lean()
+      if (!cuenta) return res.sendStatus(200)
+
+      const vence = venceConRenovacion(cuenta, plan)
 
       // Primero se registra el pago: si dos avisos llegan a la vez, el índice único deja pasar uno solo
       try {

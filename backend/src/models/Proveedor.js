@@ -11,7 +11,7 @@ const proveedorSchema = new mongoose.Schema({
   numero:   { type: String, default: '' },
   piso:     { type: String, default: '' },
   ciudad:   { type: String, default: '' },
-  usuario:  { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  usuario:  { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
 }, { timestamps: true })
 
 module.exports = mongoose.model('Proveedor', proveedorSchema)

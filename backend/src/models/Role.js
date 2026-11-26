@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
 const roleSchema = new mongoose.Schema({
-  propietarioId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  propietarioId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   nombre:        { type: String, required: true, trim: true },
   key:           { type: String, required: true, trim: true },
   permisos:      { type: [String], default: [] },

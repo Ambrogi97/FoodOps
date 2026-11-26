@@ -45,6 +45,8 @@ const NAV_ITEMS = [
 export default function Dashboard() {
   const navigate = useNavigate()
   const { user } = getSession()
+  // El plan lo paga el dueño: a un empleado no se le ofrecen botones de pago
+  const esEmpleado = !!user?.cuentaPadreId
   const [active, setActive]                   = useState('inicio')
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const isAdmin = user?.superadmin === true
@@ -280,6 +282,11 @@ export default function Dashboard() {
                 <Lock size={36} />
               </div>
               <h2 className="dash-upgrade-title">{user.plan === 'gratuito' ? 'Tu prueba gratuita terminó' : 'Tu plan venció'}</h2>
+              {esEmpleado ? (
+                <p className="dash-upgrade-desc">
+                  Pedile al dueño de la cuenta que renueve el plan para seguir usando FoodOps con <strong>{user.restaurante}</strong>.
+                </p>
+              ) : <>
               <p className="dash-upgrade-desc">
                 Elegí un plan para seguir usando FoodOps con <strong>{user.restaurante}</strong>.
               </p>
@@ -312,6 +319,7 @@ export default function Dashboard() {
                 </button>
               </div>
               {pagoError && <p style={{ color: '#ef4444', fontSize: '0.85rem', margin: 0 }}>{pagoError}</p>}
+              </>}
               <button className="dash-trial-logout" onClick={handleLogout}>Cerrar sesión</button>
             </div>
           ) : !permisosData ? (
@@ -324,9 +332,11 @@ export default function Dashboard() {
               <h2 className="dash-upgrade-title">Módulo Premium</h2>
               <p className="dash-upgrade-desc">
                 Este módulo está disponible en el plan <strong>Premium</strong>.<br />
-                Actualizá tu plan para acceder a {NAV_ITEMS.find(i => i.id === active)?.label}.
+                {esEmpleado
+                  ? <>Pedile al dueño de la cuenta que actualice el plan para acceder a {NAV_ITEMS.find(i => i.id === active)?.label}.</>
+                  : <>Actualizá tu plan para acceder a {NAV_ITEMS.find(i => i.id === active)?.label}.</>}
               </p>
-              <button
+              {!esEmpleado && <button
                 className="dash-plan-btn dash-plan-btn--premium"
                 onClick={() => suscribir('premium')}
                 disabled={!!pagando}
@@ -339,7 +349,7 @@ export default function Dashboard() {
                     <span className="dash-plan-btn-features">Asistente con IA · Ventas · Finanzas · Stock y más</span>
                   </>
                 )}
-              </button>
+              </button>}
               {pagoError && <p style={{ color: '#ef4444', fontSize: '0.85rem', margin: 0 }}>{pagoError}</p>}
             </div>
           ) : !puedeVer(NAV_ITEMS.find(i => i.id === active)?.label ?? '') && active !== 'admin' ? (

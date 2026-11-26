@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
   role: { type: String, trim: true, default: 'camarero' },
   // Dueño de la plataforma FoodOps. Solo se asigna con scripts/makeAdmin.js
   superadmin:       { type: Boolean, default: false },
-  cuentaPadreId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  cuentaPadreId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null, index: true },
   trialEndsAt:        { type: Date,   default: null },
   mpSubscriptionId:   { type: String, default: null },
   subscriptionStatus: { type: String, default: null },

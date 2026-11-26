@@ -7,7 +7,7 @@ const cuentaCorrienteProveedorSchema = new mongoose.Schema({
   medioPago:   { type: String, default: '' },
   fechaPago:   { type: String, default: null },
   comentario:  { type: String, default: '' },
-  usuario:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  usuario:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
 }, { timestamps: true })
 
 module.exports = mongoose.model('CuentaCorrienteProveedor', cuentaCorrienteProveedorSchema)

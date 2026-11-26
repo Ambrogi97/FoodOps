@@ -2,6 +2,7 @@ const express       = require('express')
 const router        = express.Router()
 const { responderError } = require('../utils/security')
 const auth          = require('../middleware/auth')
+const { referenciaAjena } = require('../utils/pertenencia')
 const CategoriaGasto = require('../models/CategoriaGasto')
 
 router.get('/', auth, async (req, res) => {
@@ -16,6 +17,8 @@ router.get('/', auth, async (req, res) => {
 router.post('/', auth, async (req, res) => {
   try {
     const { nombre, categoriaFinanciera, activo, parent } = req.body
+    const ajena = await referenciaAjena(req.propietarioId, [{ modelo: CategoriaGasto, ids: parent, nombre: 'La categoría padre' }])
+    if (ajena) return res.status(400).json({ message: ajena })
     if (!nombre?.trim()) return res.status(400).json({ message: 'El nombre es requerido' })
     const cat = await CategoriaGasto.create({
       nombre: nombre.trim(),
@@ -33,6 +36,9 @@ router.post('/', auth, async (req, res) => {
 router.put('/:id', auth, async (req, res) => {
   try {
     const { nombre, categoriaFinanciera, activo, parent } = req.body
+    const ajena = await referenciaAjena(req.propietarioId, [{ modelo: CategoriaGasto, ids: parent, nombre: 'La categoría padre' }])
+    if (ajena) return res.status(400).json({ message: ajena })
+    if (parent && String(parent) === req.params.id) return res.status(400).json({ message: 'Una categoría no puede ser su propia categoría padre' })
     const cat = await CategoriaGasto.findOneAndUpdate(
       { _id: req.params.id, usuario: req.propietarioId },
       { nombre: nombre?.trim(), categoriaFinanciera, activo, parent: parent || null },
