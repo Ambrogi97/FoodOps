@@ -1,0 +1,27 @@
+# Despierta el backend en Render una vez por día.
+# En el plan gratuito Render apaga el servidor si nadie lo usa; al arrancar, el backend revisa
+# qué pruebas gratuitas o planes vencieron y manda los correos de aviso (utils/emailsPlan.js).
+# Si el servidor ya estaba despierto, esa revisión además corre sola cada hora.
+name: Despertar backend
+
+on:
+  schedule:
+    - cron: '0 12 * * *'   # 12:00 UTC = 9:00 en Argentina
+  workflow_dispatch: {}     # también se puede correr a mano desde la pestaña Actions
+
+permissions: {}
+
+jobs:
+  despertar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Llamar al backend (con reintentos mientras Render arranca)
+        run: |
+          for i in 1 2 3 4 5 6; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 60 https://foodops-6acc.onrender.com/ || true)
+            echo "intento $i: HTTP $code"
+            if [ "$code" = "200" ]; then exit 0; fi
+            sleep 20
+          done
+          echo "El backend no respondió"; exit 1
