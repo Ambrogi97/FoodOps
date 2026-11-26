@@ -15,6 +15,15 @@ router.get('/', auth, async (req, res) => {
   }
 })
 
+// "dd/mm/aaaa" que exista en el calendario (rechaza "31/02/2026" o texto cualquiera)
+function fechaValida(f) {
+  const m = typeof f === 'string' && f.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
+  if (!m) return false
+  const [d, mes, a] = [+m[1], +m[2], +m[3]]
+  const dt = new Date(Date.UTC(a, mes - 1, d))
+  return a >= 2000 && a <= 2100 && dt.getUTCFullYear() === a && dt.getUTCMonth() === mes - 1 && dt.getUTCDate() === d
+}
+
 // Registrar movimiento (entrada o salida)
 router.post('/:id/movimiento', auth, async (req, res) => {
   try {
@@ -23,22 +32,42 @@ router.post('/:id/movimiento', auth, async (req, res) => {
     if (!['entrada', 'salida'].includes(tipo)) return res.status(400).json({ message: 'Tipo de movimiento inválido' })
     if (!Number.isFinite(Number(cantidad)) || Number(cantidad) <= 0 || Number(cantidad) > 100000)
       return res.status(400).json({ message: 'La cantidad debe ser un número entre 0 y 100.000' })
+    if (!fechaValida(fecha)) return res.status(400).json({ message: 'La fecha no es válida (dd/mm/aaaa)' })
 
-    const ingrediente = await Ingrediente.findOne({ _id: req.params.id, usuario: req.propietarioId })
-    if (!ingrediente) return res.status(404).json({ message: 'Ingrediente no encontrado' })
+    const cant  = Number(cantidad)
+    const delta = tipo === 'entrada' ? cant : -cant
+    // Una sola operación atómica en la base: dos movimientos simultáneos ya no se pisan
+    // (antes se leía el stock, se sumaba y se guardaba, y se perdían movimientos).
+    // Una salida solo se aplica si hay stock suficiente: el stock no puede quedar negativo.
+    const ingrediente = await Ingrediente.findOneAndUpdate(
+      { _id: req.params.id, usuario: req.propietarioId, ...(tipo === 'salida' ? { stockActual: { $gte: cant } } : {}) },
+      { $inc: { stockActual: delta } },
+      { returnDocument: 'after' },
+    )
+    if (!ingrediente) {
+      const existe = await Ingrediente.findOne({ _id: req.params.id, usuario: req.propietarioId }).select('stockActual unidad').lean()
+      if (!existe) return res.status(404).json({ message: 'Ingrediente no encontrado' })
+      return res.status(400).json({
+        code: 'STOCK_INSUFICIENTE',
+        message: `No hay stock suficiente: hay ${Math.round((existe.stockActual || 0) * 100) / 100} ${existe.unidad || ''}`.trim(),
+      })
+    }
 
-    const delta = tipo === 'entrada' ? Number(cantidad) : -Number(cantidad)
-    ingrediente.stockActual = (ingrediente.stockActual || 0) + delta
-    await ingrediente.save()
-
-    const movimiento = await MovimientoStock.create({
-      ingrediente: req.params.id,
-      tipo,
-      cantidad:    Number(cantidad),
-      descripcion: descripcion?.trim() || '',
-      fecha,
-      usuario:     req.propietarioId,
-    })
+    let movimiento
+    try {
+      movimiento = await MovimientoStock.create({
+        ingrediente: req.params.id,
+        tipo,
+        cantidad:    cant,
+        descripcion: typeof descripcion === 'string' ? descripcion.trim().slice(0, 300) : '',
+        fecha:       fecha.trim(),
+        usuario:     req.propietarioId,
+      })
+    } catch (e) {
+      // Sin el registro del movimiento se deshace el cambio de stock para no dejarlo inconsistente
+      await Ingrediente.updateOne({ _id: req.params.id, usuario: req.propietarioId }, { $inc: { stockActual: -delta } }).catch(() => {})
+      throw e
+    }
 
     res.status(201).json({ ingrediente, movimiento })
   } catch (e) {

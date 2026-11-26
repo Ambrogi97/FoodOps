@@ -368,6 +368,7 @@
 .stock-field input:focus { border-color: var(--primary); }
 
 .stock-modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.stock-mov-error { margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: #FEF2F2; color: #B91C1C; font-size: 0.85rem; }
 
 .stock-btn-secondary {
   padding: 8px 16px;
