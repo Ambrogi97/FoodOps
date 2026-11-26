@@ -1,7 +1,7 @@
 const jwt  = require('jsonwebtoken')
 const User = require('../models/User')
-const Role = require('../models/Role')
 const { permisosRequeridos } = require('./permisos')
+const { permisosDeRol } = require('../utils/roles')
 
 // Rutas que siguen funcionando con el plan vencido (perfil, pagar, permisos, panel admin)
 const RUTAS_SIN_PLAN = ['/auth', '/api/pagos', '/api/admin']
@@ -64,8 +64,7 @@ module.exports = async (req, res, next) => {
     if (user.cuentaPadreId) {
       const requeridos = permisosRequeridos(req)
       if (requeridos) {
-        const role = await Role.findOne({ propietarioId: user.cuentaPadreId, key: user.role }).select('permisos').lean()
-        const permisos = role?.permisos || []
+        const permisos = await permisosDeRol(user.cuentaPadreId, user.role)
         if (!requeridos.some(p => permisos.includes(p))) {
           return res.status(403).json({ message: 'Tu rol no tiene permiso para esta acción' })
         }

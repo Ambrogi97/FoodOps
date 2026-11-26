@@ -102,6 +102,12 @@ const fmtDate = s => {
 }
 
 /* ── SeccionUsuarios ──────────────────────────────────────────────── */
+const ROLES_BASE = [
+  { key: 'camarero',   nombre: 'Camarero' },
+  { key: 'repartidor', nombre: 'Repartidor' },
+  { key: 'encargado',  nombre: 'Encargado' },
+]
+
 function SeccionUsuarios() {
   const [items, setItems]     = useState([])
   const [loading, setLoading] = useState(true)
@@ -111,8 +117,9 @@ function SeccionUsuarios() {
   const [saving, setSaving]   = useState(false)
   const [err, setErr]         = useState('')
   const { user: me }          = getSession()
-  const ROL_LABELS = { encargado: 'Encargado', camarero: 'Camarero', repartidor: 'Repartidor' }
-  const rolLabel = r => ROL_LABELS[r] || r
+  // Roles del restaurante (los fijos y los propios). Si no cargan, quedan los tres fijos.
+  const [roles, setRoles] = useState(ROLES_BASE)
+  const rolLabel = r => roles.find(x => x.key === r)?.nombre || r
 
   const load = () => {
     setLoading(true)
@@ -122,6 +129,11 @@ function SeccionUsuarios() {
   }
 
   useEffect(load, [])
+  useEffect(() => {
+    rolesService.listar()
+      .then(l => { if (Array.isArray(l) && l.length) setRoles([...l].sort((a, b) => !!b.esFijo - !!a.esFijo)) })
+      .catch(() => {})
+  }, [])
 
   const openNuevo = () => {
     setForm({ email: '', nombre: '', password: '', confirm: '', role: 'camarero' })
@@ -305,9 +317,7 @@ function SeccionUsuarios() {
                     value={form.role}
                     onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
                   >
-                    <option value="camarero">Camarero</option>
-                    <option value="repartidor">Repartidor</option>
-                    <option value="encargado">Encargado</option>
+                    {roles.map(r => <option key={r.key} value={r.key}>{r.nombre}</option>)}
                   </select>
                 </div>
                 <div className="cfg-field">
@@ -385,9 +395,7 @@ function SeccionUsuarios() {
                     value={form.role}
                     onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
                   >
-                    <option value="camarero">Camarero</option>
-                    <option value="repartidor">Repartidor</option>
-                    <option value="encargado">Encargado</option>
+                    {roles.map(r => <option key={r.key} value={r.key}>{r.nombre}</option>)}
                   </select>
                 </div>
                 <div className="cfg-field">

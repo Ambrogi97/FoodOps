@@ -2,6 +2,7 @@ const express = require('express')
 const auth    = require('../middleware/auth')
 const Role    = require('../models/Role')
 const User    = require('../models/User')
+const { ROLES_FIJOS, KEYS_RESERVADAS, asegurarRolesFijos, permisosDeRol } = require('../utils/roles')
 
 const router = express.Router()
 
@@ -22,48 +23,17 @@ router.get('/mis-permisos', auth, async (req, res) => {
     if (!user.cuentaPadreId) return res.json({ esOwner: true, permisos: [] })
 
     // Sub-usuario: buscar permisos de su rol en la cuenta del dueño
-    const role = await Role.findOne({ propietarioId: user.cuentaPadreId, key: user.role })
-    res.json({ esOwner: false, permisos: role?.permisos || [] })
+    res.json({ esOwner: false, permisos: await permisosDeRol(user.cuentaPadreId, user.role) })
   } catch (e) {
     console.error(e)
     res.status(500).json({ message: 'Error al obtener permisos' })
   }
 })
 
-const ROLES_FIJOS = [
-  { key: 'encargado', nombre: 'Encargado', esFijo: true, permisos: [
-    'Ver Restaurante', 'Ver Monitor de Cocina', 'Ver Productos', 'Ver Clientes', 'Ver Ventas',
-    'Cerrar venta de mesa', 'Imprimir ticket de mesa', 'Adicionar ítems a mesa', 'Cancelar ítems de mesa',
-    'Listar descuentos', 'Crear descuentos', 'Editar descuentos', 'Eliminar descuentos',
-    'Listar pedidos', 'Crear pedido', 'Actualizar pedido', 'Eliminar pedido',
-    'Listar ventas', 'Ver resumen y estadísticas',
-    'Listar productos', 'Crear producto', 'Actualizar producto', 'Gestionar stock',
-  ]},
-  { key: 'camarero', nombre: 'Camarero', esFijo: true, permisos: [
-    'Ver Restaurante', 'Ver Monitor de Cocina',
-    'Cerrar venta de mesa', 'Imprimir ticket de mesa', 'Adicionar ítems a mesa', 'Cancelar ítems de mesa',
-    'Listar descuentos',
-    'Listar pedidos',
-    'Listar productos',
-  ]},
-  { key: 'repartidor', nombre: 'Repartidor', esFijo: true, permisos: [
-    'Ver Restaurante',
-    'Ver Monitor de Cocina',
-    'Listar pedidos',
-    'Actualizar pedido',
-  ]},
-]
-
-// Inicializa los roles fijos si el propietario no los tiene aún
+// Borra fijos que ya no existen en el sistema y crea los que falten
 async function inicializarRoles(propietarioId) {
-  const keysFijos = ROLES_FIJOS.map(r => r.key)
-  await Role.deleteMany({ propietarioId, esFijo: true, key: { $nin: keysFijos } })
-  for (const r of ROLES_FIJOS) {
-    const existe = await Role.findOne({ propietarioId, key: r.key })
-    if (!existe) {
-      await Role.create({ propietarioId, nombre: r.nombre, key: r.key, permisos: r.permisos, esFijo: r.esFijo })
-    }
-  }
+  await Role.deleteMany({ propietarioId, esFijo: true, key: { $nin: ROLES_FIJOS.map(r => r.key) } })
+  await asegurarRolesFijos(propietarioId)
 }
 
 // GET /api/roles
@@ -82,10 +52,11 @@ router.get('/', auth, async (req, res) => {
 router.post('/', auth, soloOwner, async (req, res) => {
   try {
     const { nombre, permisos } = req.body
-    if (!nombre?.trim()) return res.status(400).json({ message: 'El nombre es obligatorio' })
+    if (typeof nombre !== 'string' || !nombre.trim()) return res.status(400).json({ message: 'El nombre es obligatorio' })
     const key = nombre.trim().toLowerCase().replace(/\s+/g, '_')
+    if (KEYS_RESERVADAS.has(key)) return res.status(400).json({ message: 'Ese nombre está reservado, elegí otro' })
     const existe = await Role.findOne({ propietarioId: req.propietarioId, key })
-    if (existe) return res.status(400).json({ message: 'Ya existe un rol con ese nombre' })
+    if (existe || ROLES_FIJOS.some(r => r.key === key)) return res.status(400).json({ message: 'Ya existe un rol con ese nombre' })
     const role = await Role.create({ propietarioId: req.propietarioId, nombre: nombre.trim(), key, permisos: permisos || [] })
     res.status(201).json(role)
   } catch (e) {
@@ -116,6 +87,11 @@ router.delete('/:id', auth, soloOwner, async (req, res) => {
     const role = await Role.findOne({ _id: req.params.id, propietarioId: req.propietarioId })
     if (!role) return res.status(404).json({ message: 'Rol no encontrado' })
     if (role.esFijo) return res.status(400).json({ message: 'No se puede eliminar un rol del sistema' })
+    // Si se borra un rol en uso, esos empleados se quedan sin ningún permiso
+    const enUso = await User.countDocuments({ cuentaPadreId: req.propietarioId, role: role.key })
+    if (enUso) {
+      return res.status(400).json({ message: `Hay ${enUso} ${enUso === 1 ? 'empleado' : 'empleados'} con este rol; cambiales el rol antes de borrarlo` })
+    }
     await role.deleteOne()
     res.json({ message: 'Rol eliminado' })
   } catch (e) {

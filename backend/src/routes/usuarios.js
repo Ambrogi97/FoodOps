@@ -2,6 +2,9 @@ const express = require('express')
 const auth    = require('../middleware/auth')
 const User    = require('../models/User')
 const { validarPassword } = require('../utils/security')
+const { rolAsignable, asegurarRolesFijos } = require('../utils/roles')
+
+const ROL_INVALIDO = { message: 'Ese rol no existe en tu restaurante' }
 
 const router = express.Router()
 
@@ -53,7 +56,11 @@ router.post('/', auth, soloOwner, async (req, res) => {
     const existe = await User.findOne({ email: email.toLowerCase() })
     if (existe) return res.status(400).json({ message: 'El email ya está registrado' })
 
-    const safeRole = ['encargado', 'camarero', 'repartidor'].includes(role) ? role : 'camarero'
+    // Sin rol elegido, camarero. Con rol, tiene que ser uno del restaurante (fijo o propio):
+    // antes cualquier otro valor se convertía en camarero sin avisar.
+    const safeRole = role === undefined || role === '' ? 'camarero' : role
+    if (!(await rolAsignable(req.usuario.id, safeRole))) return res.status(400).json(ROL_INVALIDO)
+    await asegurarRolesFijos(req.usuario.id)
 
     const nuevo = await User.create({
       nombre,
@@ -84,9 +91,9 @@ router.put('/:id', auth, soloOwner, async (req, res) => {
       if (errPass) return res.status(400).json({ message: errPass })
     }
     if (typeof nombre === 'string' && nombre.trim()) usuario.nombre = nombre.trim()
-    if (role) {
-      const safeRole = ['encargado', 'camarero', 'repartidor'].includes(role) ? role : usuario.role
-      usuario.role = safeRole
+    if (role !== undefined && role !== '') {
+      if (!(await rolAsignable(req.usuario.id, role))) return res.status(400).json(ROL_INVALIDO)
+      usuario.role = role
     }
     if (password) usuario.password = password
 
