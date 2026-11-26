@@ -12,7 +12,7 @@ const gastoSchema = new mongoose.Schema({
   medioPago:        { type: String, default: '' },
   fecha:            { type: String, required: true },
   fechaVencimiento: { type: String, default: null },
-  usuario:          { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  usuario:          { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
 }, { timestamps: true })
 
 module.exports = mongoose.model('Gasto', gastoSchema)

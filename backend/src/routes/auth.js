@@ -25,6 +25,18 @@ const loginLimiter = rateLimit({
   message: { message: 'Demasiados intentos de inicio de sesión. Esperá 15 minutos.' },
 })
 
+// Además del límite por IP, un límite por cuenta: probar contraseñas contra un mismo email
+// desde muchas IPs distintas también se corta. Solo cuentan los intentos fallidos.
+const loginCuentaLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  skipSuccessfulRequests: true,
+  keyGenerator: req => 'cuenta:' + (typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : ''),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Demasiados intentos fallidos para esta cuenta. Esperá 15 minutos o recuperá tu contraseña.' },
+})
+
 async function enviarEmail({ to, subject, html }) {
   const res = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
@@ -191,7 +203,7 @@ const registerLimiter = rateLimit({
 })
 
 router.post('/register', registerLimiter, register)
-router.post('/login', loginLimiter, login)
+router.post('/login', loginLimiter, loginCuentaLimiter, login)
 
 const verificarLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,

@@ -2,7 +2,9 @@ const express = require('express')
 const router  = express.Router()
 const { responderError } = require('../utils/security')
 const auth    = require('../middleware/auth')
+const { referenciaAjena } = require('../utils/pertenencia')
 const Gasto   = require('../models/Gasto')
+const CategoriaGasto = require('../models/CategoriaGasto')
 
 router.get('/', auth, async (req, res) => {
   try {
@@ -16,6 +18,8 @@ router.get('/', auth, async (req, res) => {
 router.post('/', auth, async (req, res) => {
   try {
     const { descripcion, monto, categoria, fecha, comentario, importe, proveedor, categoriaId, estadoPago, medioPago, fechaVencimiento } = req.body
+    const ajena = await referenciaAjena(req.propietarioId, [{ modelo: CategoriaGasto, ids: categoriaId, nombre: 'La categoría' }])
+    if (ajena) return res.status(400).json({ message: ajena })
     if (!fecha) return res.status(400).json({ message: 'La fecha es requerida' })
     const efectivo = importe ?? monto ?? 0
     const texto    = comentario || descripcion || ''
@@ -36,6 +40,8 @@ router.post('/', auth, async (req, res) => {
 router.put('/:id', auth, async (req, res) => {
   try {
     const { descripcion, monto, categoria, fecha, comentario, importe, proveedor, categoriaId, estadoPago, medioPago, fechaVencimiento } = req.body
+    const ajena = await referenciaAjena(req.propietarioId, [{ modelo: CategoriaGasto, ids: categoriaId, nombre: 'La categoría' }])
+    if (ajena) return res.status(400).json({ message: ajena })
     const efectivo = importe ?? monto ?? 0
     const texto    = comentario || descripcion || ''
     const gasto = await Gasto.findOneAndUpdate(

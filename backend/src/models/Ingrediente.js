@@ -9,7 +9,7 @@ const ingredienteSchema = new mongoose.Schema({
   merma:        { type: Number, default: 0 },
   controlStock: { type: Boolean, default: false },
   categoria:    { type: String, default: 'Varios', trim: true },
-  usuario:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  usuario:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
 }, { timestamps: true })
 
 module.exports = mongoose.model('Ingrediente', ingredienteSchema)

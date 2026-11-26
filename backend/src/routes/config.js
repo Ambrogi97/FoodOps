@@ -21,6 +21,10 @@ const upload = multer({
   },
 })
 
+// Las suscripciones a notificaciones del dueño (direcciones y claves de su navegador) no salen
+// al cliente: cualquier empleado puede leer esta configuración y nadie las necesita en pantalla.
+const sinDatosPrivados = c => { const o = c.toObject(); delete o.pushSuscripciones; return o }
+
 // ── Config tienda ─────────────────────────────────────────────────────────────
 
 router.get('/tienda', auth, async (req, res) => {
@@ -29,7 +33,7 @@ router.get('/tienda', auth, async (req, res) => {
     if (!config) {
       config = await ConfigTienda.create({ usuario: req.propietarioId, habilitado: false, horarios: DIAS_DEFAULT })
     }
-    res.json(config)
+    res.json(sinDatosPrivados(config))
   } catch (e) {
     return responderError(req, res, e)
   }
@@ -46,9 +50,9 @@ router.put('/tienda', auth, async (req, res) => {
     const config = await ConfigTienda.findOneAndUpdate(
       { usuario: req.propietarioId },
       { $set: update },
-      { new: true, upsert: true }
+      { returnDocument: 'after', upsert: true }
     )
-    res.json(config)
+    res.json(sinDatosPrivados(config))
   } catch (e) {
     return responderError(req, res, e)
   }

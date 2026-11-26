@@ -84,7 +84,7 @@ router.get('/', auth, async (req, res) => {
     const [ventas, gastos, mesas, pedidos, config] = await Promise.all([
       ver.ventas ? Venta.find({ usuario: uid, estado: { $ne: 'en_curso' }, createdAt: { $gte: desde } }).select('inicio cierre items personas').lean() : [],
       ver.gastos ? Gasto.find({ usuario: uid, createdAt: { $gte: desde } }).select('fecha importe monto').lean() : [],
-      ver.salon  ? Mesa.find({ usuario: uid }).select('numero estado personas hora items zona').populate('zona', 'label').sort('numero').lean() : [],
+      ver.salon  ? Mesa.find({ usuario: uid }).select('numero estado personas hora items zona').populate({ path: 'zona', select: 'label', match: { usuario: uid } }).sort('numero').lean() : [],
       ver.online ? PedidoOnline.find({ usuario: uid, estado: { $ne: 'entregado' } }).sort('-createdAt').limit(30).lean() : [],
       ver.ventas ? ConfigTienda.findOne({ usuario: uid }).select('metaVentasMensual').lean() : null,
     ])

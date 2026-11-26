@@ -2,7 +2,10 @@ const express  = require('express')
 const router   = express.Router()
 const { responderError } = require('../utils/security')
 const auth     = require('../middleware/auth')
+const { referenciaAjena } = require('../utils/pertenencia')
 const Producto = require('../models/Producto')
+const Categoria   = require('../models/Categoria')
+const Ingrediente = require('../models/Ingrediente')
 
 router.get('/', auth, async (req, res) => {
   try {
@@ -18,6 +21,11 @@ router.post('/', auth, async (req, res) => {
     const { nombre, categoria, precio, costo, imagen, descripcion,
       areaImpresion, controlStock, venderSinStock, permitirVenderSolo,
       tiempoPrepMin, receta, activo } = req.body
+    const ajena = await referenciaAjena(req.propietarioId, [
+      { modelo: Categoria, ids: categoria, nombre: 'La categoría' },
+      { modelo: Ingrediente, ids: Array.isArray(receta) ? receta.map(r => r?.ingredienteId) : [], nombre: 'Un ingrediente de la receta' },
+    ])
+    if (ajena) return res.status(400).json({ message: ajena })
     if (!nombre?.trim() || !categoria || precio == null)
       return res.status(400).json({ message: 'Faltan campos requeridos' })
     if (await Producto.countDocuments({ usuario: req.propietarioId }) >= 2000)
@@ -47,6 +55,11 @@ router.put('/:id', auth, async (req, res) => {
     const { nombre, categoria, precio, costo, imagen, descripcion,
       areaImpresion, controlStock, venderSinStock, permitirVenderSolo,
       tiempoPrepMin, receta, activo } = req.body
+    const ajena = await referenciaAjena(req.propietarioId, [
+      { modelo: Categoria, ids: categoria, nombre: 'La categoría' },
+      { modelo: Ingrediente, ids: Array.isArray(receta) ? receta.map(r => r?.ingredienteId) : [], nombre: 'Un ingrediente de la receta' },
+    ])
+    if (ajena) return res.status(400).json({ message: ajena })
     const producto = await Producto.findOneAndUpdate(
       { _id: req.params.id, usuario: req.propietarioId },
       {

@@ -9,7 +9,7 @@ const categoriaGastoSchema = new mongoose.Schema({
   },
   activo:  { type: Boolean, default: true },
   parent:  { type: mongoose.Schema.Types.ObjectId, ref: 'CategoriaGasto', default: null },
-  usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
 }, { timestamps: true })
 
 module.exports = mongoose.model('CategoriaGasto', categoriaGastoSchema)

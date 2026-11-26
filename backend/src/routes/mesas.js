@@ -2,7 +2,9 @@ const express = require('express')
 const router  = express.Router()
 const { responderError } = require('../utils/security')
 const auth    = require('../middleware/auth')
+const { referenciaAjena } = require('../utils/pertenencia')
 const Mesa    = require('../models/Mesa')
+const Zona    = require('../models/Zona')
 
 router.get('/', auth, async (req, res) => {
   try {
@@ -19,7 +21,10 @@ router.post('/bulk', auth, async (req, res) => {
     if (!Array.isArray(mesas) || mesas.length === 0) {
       return res.status(400).json({ message: 'Se requiere un array de mesas' })
     }
-    const docs = mesas.map(m => ({ ...m, usuario: req.propietarioId }))
+    if (mesas.length > 200) return res.status(400).json({ message: 'Máximo 200 mesas por vez' })
+    const ajena = await referenciaAjena(req.propietarioId, [{ modelo: Zona, ids: mesas.map(m => m?.zona), nombre: 'La zona' }])
+    if (ajena) return res.status(400).json({ message: ajena })
+    const docs = mesas.map(({ numero, zona, col, row }) => ({ numero, zona, col, row, usuario: req.propietarioId }))
     const result = await Mesa.insertMany(docs)
     res.status(201).json(result)
   } catch (e) {
@@ -30,6 +35,8 @@ router.post('/bulk', auth, async (req, res) => {
 router.post('/', auth, async (req, res) => {
   try {
     const { numero, zona, col, row } = req.body
+    const ajena = await referenciaAjena(req.propietarioId, [{ modelo: Zona, ids: zona, nombre: 'La zona' }])
+    if (ajena) return res.status(400).json({ message: ajena })
     const mesa = await Mesa.create({ numero, zona, col, row, usuario: req.propietarioId })
     res.status(201).json(mesa)
   } catch (e) {

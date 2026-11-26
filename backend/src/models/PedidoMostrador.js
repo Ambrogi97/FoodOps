@@ -15,7 +15,7 @@ const pedidoMostradorSchema = new mongoose.Schema({
   estado:     { type: String, default: 'en_curso', enum: ['en_curso', 'cerrada'] },
   cliente:    { type: String, default: '' },
   metodoPago: { type: String, default: '' },
-  usuario:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  usuario:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
 }, { timestamps: true })
 
 module.exports = mongoose.model('PedidoMostrador', pedidoMostradorSchema)

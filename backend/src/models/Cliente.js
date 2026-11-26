@@ -11,7 +11,7 @@ const clienteSchema = new mongoose.Schema({
   origen:           { type: String, default: 'Local', enum: ['Local', 'Online', 'App', 'Delivery'] },
   grupo:            { type: String, default: '', trim: true },
   activo:           { type: Boolean, default: true },
-  usuario:          { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  usuario:          { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
 }, { timestamps: true })
 
 module.exports = mongoose.model('Cliente', clienteSchema)

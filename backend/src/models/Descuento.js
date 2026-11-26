@@ -8,7 +8,7 @@ const descuentoSchema = new mongoose.Schema({
   vecesUsado: { type: Number, default: 0 },
   montoUsado: { type: Number, default: 0 },
   ultimaVez:  { type: Date, default: null },
-  usuario:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  usuario:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
 }, { timestamps: true })
 
 module.exports = mongoose.model('Descuento', descuentoSchema)

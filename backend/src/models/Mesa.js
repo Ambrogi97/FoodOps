@@ -17,7 +17,7 @@ const mesaSchema = new mongoose.Schema({
   hora:     { type: String, default: null },
   personas: { type: Number, default: null },
   items:    { type: [itemSchema], default: [] },
-  usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
 }, { timestamps: true })
 
 module.exports = mongoose.model('Mesa', mesaSchema)

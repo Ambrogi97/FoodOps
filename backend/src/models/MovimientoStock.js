@@ -6,7 +6,7 @@ const movimientoSchema = new mongoose.Schema({
   cantidad:     { type: Number, required: true, min: 0 },
   descripcion:  { type: String, trim: true, default: '' },
   fecha:        { type: String, required: true },
-  usuario:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  usuario:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
 }, { timestamps: true })
 
 module.exports = mongoose.model('MovimientoStock', movimientoSchema)

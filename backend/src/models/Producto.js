@@ -23,7 +23,7 @@ const productoSchema = new mongoose.Schema({
   stockActual:        { type: Number, default: 0 },
   receta:             { type: [recetaItemSchema], default: [] },
   opciones:           { type: [{ grupo: String, items: [{ label: String, precio: { type: Number, default: 0 } }] }], default: [] },
-  usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
 }, { timestamps: true })
 
 module.exports = mongoose.model('Producto', productoSchema)

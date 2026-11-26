@@ -27,7 +27,7 @@ const pedidoDeliverySchema = new mongoose.Schema({
     default: 'en_preparacion',
     enum: ['en_preparacion', 'listo_para_entregar', 'enviado', 'entregado'],
   },
-  usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
 }, { timestamps: true })
 
 module.exports = mongoose.model('PedidoDelivery', pedidoDeliverySchema)

@@ -4,7 +4,7 @@ const categoriaSchema = new mongoose.Schema({
   nombre:            { type: String, required: true, trim: true },
   areaImpresion:     { type: String, default: '' },
   tiempoPrepDefecto: { type: Number, default: 0 },
-  usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
 }, { timestamps: true })
 
 module.exports = mongoose.model('Categoria', categoriaSchema)

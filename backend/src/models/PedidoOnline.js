@@ -7,7 +7,7 @@ const itemSchema = new mongoose.Schema({
 }, { _id: false })
 
 const pedidoOnlineSchema = new mongoose.Schema({
-  usuario:          { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  usuario:          { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   items:            { type: [itemSchema], required: true },
   tipo:             { type: String, enum: ['mesa', 'takeaway', 'delivery'], required: true },
   mesaNumero:       { type: String, default: '' },
