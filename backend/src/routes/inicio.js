@@ -10,7 +10,7 @@ const Gasto        = require('../models/Gasto')
 const Mesa         = require('../models/Mesa')
 const PedidoOnline = require('../models/PedidoOnline')
 const ConfigTienda = require('../models/ConfigTienda')
-const Role         = require('../models/Role')
+const { permisosDeRol } = require('../utils/roles')
 const { responderError } = require('../utils/security')
 
 const DIA_MS = 86_400_000
@@ -33,8 +33,7 @@ const importe = g => Number(g.importe || g.monto || 0)
 async function permisosInicio(req) {
   const todo = { ventas: true, gastos: true, salon: true, online: true }
   if (!req.usuario.cuentaPadreId) return todo
-  const role = await Role.findOne({ propietarioId: req.usuario.cuentaPadreId, key: req.usuario.role }).select('permisos').lean()
-  const p = new Set(role?.permisos || [])
+  const p = new Set(await permisosDeRol(req.usuario.cuentaPadreId, req.usuario.role))
   const alguno = (...xs) => xs.some(x => p.has(x))
   return {
     ventas: alguno('Ver Ventas', 'Ver Finanzas', 'Ver Reportes'),
